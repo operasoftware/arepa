@@ -1,8 +1,0 @@
-data/Arepa/PackageDb.pm.i
-data/arepa.pl.i
-data/database-api.i
-data/t/001-source_packages.t.i
-data/t/002-compilation_queue.t.i
-data/t/compilation_queue_test.db.i
-data/t/source_pacakges_test.db.i
-data/t/source_packages_test.db.i
