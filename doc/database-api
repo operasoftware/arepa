@@ -1,0 +1,74 @@
+my $package_db = Arepa::PackageDb->new($path);
+
+# Someone uploads a package with arch = any and distribution = unstable
+# In that moment, arepa queues compilation for the given architecture (if it's
+# "any", then the list of architectures taken from the repo's 'distributions'
+# config file) and the distributions that canonical distributions for builders
+# taking care of the given distribution and arch.
+# Eg.:
+# Assuming archs = (i386, amd64) and three builders:
+# * builder1 (arch: i386,  distro: foo-stable,  other-distros: unstable)
+# * builder2 (arch: amd64, distro: foo-stable,  other-distros: unstable)
+# * builder3 (arch: i386,  distro: foo-testing, other-distros: unstable)
+# A package 'foo' for distribution 'unstable' and architecture 'any', will
+# produce these queue compilation requests:
+# * arch: i386,  distro: foo-stable
+# * arch: amd64, distro: foo-stable
+# * arch: i386,  distro: foo-testing
+
+my $source_id = $package_db->get_source_package_id($name, $full_version);
+my %source_package = $package_db->get_source_package_by_id($source_id);
+# %source_package = (id           => 1,
+#                    name         => 'dhelp',
+#                    full_version => '0.6.17',
+#                    architecture => 'all',
+#                    distribution => 'unstable');
+my $source_id = $package_db->insert_source_package(name         => 'dhelp',
+                                                   full_version => '0.6.18',
+                                                   architecture => 'all',
+                                                   distribution => 'unstable');
+
+# Add a compilation request to the queue. It will use status 'pending' and will
+# set the compilation_requested_at field to the given $timestamp or the current
+# moment
+$package_db->request_compilation($source_id,
+                                 $arch,
+                                 $distribution);
+$package_db->request_compilation($source_id,
+                                 $arch,
+                                 $distribution,
+                                 $timestamp);
+
+@queue = $package_db->get_compilation_queue
+# @queue = ({id                => 666,
+#            source_package_id => 1,
+#            architecture      => 'i386',
+#            distribution      => 'foo-stable',
+#            builder           => undef,
+#            status            => 'pending',
+#            compilation_requested_at => 'some date'},
+#           {id                => 667,
+#            source_package_id => 1,
+#            architecture      => 'amd64',
+#            distribution      => 'foo-stable',
+#            builder           => undef,
+#            status            => 'pending',
+#            compilation_requested_at => 'some date'});
+@queue = $package_db->get_compilation_queue(status => 'compilationfailed');
+@queue = $package_db->get_compilation_queue(status => 'compiling');
+
+# Marking compilation as started (will change status to 'compiling' and will
+# set the builder to the given one)
+$package_db->mark_compilation_started($compilation_id,
+                                      $builder_name);
+$package_db->mark_compilation_started($compilation_id,
+                                      $builder_name,
+                                      $timestamp);
+
+# Marking compilation as completed (will change status to 'compiled')
+$package_db->mark_compilation_completed($compilation_id);
+$package_db->mark_compilation_completed($compilation_id, $timestamp);
+
+# Marking compilation as failed (will change status to 'compilationfailed')
+$package_db->mark_compilation_failed($compilation_id);
+$package_db->mark_compilation_failed($compilation_id, $timestamp);

@@ -1,0 +1,58 @@
+CHROOTDIR=/srv/chroot/lenny
+CHROOTNAME=lenny
+MIRRORURL=http://ftp.uk.debian.org/debian/
+
+# When installing the 'arepa' package:
+# * Create a user arepa-master
+# * Make that user part of the group 'sbuild'
+# * /etc/apache2/sites-available/arepa-internal-repository will be part of the
+#   package. There has to be a notice somewhere that it has to be activated, or
+#   a similar configuration has to be converted to a different webserver
+# Alias /arepa-repository /var/arepa/repository
+# <Location /arepa-repository>
+#     Options +Indexes
+# </Location>
+# <Location /arepa-repository/conf>
+#     Order Deny,Allow
+#     Deny From All
+# </Location>
+# <Location /arepa-repository/db>
+#     Order Deny,Allow
+#     Deny From All
+# </Location>
+# # Maybe add something about only accessing from the same host? At least,
+# # commented out
+# * Create the reprepro configuration file
+# /var/arepa/repository/conf/distributions?
+
+
+# Steps to create a new builder:
+# * Have to give some option for the type of builder (schroot or other)
+# * Have to give some option for the "personality", at least for schroot
+# The sources.list might need some tweaking afterwards (distribution name or
+# URL for the local repo)
+chroot $CHROOTDIR aptitude install fakeroot # CHECK IF IT'S REALLY NECESSARY!
+echo "
+    [$CHROOTNAME]
+    description=Arepa autobuilder $CHROOTNAME
+    location=$CHROOTDIR
+    priority=3
+    root-groups=sbuild
+    # groups=sbuild-security
+    groups=sbuild
+    #aliases=testing
+    run-setup-scripts=false
+    run-exec-scripts=false
+    #personality=linux32" >/etc/schroot/chroot.d/$CHROOTNAME
+
+
+# Steps for /etc/init.d/arepa start
+# Go through all the 'schroot'-type builders and:
+# * Find the directory they're in (have to squash /etc/schroot/schroot.conf and
+#   /etc/schroot/chroot.d/* in a single file, then load it with Config::Tiny).
+# * "Initialise" the schroot in the given directory, which will execute the two
+#   actions below (see the two 'for' loops above)
+#   * Make sure all the appropriate paths are present (/build and
+#     /var/lib/sbuild/srcdep-lock). Make them group-writable and 'sbuild' group
+#   * Mount-bind the appropriate paths (/etc/resolv.conf, /etc/gshadow,
+#     /etc/group, /etc/shadow, /etc/passwd), making sure they exist first
