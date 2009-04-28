@@ -9,7 +9,7 @@ upload_queue:
 # SQLite package database with states ('pending', 'compiling', 'compiled',
 # 'compilationfailed'), architecture ('source', 'all', 'amd64', etc.),
 # timestamps, etc.
-package_db: /home/zoso/src/apt-web/package.db
+package_db: t/test-package.db
 web_ui:
   template_dir: /home/zoso/src/apt-web/repo-tools-web/templates/
 builders:

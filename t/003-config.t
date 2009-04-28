@@ -9,7 +9,7 @@ use constant TEST_CONFIG_FILE => 't/config-test.yml';
 
 my $c = Arepa::Config->new(TEST_CONFIG_FILE);
 is($c->get_key('package_db'),
-   "/home/zoso/src/apt-web/package.db",
+   "t/test-package.db",
    "Simple configuration keys should work");
 is($c->get_key('upload_queue:path'),
    '/home/zoso/src/apt-web/incoming',
