@@ -13,8 +13,9 @@ sub new {
 
     my $config = Arepa::Config->new($config_path);
     my $self = bless {
-        config     => $config,
-        package_db => Arepa::PackageDb->new($config->get_key('package_db')),
+        config_path => $config_path,
+        config      => $config,
+        package_db  => Arepa::PackageDb->new($config->get_key('package_db')),
     }, $class;
 
     return $self;
@@ -57,11 +58,19 @@ sub request_package_compilation {
 }
 
 sub get_compilation_targets {
-    my ($self, $package_db, $source_id) = @_;
+    my ($self, $source_id) = @_;
 
-    my %source_package_attrs = $package_db->get_source_package_by_id($source_id);
-    my @builders = get_matching_builders($source_package_attrs{architecture},
-                                         $source_package_attrs{distribution});
+    my %source_attrs = $self->{package_db}->get_source_package_by_id($source_id);
+    my @builders = $self->get_matching_builders($source_attrs{architecture},
+                                                $source_attrs{distribution});
+    return map {
+               my %builder_config = $self->{config}->get_builder_config($_);
+               $source_attrs{architecture} eq 'any' ?
+                   [$builder_config{architecture},
+                    $builder_config{distribution}]  :
+                   [$source_attrs{architecture},
+                    $builder_config{distribution}];
+           } @builders;
 }
 
 sub get_matching_builders {
@@ -79,34 +88,34 @@ sub get_matching_builders {
 
     # Get builders that match *both*:
     return map {
-                    $_->{name}
+                $_->{name}
+           }
+           # 1) the architecture in 'architecture' (or 'all' if applicable)
+           grep {
+               my $bi      = $_;
+               my @barchs  = $bi->{architecture};
+               if ($bi->{architecture_all}) {
+                   push @barchs, 'all';
                }
-               # 1) one of the @archs in 'architectures' and
-               grep {
-                        my $bi      = $_;
-                        my @barchs  = $bi->{architecture};
-                        if ($bi->{architecture_all}) {
-                            push @barchs, 'all';
-                        }
-                        my $matches = 0;
-                        foreach my $a (@archs) {
-                            if (grep { $a eq $_ } @barchs) {
-                                $matches = 1;
-                            }
-                        }
-                        $matches;
-                    }
-                    # 2) the $distro in *either* 'distribution' or
-                    #    'other_distributions'
-                    grep {
-                            my @bdistros = ref $_->{other_distributions} eq 'ARRAY' ?
-                                            @{$_->{other_distributions}} :
-                                            $_->{other_distributions};
+               my $matches = 0;
+               foreach my $a (@archs) {
+                   if (grep { $a eq $_ } @barchs) {
+                       $matches = 1;
+                   }
+               }
+               $matches;
+           }
+           # 2) the $distro in *either* 'distribution' or
+           #    'other_distributions'
+           grep {
+               my @bdistros = ref($_->{other_distributions}) eq 'ARRAY' ?
+               @{$_->{other_distributions}} :
+               $_->{other_distributions};
 
-                            $distro eq $_->{distribution} ||
-                                grep { $distro eq $_ } @bdistros;
-                         }
-                         @builder_information;
+               $distro eq $_->{distribution} ||
+               grep { $distro eq $_ } @bdistros;
+           }
+           @builder_information;
 }
 
 sub get_repository_architectures {
@@ -120,6 +129,11 @@ sub get_repository_architectures {
         }
     }
     return @archs;
+}
+
+sub insert_source_package {
+    my ($self, @args) = @_;
+    $self->{package_db}->insert_source_package(@args);
 }
 
 1;

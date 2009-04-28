@@ -1,0 +1,41 @@
+---
+# Where the repo is
+repository:
+  path: t/repo-test
+# Where the upload queue is (some anonymous FTP upload directory, or
+# SSH-accesible queue or whatever)
+upload_queue:
+  path: /home/zoso/src/apt-web/incoming
+# SQLite package database with states ('pending', 'compiling', 'compiled',
+# 'compilationfailed'), architecture ('source', 'all', 'amd64', etc.),
+# timestamps, etc.
+package_db: t/compilation-targets-package.db
+web_ui:
+  template_dir: /home/zoso/src/apt-web/repo-tools-web/templates/
+builders:
+  - name: lenny64
+    type: sbuild
+    # a new source package for this architecture (and distribution, see below)
+    # will trigger a build with this builder
+    architecture: amd64
+    # Also compile packages for architecture 'all'
+    architecture_all: yes
+    # a new source package with any of these distributions in the *.changes
+    # file (and architectures, see above) will trigger a build with this
+    # builder. Also, packages compiled in this builder will be part of the
+    # distribution specified in 'distribution'
+    distribution: lenny-opera
+    other_distributions: [lenny, unstable]
+  - name: lenny32
+    type: sbuild
+    architecture: i386
+    # note that if more than one builder specifies "unstable", any package
+    # saying "unstable" in its changelog will be compiled for several
+    # distributions
+    distribution: lenny-opera
+    other_distributions: [lenny, unstable]
+  - name: etch32
+    type: sbuild
+    architecture: i386
+    distribution: etch-opera
+    other_distributions: [etch, unstable]
