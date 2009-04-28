@@ -2,14 +2,23 @@
 
 use strict;
 use warnings;
+use Carp;
 use File::Basename;
 use File::Path;
 use File::chmod;
 use File::Find;
 
 use Arepa::Config;
+use Arepa::Builder;
 
 use constant AREPA_MASTER_USER => 'arepa-master';
+
+sub print_info {
+    my ($msg) = @_;
+
+    my $len = length $msg;
+    print $msg, " ", "=" x (78 - 1 - $len), "\n";
+}
 
 my ($command, @args) = @ARGV;
 if (scalar @ARGV == 0) {
@@ -27,7 +36,11 @@ if ($command eq 'createbuilder') {
     }
 
     my $chroot_name = basename($builder_dir);
-    my $debootstrap_cmd = "debootstrap --variant=buildd $distribution $builder_dir $mirror";
+
+    # TODO XXX Check if the chroot exists already
+
+    print_info "Creating base chroot";
+    my $debootstrap_cmd = "debootstrap --variant=buildd $distribution '$builder_dir' $mirror";
     my $r = system($debootstrap_cmd);
     if ($r != 0) {
         print STDERR "Error executing debootstrap: error code $r\n";
@@ -36,6 +49,7 @@ if ($command eq 'createbuilder') {
     }
 
     # Create appropriate /etc/apt/sources.list
+    print_info "Creating default sources.list";
     open SOURCESLIST, ">$builder_dir/etc/apt/sources.list" or
         do {
             print STDERR "Couldn't write to /etc/apt/sources.list";
@@ -50,7 +64,11 @@ EOSOURCES
 
     # Make sure certain directories exist and are writable by the 'sbuild'
     # group
+    print_info "Creating build directories";
     my ($login, $pass, $uid, $gid) = getpwnam(AREPA_MASTER_USER);
+    if (!defined $login) {
+        croak "'" . AREPA_MASTER_USER . "' user doesn't exist!";
+    }
     foreach my $dir (qw(build var/lib/sbuild/srcdep-lock)) {
         my $full_path = "$builder_dir/$dir";
         unless (-d $full_path) {
@@ -64,5 +82,36 @@ EOSOURCES
         }
     }
 
+    print_info "Binding files";
     Arepa::Builder::init_builder($builder_dir);
+
+    print_info "Installing fakeroot";
+    system("chroot '$builder_dir' apt-get -y --force-yes install fakeroot");
+
+    my $schroot_file = "/etc/schroot/chroot.d/$chroot_name";
+    my $schroot_content = <<EOCONTENT;
+[$chroot_name]
+description=Arepa autobuilder $chroot_name
+location=$builder_dir
+priority=3
+root-groups=sbuild
+# groups=sbuild-security
+groups=sbuild
+#aliases=testing
+run-setup-scripts=false
+run-exec-scripts=false
+#personality=linux32"
+EOCONTENT
+    print_info "Creating schroot file ($schroot_file)";
+    if (open F, ">$schroot_file") {
+        print F $schroot_content;
+        close F;
+    }
+    else {
+        print STDERR "Couldn't write to file $schroot_file. Check permissions\n";
+        print STDERR "This is the content that should be in it:\n";
+        print STDERR "---------------------- 8< ----------------------\n";
+        print STDERR $schroot_content;
+        print STDERR "---------------------- >8 ----------------------\n";
+    }
 }

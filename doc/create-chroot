@@ -31,19 +31,6 @@ MIRRORURL=http://ftp.uk.debian.org/debian/
 # * Have to give some option for the "personality", at least for schroot
 # The sources.list might need some tweaking afterwards (distribution name or
 # URL for the local repo)
-chroot $CHROOTDIR aptitude install fakeroot # CHECK IF IT'S REALLY NECESSARY!
-echo "
-    [$CHROOTNAME]
-    description=Arepa autobuilder $CHROOTNAME
-    location=$CHROOTDIR
-    priority=3
-    root-groups=sbuild
-    # groups=sbuild-security
-    groups=sbuild
-    #aliases=testing
-    run-setup-scripts=false
-    run-exec-scripts=false
-    #personality=linux32" >/etc/schroot/chroot.d/$CHROOTNAME
 
 
 # Steps for /etc/init.d/arepa start
