@@ -160,15 +160,40 @@ sub get_compilation_queue {
     return @queue;
 }
 
+sub get_compilation_request_by_id {
+    my ($self, $compilation_id) = @_;
+
+    my $fields = join(", ", COMPILATION_QUEUE_FIELDS);
+    my $sth = $self->_dbh->prepare("SELECT $fields
+                                      FROM compilation_queue
+                                     WHERE id = ?");
+    $sth->execute($compilation_id);
+    $sth->bind_columns(\my $source_id, \my $arch, \my $distro,
+                       \my $builder,   \my $stat, \my $requested_at);
+    my @queue = ();
+    if ($sth->fetch) {
+        $sth->finish;
+        return (id                       => $compilation_id,
+                source_package_id        => $source_id,
+                architecture             => $arch,
+                distribution             => $distro,
+                builder                  => $builder,
+                status                   => $stat,
+                compilation_requested_at => $requested_at);
+    }
+    return;
+}
+
 sub mark_compilation_started {
-    my ($self, $compilation_id, $tstamp) = @_;
+    my ($self, $compilation_id, $builder, $tstamp) = @_;
     $tstamp ||= $self->default_timestamp;
 
     my $sth = $self->_dbh->prepare("UPDATE compilation_queue
                                        SET status                 = ?,
+                                           builder                = ?,
                                            compilation_started_at = ?
                                      WHERE id = ?");
-    $sth->execute('compiling', $tstamp, $compilation_id);
+    $sth->execute('compiling', $builder, $tstamp, $compilation_id);
 }
 
 sub mark_compilation_completed {

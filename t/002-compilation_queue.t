@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 28;
+use Test::More tests => 30;
 use Test::Deep;
 use Arepa::PackageDb;
 
@@ -40,6 +40,15 @@ cmp_deeply($queue1[0],
             status                   => 'pending',
             compilation_requested_at => $comp1_tstamp},
            "The first compilation should be correct");
+cmp_deeply({ $pdb->get_compilation_request_by_id($queue1[0]->{id}) },
+           {id                       => $queue1[0]->{id},
+            source_package_id        => $source_id,
+            architecture             => $comp1_arch,
+            distribution             => $comp1_dist,
+            builder                  => undef,
+            status                   => 'pending',
+            compilation_requested_at => $comp1_tstamp},
+           "Getting the compilation request by id should succeed");
 
 my ($comp2_arch, $comp2_dist, $comp2_tstamp) = ("amd64", "lenny", "20090423");
 $pdb->request_compilation($source_id,
@@ -85,7 +94,8 @@ is(scalar $pdb->get_compilation_queue(status => 'compiling', limit => 1),
 my ($comp1_id, $comp2_id) = ($queue2[0]->{id}, $queue2[1]->{id});
 
 # Mark as compiling ----------------------------------------------------------
-$pdb->mark_compilation_started($comp1_id);
+my $builder_name = 'some_builder';
+$pdb->mark_compilation_started($comp1_id, $builder_name);
 
 my @compiling_queue1 = $pdb->get_compilation_queue(status => 'compiling');
 is(scalar @compiling_queue1,
@@ -93,6 +103,8 @@ is(scalar @compiling_queue1,
    "The element being compiled should appear");
 is($compiling_queue1[0]->{id}, $comp1_id,
    "The compiled element id is correct");
+is($compiling_queue1[0]->{builder}, $builder_name,
+   "The builder name should be correct");
 my @pending_queue1 = $pdb->get_compilation_queue(status => 'pending');
 is(scalar @pending_queue1,
    1,
