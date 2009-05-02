@@ -8,10 +8,14 @@ use File::Path;
 use File::chmod;
 use File::Find;
 
+use YAML::Syck;
 use Arepa::Config;
-use Arepa::Builder;
+use Arepa::BuilderFarm;
+use Arepa::Builder::Sbuild;
 
 use constant AREPA_MASTER_USER => 'arepa-master';
+
+my $config_file = 'config.yml';
 
 sub print_info {
     my ($msg) = @_;
@@ -35,9 +39,38 @@ if ($command eq 'createbuilder') {
         exit 1;
     }
 
-    my $chroot_name = basename($builder_dir);
+    my $builder_name = basename($builder_dir);
 
-    # TODO XXX Check if the chroot exists already
+    my $schroot_file = "/etc/schroot/chroot.d/$builder_name";
+    if (-e $schroot_file) {
+        print STDERR "Builder $builder_name already exists ($schroot_file)\n";
+        exit 1;
+    }
+    my $schroot_content = <<EOCONTENT;
+[$builder_name]
+description=Arepa autobuilder $builder_name
+location=$builder_dir
+priority=3
+root-groups=sbuild
+# groups=sbuild-security
+groups=sbuild
+#aliases=testing
+run-setup-scripts=false
+run-exec-scripts=false
+#personality=linux32"
+EOCONTENT
+    print_info "Creating schroot file ($schroot_file)";
+    if (open F, ">$schroot_file") {
+        print F $schroot_content;
+        close F;
+    }
+    else {
+        print STDERR "Couldn't write to file $schroot_file. Check permissions\n";
+        print STDERR "This is the content that should be in it:\n";
+        print STDERR "---------------------- 8< ----------------------\n";
+        print STDERR $schroot_content;
+        print STDERR "---------------------- >8 ----------------------\n";
+    }
 
     print_info "Creating base chroot";
     my $debootstrap_cmd = "debootstrap --variant=buildd $distribution '$builder_dir' $mirror";
@@ -69,7 +102,7 @@ EOSOURCES
     if (!defined $login) {
         croak "'" . AREPA_MASTER_USER . "' user doesn't exist!";
     }
-    foreach my $dir (qw(build var/lib/sbuild/srcdep-lock)) {
+    foreach my $dir (qw(build var/lib/sbuild var/lib/sbuild/srcdep-lock)) {
         my $full_path = "$builder_dir/$dir";
         unless (-d $full_path) {
             mkpath $full_path;
@@ -83,35 +116,31 @@ EOSOURCES
     }
 
     print_info "Binding files";
-    Arepa::Builder::init_builder($builder_dir);
+    Arepa::Builder::Sbuild->init_builder($builder_name);
 
-    print_info "Installing fakeroot";
-    system("chroot '$builder_dir' apt-get -y --force-yes install fakeroot");
+    print_info "Installing build-essential and fakeroot";
+    system("chroot '$builder_dir' apt-get -y --force-yes install build-essential fakeroot");
 
-    my $schroot_file = "/etc/schroot/chroot.d/$chroot_name";
-    my $schroot_content = <<EOCONTENT;
-[$chroot_name]
-description=Arepa autobuilder $chroot_name
-location=$builder_dir
-priority=3
-root-groups=sbuild
-# groups=sbuild-security
-groups=sbuild
-#aliases=testing
-run-setup-scripts=false
-run-exec-scripts=false
-#personality=linux32"
-EOCONTENT
-    print_info "Creating schroot file ($schroot_file)";
-    if (open F, ">$schroot_file") {
-        print F $schroot_content;
-        close F;
-    }
-    else {
-        print STDERR "Couldn't write to file $schroot_file. Check permissions\n";
-        print STDERR "This is the content that should be in it:\n";
-        print STDERR "---------------------- 8< ----------------------\n";
-        print STDERR $schroot_content;
-        print STDERR "---------------------- >8 ----------------------\n";
-    }
+    print_info "Configuration for $config_file";
+    print "Please add the following lines to $config_file (inside the\n";
+    print "'builders' section):\n";
+    chomp(my $architecture = `dpkg-architecture -qDEB_BUILD_ARCH`);
+    $YAML::Syck::Headless = 1;
+    my $string = Dump([{name                => $builder_name,
+                        type                => 'sbuild',
+                        architecture        => $architecture,
+                        distribution        => $distribution,
+                        other_distributions => []}]);
+    # Print the string with some extra indentation so it matches the
+    # indentation of the configuration file
+    print join("\n", map { "  $_" }
+                         split("\n", $string)), "\n";
+}
+elsif ($command eq 'init') {
+    my ($builder_dir) = @args;
+    Arepa::BuilderFarm->new($config_file)->init_builders;
+}
+else {
+    print STDERR "Unknown command '$command'\n";
+    exit 1;
 }
