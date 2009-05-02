@@ -95,6 +95,29 @@ deb-src http://localhost/arepa-repository $distribution main
 EOSOURCES
     close SOURCESLIST;
 
+    # Making sure /etc/hosts includes localhost
+    print_info "Checking /etc/hosts";
+    my $full_etc_hosts_path = "$builder_dir/etc/hosts";
+    my $atime = time;
+    utime $atime, $atime, $full_etc_hosts_path;
+    if (open F, $full_etc_hosts_path) {
+        my $contents = join("", <F>);
+        close F;
+        if (! grep /localhost/, $contents) {
+            if (open F, ">$full_etc_hosts_path") {
+                print F $contents, "\n";
+                print F "127.0.0.1\tlocalhost\n";
+                close F;
+            }
+            else {
+                print STDERR "Couldn't update $full_etc_hosts_path\n";
+            }
+        }
+    }
+    else {
+        print STDERR "Couldn't check for a 'localhost' alias in $full_etc_hosts_path\n";
+    }
+
     # Make sure certain directories exist and are writable by the 'sbuild'
     # group
     print_info "Creating build directories";
