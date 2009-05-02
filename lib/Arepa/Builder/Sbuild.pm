@@ -15,7 +15,7 @@ sub get_schroot_conf {
         my $content = "";
         for my $path ('/etc/schroot/schroot.conf', glob('/etc/schroot/chroot.d/*')) {
             if (open F, $path) {
-                $content .= join("", <F>);
+                $content .= join("", <F>) . "\n";
                 close F;
             }
             else {
@@ -31,15 +31,14 @@ sub get_schroot_conf {
 sub builder_exists {
     my ($self, $builder_name) = @_;
 
-    my $schroot_conf = $self->get_schroot_conf;
-    return (defined $schroot_conf->{$builder_name});
+    return (defined $self->get_schroot_conf->{$builder_name});
 }
 
 sub get_builder_directory {
     my ($self, $builder_name) = @_;
 
     if ($self->builder_exists($builder_name)) {
-        return $schroot_conf->{$builder_name}->{location};
+        return $self->get_schroot_conf->{$builder_name}->{location};
     }
     else {
         croak "Can't find schroot information for builder '$builder_name'\n";
@@ -58,7 +57,9 @@ sub init_builder {
             my $atime = time;
             utime $atime, $atime, $full_path;
         }
-        system(qq(mount -oro,bind "/etc/$etc_file" "$full_path"));
+        my $mount_cmd = qq(mount -oro,bind "/etc/$etc_file" "$full_path");
+        print "Executing $mount_cmd\n";
+        system($mount_cmd);
     }
 }
 
