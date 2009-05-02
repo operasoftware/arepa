@@ -14,6 +14,7 @@ is($c->get_key('package_db'),
 is($c->get_key('upload_queue:path'),
    '/home/zoso/src/apt-web/incoming',
    "Nested configuration key should work");
+unlink $c->get_key('package_db');
 
 cmp_deeply([ $c->get_builders ],
            [ qw(lenny64 lenny32 etch64 etch32) ],
