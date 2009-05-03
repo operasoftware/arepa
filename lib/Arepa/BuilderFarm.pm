@@ -70,6 +70,7 @@ sub init_builder {
 
 sub compile_package {
     my ($self, $builder, $dsc_file, $result_dir) = @_;
+    $result_dir ||= '.';
 
     my $module = $self->builder_module($builder);
     my $r = $module->compile_package($builder, $dsc_file, $result_dir);
