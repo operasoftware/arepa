@@ -2,13 +2,158 @@
 
 use strict;
 use warnings;
-use Arepa::PackageDb;
-use Arepa::Config;
+use Carp;
+use Getopt::Long;
 
-# Arepa::PackageDb->new('package.db');
+use Arepa::BuilderFarm;
+use Arepa::Repository;
 
-my $config = Arepa::Config->new('config.yml');
-use Data::Dumper;
-print Dumper($config->get_builder_config('lenny32'));
-print Dumper($config->get_builder_config_key('lenny64', 'archs'));
-print $config->get_builder_config_key('lenny32', 'distribution'), "\n";
+my ($r);
+my $config_file = 'config.yml';
+
+Getopt::Long::Configure('pass_through');
+$r = GetOptions('config|c=s', \$config_file);
+if (!$r) {
+    print STDERR "Invalid global options\n";
+    exit 1;
+}
+
+my $command = shift || do {
+    print STDERR "ERROR: I need a command\n";
+    print STDERR "SYNTAX: arepa [-c|--config=config.yml] <command> [options]\n";
+    print STDERR "where <command> is one of:\n";
+    print STDERR "  build\n";
+    print STDERR "  queue\n";
+    print STDERR "  showqueue\n";
+    exit 1;
+};
+
+if ($command eq 'build') {
+    my ($pending, $recompile) = (0, undef);
+    $r = GetOptions('pending'     => \$pending,
+                    'recompile=i' => \$recompile);
+    if (!$r) {
+        print STDERR "Invalid options for build command\n";
+        exit 1;
+    }
+
+    my $farm = Arepa::BuilderFarm->new($config_file);
+    if ($pending) {
+        foreach my $request ($farm->package_db->get_compilation_queue(status => 'pending')) {
+            # Just get the first one if there are multiple matches
+            my ($builder) = $farm->get_matching_builders($request->{architecture},
+                                                         $request->{distribution});
+            my $source_pkg_id = $request->{source_package_id};
+            my %source_attrs  = $farm->package_db->get_source_package_by_id($source_pkg_id);
+            $farm->package_db->mark_compilation_started($request->{id},
+                                                        $builder);
+            print "Compiling request id $request->{id}\n";
+            print "$source_attrs{name} $source_attrs{full_version} ";
+            print "(arch: $request->{architecture}, ";
+            print "distro: $request->{distribution}) ";
+            print "with builder $builder...";
+            if ($farm->compile_package($builder, "$source_attrs{name}_$source_attrs{full_version}")) {
+                print " done.\n";
+                $farm->package_db->mark_compilation_completed($request->{id});
+            }
+            else {
+                print " failed.\n";
+                $farm->package_db->mark_compilation_failed($request->{id});
+            }
+        }
+    }
+    elsif (defined $recompile) {
+        my %req = $farm->package_db->get_compilation_request_by_id($recompile);
+        my $builder = $req{builder};
+        if (!defined $builder) {
+            ($builder) = $farm->get_matching_builders($req{architecture},
+                                                      $req{distribution});
+        }
+        $farm->package_db->mark_compilation_started($recompile,
+                                                    $builder);
+        my %source_attrs  = $farm->package_db->get_source_package_by_id($req{source_package_id});
+        print "Compiling request id $req{id}\n";
+        print "$source_attrs{name} $source_attrs{full_version} ";
+        print "(arch: $req{architecture}, ";
+        print "distro: $req{distribution}) ";
+        print "with builder $builder...";
+        if ($farm->compile_package($builder, "$source_attrs{name}_$source_attrs{full_version}")) {
+            print " done.\n";
+            $farm->package_db->mark_compilation_completed($req{id});
+        }
+        else {
+            print " failed.\n";
+            print "Log:\n", $farm->last_build_log, "\n";
+            $farm->package_db->mark_compilation_failed($req{id});
+        }
+    }
+    else {
+        my ($dsc_file, $builder) = @ARGV;
+        if (!defined $dsc_file || !defined $builder) {
+            print STDERR "ERROR: Need a dsc file and a builder name\n";
+            exit 1;
+        }
+        $farm->compile_package($builder, $dsc_file, '.');
+    }
+}
+elsif ($command eq 'queue') {
+    my ($dsc_file, $distro) = @ARGV;
+    if (!defined $dsc_file) {
+        print STDERR "I need a dsc_file to queue\n";
+        exit 1;
+    }
+    $distro ||= 'unstable';
+
+    my $farm = Arepa::BuilderFarm->new($config_file);
+    my %source_attrs = (distribution => $distro);
+    open F, $dsc_file or croak("Can't open dsc file '$dsc_file'");
+    while (my $line = <F>) {
+        if ($line =~ /^Source: (.+)/) {
+            $source_attrs{name} ||= $1;
+        }
+        elsif ($line =~ /^Architecture: (.+)/) {
+            $source_attrs{architecture} ||= $1;
+        }
+        elsif ($line =~ /^Version: (.+)/) {
+            $source_attrs{full_version} ||= $1;
+        }
+    }
+    close F;
+
+    print "Source package: $source_attrs{name} $source_attrs{full_version} ";
+    print "(arch: $source_attrs{architecture}, ";
+    print "distribution: $source_attrs{distribution})\n";
+
+    # Queue the source package for compilation
+    my $source_id = $farm->register_source_package(%source_attrs);
+    $farm->request_package_compilation($source_id);
+}
+elsif ($command eq 'showqueue') {
+    my $status = 'pending';
+    $r = GetOptions('status=s'     => \$status);
+    if (!$r) {
+        print STDERR "Invalid options for 'showqueue' command\n";
+        exit 1;
+    }
+    my $config = Arepa::Config->new($config_file);
+    my $pdb = Arepa::PackageDb->new($config->get_key('package_db'));
+    foreach my $elt ($pdb->get_compilation_queue(status => $status)) {
+        my %source = $pdb->get_source_package_by_id($elt->{source_package_id});
+        print $elt->{id}, ": $source{name} $source{full_version} ";
+        print "$elt->{architecture} $elt->{distribution}\n";
+    }
+}
+else {
+    print STDERR "ERROR: Unknown command '$command'\n";
+    exit 1;
+}
+
+__END__
+arepa build --pending       # Process build queue
+arepa build <file.dsc>      # Builds the given .dsc in all relevant builders
+arepa build <file.dsc> <builder_name>
+arepa queue <file.dsc>
+arepa queue <file.dsc> <arch>
+arepa unqueue <file.dsc>
+arepa unqueue <file.dsc> <arch>
+arepa showqueue
