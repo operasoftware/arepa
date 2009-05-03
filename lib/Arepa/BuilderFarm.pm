@@ -144,11 +144,11 @@ sub get_matching_builders {
            #    'other_distributions'
            grep {
                my @bdistros = ref($_->{other_distributions}) eq 'ARRAY' ?
-               @{$_->{other_distributions}} :
-               $_->{other_distributions};
+                                   @{$_->{other_distributions}} :
+                                   $_->{other_distributions};
 
                $distro eq $_->{distribution} ||
-               grep { $distro eq $_ } @bdistros;
+                   grep { $distro eq $_ } @bdistros;
            }
            @builder_information;
 }
