@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 9;
+use Test::More tests => 12;
 use Test::Deep;
 use Arepa::BuilderFarm;
 
@@ -64,3 +64,18 @@ my $expected_targets2 = [[qw(all lenny-opera)]];
 cmp_deeply([ $bm2->get_compilation_targets($source_pkg2_id) ],
            $expected_targets2,
            "The compilation targets for arch 'all' should be right");
+
+# Request the compilation of the first source package
+is(scalar $bm2->package_db->get_compilation_queue,
+   0,
+   "The compilation queue should be empty");
+$bm2->request_package_compilation($source_pkg1_id);
+my @compilation_queue = $bm2->package_db->get_compilation_queue(status => 'pending');
+is(scalar @compilation_queue,
+   3,
+   "The compilation queue should be empty");
+$bm2->package_db->mark_compilation_started($compilation_queue[0]->{id},
+                                           'some-builder');
+is(scalar $bm2->package_db->get_compilation_queue(status => 'pending'),
+   2,
+   "The compiling package shouldn't be in the pending queue anymore");

@@ -101,7 +101,7 @@ sub compile_package_from_queue {
 sub request_package_compilation {
     my ($self, $source_id) = @_;
 
-    foreach my $target (get_compilation_targets($source_id)) {
+    foreach my $target ($self->get_compilation_targets($source_id)) {
         my ($arch, $dist) = @$target;
         $self->{package_db}->request_compilation($source_id, $arch, $dist);
     }
@@ -151,6 +151,18 @@ sub get_matching_builders {
                grep { $distro eq $_ } @bdistros;
            }
            @builder_information;
+}
+
+sub register_source_package {
+    my ($self, %source_attrs) = @_;
+
+    my $pdb = $self->package_db;
+    my $source_id = $pdb->get_source_package_id($source_attrs{name},
+                                                $source_attrs{full_version});
+    if (!defined $source_id) {
+        $source_id = $pdb->insert_source_package(%source_attrs);
+    }
+    return $source_id;
 }
 
 1;
