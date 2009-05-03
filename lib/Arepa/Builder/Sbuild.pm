@@ -3,6 +3,8 @@ package Arepa::Builder::Sbuild;
 use Carp;
 use Cwd;
 use File::Temp;
+use File::Find;
+use File::Copy;
 use Config::Tiny;
 
 my $last_build_log = undef;
@@ -74,7 +76,7 @@ sub compile_package {
         my $initial_dir = Cwd::cwd;
         chdir $tmp_dir;
 
-        my $build_cmd = "sbuild --chroot $builder_name --nolog $package_spec &>/dev/null";
+        my $build_cmd = "sbuild --chroot $builder_name --apt-update --nolog $package_spec &>/dev/null";
         my $r = system($build_cmd);
         # The build log is in the file (symlink really) 'current'
         if (open F, "current") {
