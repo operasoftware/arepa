@@ -65,7 +65,7 @@ sub init_builder {
     my ($self, $builder) = @_;
 
     my $module = $self->builder_module($builder);
-    $module->init_builder($builder);
+    $module->init($builder);
 }
 
 sub compile_package {
