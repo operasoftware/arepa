@@ -14,7 +14,7 @@ use File::Copy;
 use Config::Tiny;
 use YAML::Syck;
 
-use constant AREPA_MASTER_USER => 'arepa-master';
+use Arepa;
 
 my $last_build_log = undef;
 my $schroot_config = undef;
@@ -219,9 +219,9 @@ EOSOURCES
     # Make sure certain directories exist and are writable by the 'sbuild'
     # group
     $self->ui_module->print_info("Creating build directories");
-    my ($login, $pass, $uid, $gid) = getpwnam(AREPA_MASTER_USER);
+    my ($login, $pass, $uid, $gid) = getpwnam($Arepa::AREPA_MASTER_USER);
     if (!defined $login) {
-        croak "'" . AREPA_MASTER_USER . "' user doesn't exist!";
+        croak "'" . $Arepa::AREPA_MASTER_USER . "' user doesn't exist!";
     }
     foreach my $dir (qw(build var/lib/sbuild var/lib/sbuild/srcdep-lock)) {
         my $full_path = "$builder_dir/$dir";
