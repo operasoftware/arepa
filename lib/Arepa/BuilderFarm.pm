@@ -68,7 +68,7 @@ sub init_builder {
     $module->init($builder);
 }
 
-sub compile_package {
+sub compile_package_from_dsc {
     my ($self, $builder, $dsc_file, $result_dir) = @_;
     $result_dir ||= '.';
 
@@ -90,6 +90,7 @@ sub compile_package_from_queue {
                                      $source_attrs{name} . "_" .
                                         $source_attrs{full_version},
                                      $result_dir);
+    $self->{last_build_log} = $module->last_build_log;
     if ($r) {
         $self->mark_compilation_completed($request_id);
     }
