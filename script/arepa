@@ -37,7 +37,8 @@ if ($command eq 'build') {
         exit 1;
     }
 
-    my $farm = Arepa::BuilderFarm->new($config_file);
+    my $farm       = Arepa::BuilderFarm->new($config_file);
+    my $repository = Arepa::Repository->new($config_file);
     if ($pending) {
         foreach my $request ($farm->package_db->get_compilation_queue(status => 'pending')) {
             # Just get the first one if there are multiple matches
@@ -52,13 +53,17 @@ if ($command eq 'build') {
             print "(arch: $request->{architecture}, ";
             print "distro: $request->{distribution}) ";
             print "with builder $builder...";
-            if ($farm->compile_package($builder, "$source_attrs{name}_$source_attrs{full_version}")) {
+            if ($farm->compile_package_from_queue($builder, $request->{id})) {
                 print " done.\n";
-                $farm->package_db->mark_compilation_completed($request->{id});
+                foreach my $deb_package (glob('*.deb')) {
+                    print "Adding $deb_package to the repository\n";
+                    if ($repository->insert_binary_package($deb_package)) {
+                        unlink $deb_package;
+                    }
+                }
             }
             else {
                 print " failed.\n";
-                $farm->package_db->mark_compilation_failed($request->{id});
             }
         }
     }
@@ -77,14 +82,18 @@ if ($command eq 'build') {
         print "(arch: $req{architecture}, ";
         print "distro: $req{distribution}) ";
         print "with builder $builder...";
-        if ($farm->compile_package($builder, "$source_attrs{name}_$source_attrs{full_version}")) {
+        if ($farm->compile_package_from_queue($builder, $req{id})) {
             print " done.\n";
-            $farm->package_db->mark_compilation_completed($req{id});
+            foreach my $deb_package (glob('*.deb')) {
+                print "Adding $deb_package to the repository\n";
+                if ($repository->insert_binary_package($deb_package)) {
+                    unlink $deb_package;
+                }
+            }
         }
         else {
             print " failed.\n";
             print "Log:\n", $farm->last_build_log, "\n";
-            $farm->package_db->mark_compilation_failed($req{id});
         }
     }
     else {
@@ -93,7 +102,13 @@ if ($command eq 'build') {
             print STDERR "ERROR: Need a dsc file and a builder name\n";
             exit 1;
         }
-        $farm->compile_package($builder, $dsc_file, '.');
+        $farm->compile_package_from_dsc($builder, $dsc_file, '.');
+        foreach my $deb_package (glob('*.deb')) {
+            print "Adding $deb_package to the repository\n";
+            if ($repository->insert_binary_package($deb_package)) {
+                unlink $deb_package;
+            }
+        }
     }
 }
 elsif ($command eq 'queue') {
