@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 8;
+use Test::More tests => 11;
 use Test::Deep;
 use File::Path;
 use IO::Zlib;
@@ -44,13 +44,11 @@ cmp_deeply([ $r->get_repository_architectures ],
            "The repository architectures should be complete and not duplicated");
 
 
-# Insert a new source package into the repository
+# Insert a new source package into the repository ----------------------------
 ok($r->insert_source_package('t/upload_queue/dhelp_0.6.15.dsc', 'lenny-opera'),
    "Inserting a new source package should succeed");
 ok($r->{package_db}->get_source_package_id('dhelp', '0.6.15'),
    "After inserting the source package, it should be in the package db");
-# Read from t/repo-test/dists/lenny-opera/main/source/Sources.gz and check that
-# there's a line 'Package: dhelp'
 
 my $fh = new IO::Zlib;
 my $package_line_found    = 0;
@@ -69,3 +67,29 @@ if ($fh->open("t/repo-test/dists/lenny-opera/main/source/Sources.gz", "rb")) {
 }
 ok($package_line_found,    "Should find the package in Sources.gz");
 ok($correct_version_found, "Should find the correct version in Sources.gz");
+
+
+
+# Insert a new binary package into the repository ----------------------------
+ok($r->insert_binary_package('t/upload_queue/dhelp_0.6.15_all.deb',
+                             'lenny-opera'),
+   "Inserting a new binary package should succeed");
+
+my $binary_package_found = 0;
+my $binary_version_found = 0;
+if (open F, 't/repo-test/dists/lenny-opera/main/binary-i386/Packages') {
+    while (my $line = <F>) {
+        chomp $line;
+        if ($line eq 'Package: dhelp') {
+            $binary_package_found = 1;
+        }
+        elsif ($line eq 'Version: 0.6.15') {
+            $binary_version_found = 1;
+        }
+    }
+    close F;
+}
+ok($binary_package_found,
+   "After adding a binary package, it should be in the package list");
+ok($binary_version_found,
+   "After adding a binary package, the package version should be correct");

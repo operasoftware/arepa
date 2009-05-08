@@ -84,6 +84,14 @@ sub insert_source_package {
     }
 }
 
+sub insert_binary_package {
+    my ($self, $deb_file, $distro) = @_;
+
+    return $self->_execute_reprepro('includedeb',
+                                    $distro,
+                                    $deb_file);
+}
+
 sub _shell_escape {
     my ($self, $arg) = @_;
     $arg =~ s/'/\\'/go;
