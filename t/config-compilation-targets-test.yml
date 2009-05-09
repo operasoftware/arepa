@@ -14,7 +14,7 @@ web_ui:
   template_dir: /home/zoso/src/apt-web/repo-tools-web/templates/
 builders:
   - name: lenny64
-    type: sbuild
+    type: test
     # a new source package for this architecture (and distribution, see below)
     # will trigger a build with this builder
     architecture: amd64
@@ -27,7 +27,7 @@ builders:
     distribution: lenny-opera
     other_distributions: [lenny, unstable]
   - name: lenny32
-    type: sbuild
+    type: test
     architecture: i386
     # note that if more than one builder specifies "unstable", any package
     # saying "unstable" in its changelog will be compiled for several
@@ -35,7 +35,7 @@ builders:
     distribution: lenny-opera
     other_distributions: [lenny, unstable]
   - name: etch32
-    type: sbuild
+    type: test
     architecture: i386
     distribution: etch-opera
     other_distributions: [etch, unstable]

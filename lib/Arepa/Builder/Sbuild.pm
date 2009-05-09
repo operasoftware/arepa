@@ -16,20 +16,16 @@ use YAML::Syck;
 
 use Arepa;
 
+use base qw(Arepa::Builder);
+
 my $last_build_log = undef;
 my $schroot_config = undef;
-my $ui_module      = 'Arepa::UI::Text';
 
-sub ui_module {
-    my ($self, $module) = @_;
-    if (defined $module) {
-        $ui_module = $module;
-    }
-    eval qq(use $ui_module;);
-    return $ui_module;
+sub last_build_log {
+    return $last_build_log;
 }
 
-sub get_schroot_conf {
+sub _get_schroot_conf {
     my ($self) = @_;
 
     if (!defined $schroot_config) {
@@ -61,14 +57,14 @@ sub ensure_file_exists {
 sub builder_exists {
     my ($self, $builder_name) = @_;
 
-    return (defined $self->get_schroot_conf->{$builder_name});
+    return (defined $self->_get_schroot_conf->{$builder_name});
 }
 
 sub get_builder_directory {
     my ($self, $builder_name) = @_;
 
     if ($self->builder_exists($builder_name)) {
-        return $self->get_schroot_conf->{$builder_name}->{location};
+        return $self->_get_schroot_conf->{$builder_name}->{location};
     }
     else {
         croak "Can't find schroot information for builder '$builder_name'\n";
@@ -92,10 +88,7 @@ sub init {
     }
 }
 
-# $package_spec can be either the path to a .dsc file or a <package>_<version>
-# XXX TODO: this should have a different API so it's easy to create other kinds
-# of builder
-sub compile_package {
+sub _compile_package_from_spec {
     my ($self, $builder_name, $package_spec, $result_dir) = @_;
 
     if ($self->builder_exists($builder_name)) {
@@ -131,8 +124,20 @@ sub compile_package {
     }
 }
 
-sub last_build_log {
-    return $last_build_log;
+sub compile_package_from_dsc {
+    my ($self, $builder_name, $dsc_file, $result_dir) = @_;
+    return $self->_compile_package_from_spec($builder_name,
+                                             $dsc_file,
+                                             $result_dir);
+}
+
+sub compile_package_from_repository {
+    my ($self, $builder_name, $pkg_name, $pkg_version, $result_dir) = @_;
+    my $package_spec = $pkg_name . '_' . $pkg_version;
+
+    return $self->_compile_package_from_spec($builder_name,
+                                             $package_spec,
+                                             $result_dir);
 }
 
 sub create {

@@ -73,29 +73,33 @@ sub compile_package_from_dsc {
     $result_dir ||= '.';
 
     my $module = $self->builder_module($builder);
-    my $r = $module->compile_package($builder, $dsc_file, $result_dir);
+    my $r = $module->compile_package_from_dsc($builder,
+                                              $dsc_file,
+                                              $result_dir);
     $self->{last_build_log} = $module->last_build_log;
     return $r;
 }
 
 sub compile_package_from_queue {
     my ($self, $builder, $request_id, $result_dir) = @_;
+    $result_dir ||= '.';
 
     my %request = $self->package_db->get_compilation_request_by_id($request_id);
     $self->package_db->mark_compilation_started($request_id, $builder);
 
     my $module = $self->builder_module($builder);
     my %source_attrs = $self->package_db->get_source_package_by_id($request{source_package_id});
-    my $r = $module->compile_package($builder,
-                                     $source_attrs{name} . "_" .
-                                        $source_attrs{full_version},
-                                     $result_dir);
+    my $r = $module->compile_package_from_repository(
+                                            $builder,
+                                            $source_attrs{name},
+                                            $source_attrs{full_version},
+                                            $result_dir);
     $self->{last_build_log} = $module->last_build_log;
     if ($r) {
-        $self->mark_compilation_completed($request_id);
+        $self->package_db->mark_compilation_completed($request_id);
     }
     else {
-        $self->mark_compilation_failed($request_id);
+        $self->package_db->mark_compilation_failed($request_id);
     }
     return $r;
 }

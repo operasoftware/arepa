@@ -1,8 +1,9 @@
 use strict;
 use warnings;
 
-use Test::More tests => 12;
+use Test::More tests => 14;
 use Test::Deep;
+use File::Path;
 use Arepa::BuilderFarm;
 
 use constant TEST_CONFIG_FILE         => 't/config-test.yml';
@@ -75,7 +76,32 @@ is(scalar @compilation_queue,
    3,
    "The compilation queue should be empty");
 $bm2->package_db->mark_compilation_started($compilation_queue[0]->{id},
-                                           'some-builder');
+                                           'etch32');
 is(scalar $bm2->package_db->get_compilation_queue(status => 'pending'),
    2,
    "The compiling package shouldn't be in the pending queue anymore");
+
+
+
+
+# Actually compile packages --------------------------------------------------
+my $compilation_request_id = $compilation_queue[0]->{id};
+my $tmp_dir = 't/tmp';
+mkpath($tmp_dir);
+$bm2->compile_package_from_queue('etch32',
+                                 $compilation_request_id,
+                                 $tmp_dir);
+my @deb_files;
+opendir D, $tmp_dir;
+while (my $entry = readdir D) {
+    push @deb_files, $entry if $entry =~ /\.deb$/;
+}
+closedir D;
+ok(scalar @deb_files > 0,
+   "There should be at least one .deb package in the result directory");
+rmtree($tmp_dir);
+
+# Check that the request is marked as 'compiled'
+my @compiled_queue = $bm2->package_db->get_compilation_queue(status => 'compiled');
+is($compiled_queue[0]->{id}, $compilation_request_id,
+   "The first 'compiled' in the queue should be the one we just compiled");
