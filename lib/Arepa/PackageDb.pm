@@ -345,3 +345,7 @@ Marks the given compilation request as failed.  If C<$timestamp> is passed,
 that timestamp is used. Otherwise, the current time.
 
 =back
+
+=head1 SEE ALSO
+
+C<Arepa::BuilderFarm>, C<Arepa::Repository>.

@@ -141,3 +141,7 @@ Returns the value for the given configuration C<$key> for the given
 C<$builder_name>.
 
 =back
+
+=head1 SEE ALSO
+
+C<Arepa::BuilderFarm>, C<Arepa::Repository>.
