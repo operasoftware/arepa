@@ -5,7 +5,6 @@ use warnings;
 
 use Carp qw(croak);
 
-use lib qw(../Parse-Debian-Changes/trunk/lib/);
 use Parse::Debian::PackageDesc;
 use Arepa::Config;
 use Arepa::PackageDb;
