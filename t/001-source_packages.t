@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 11;
+use Test::More tests => 16;
 use Arepa::PackageDb;
 
 use constant TEST_DATABASE => 't/source_packages_test.db';
@@ -39,6 +39,20 @@ foreach my $attr (qw(name full_version architecture distribution)) {
     is($new_attrs_from_db{$attr}, $new_attrs{$attr},
        "Attribute '$attr' should be '$new_attrs{$attr}' " .
             "(was '$new_attrs_from_db{$attr}')");
+}
+
+# Try to insert the same source package again, with different properties
+my $id3 = $pdb->insert_source_package(name         => $new_attrs{name},
+                                      full_version => $new_attrs{full_version},
+                                      architecture => 'amd64',
+                                      distribution => 'unstable');
+is($id3, $new_id,
+   "Trying to insert a new source package should just return the same id");
+my %new_attrs_from_db_again = $pdb->get_source_package_by_id($new_id);
+foreach my $attr (qw(name full_version architecture distribution)) {
+    is($new_attrs_from_db_again{$attr}, $new_attrs{$attr},
+       "Attribute '$attr' should be '$new_attrs{$attr}' " .
+            "(was '$new_attrs_from_db_again{$attr}')");
 }
 
 
