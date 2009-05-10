@@ -27,21 +27,21 @@ is($r->get_config_key('upload_queue:path'),
    "Nested configuration key should work");
 unlink $r->get_config_key('package_db');
 
-my $expected_repositories = [{ codename      => 'lenny-opera',
-                               components    => 'main',
-                               architectures => 'source i386 amd64',
-                               suite         => 'Lenny',
-                               version       => '5.0'},
-                             { codename      => 'etch-opera',
-                               components    => 'main',
-                               architectures => 'i386',
-                               origin        => 'Opera'}];
-cmp_deeply([ $r->get_repositories ],
-           $expected_repositories,
-           "Repository information should be correct");
-cmp_deeply([ $r->get_repository_architectures ],
+my $expected_distributions = [{ codename      => 'lenny-opera',
+                                components    => 'main',
+                                architectures => 'source i386 amd64',
+                                suite         => 'Lenny',
+                                version       => '5.0'},
+                              { codename      => 'etch-opera',
+                                components    => 'main',
+                                architectures => 'i386',
+                                origin        => 'Opera'}];
+cmp_deeply([ $r->get_distributions ],
+           $expected_distributions,
+           "Distribution information should be correct");
+cmp_deeply([ $r->get_architectures ],
            [ qw(source i386 amd64) ],
-           "The repository architectures should be complete and not duplicated");
+           "The architectures should be complete and not duplicated");
 
 
 # Insert a new source package into the repository ----------------------------

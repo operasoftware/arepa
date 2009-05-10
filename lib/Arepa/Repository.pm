@@ -27,8 +27,8 @@ sub get_config_key {
     return $self->{config}->get_key($key);
 }
 
-sub get_repositories {
-    my ($self, $key) = @_;
+sub get_distributions {
+    my ($self) = @_;
 
     my $repository_config_file = $self->get_config_key('repository:path');
     my $distributions_config_file = "$repository_config_file/conf/distributions";
@@ -36,7 +36,6 @@ sub get_repositories {
     my ($line, $repo_attrs, @repos);
     while ($line = <F>) {
         if ($line =~ /^\s*$/) {
-            use Data::Dumper;
             push @repos, $repo_attrs if %$repo_attrs;
             $repo_attrs = {};
         }
@@ -49,11 +48,11 @@ sub get_repositories {
     return @repos;
 }
 
-sub get_repository_architectures {
+sub get_architectures {
     my ($self) = @_;
 
     my @archs;
-    foreach my $repo ($self->get_repositories) {
+    foreach my $repo ($self->get_distributions) {
         foreach my $arch (split(/\s+/, $repo->{architectures})) {
             push @archs, $arch unless grep { $arch eq $_ }
                                            @archs;
@@ -132,3 +131,73 @@ sub _execute_reprepro {
 }
 
 1;
+
+__END__
+
+=head1 NAME
+
+Arepa::Repository - Arepa repository access class
+
+=head1 SYNOPSIS
+
+ my $repo = Arepa::Repository->new('path/to/config.yml');
+ my $value = $repo->get_config_key('repository:path');
+ my @distros = $repo->get_distributions;
+ my @archs = $repo->get_architectures;
+ my $bool = $repo->insert_source_package($dsc_file, $distro);
+ my $bool = $repo->insert_binary_package($deb_file, $distro);
+ my $text = $repo->last_cmd_output;
+
+=head1 DESCRIPTION
+
+This class represents a reprepro-managed APT repository. It allows you get
+information about the repository and to insert new source and binary packages
+in it.
+
+It uses the Arepa configuration to get the repository path, and the own
+repository reprepro configuration to figure out the distributions and
+architectures inside it.
+
+=head1 METHODS
+
+=over 4
+
+=item new($path)
+
+Creates a new repository access object, using the configuration file in
+C<$path>.
+
+=item get_config_key($key)
+
+Gets the configuration key C<$key> from the Arepa configuration.
+
+=item get_distributions
+
+Returns an array of hashrefs. Each hashref represents a distribution declared
+in the repository C<conf/distributions> configuration file, and contains a key for every distribution attribute.
+
+=item get_architectures
+
+Returns a list of all the architectures mentioned in any of the repository
+distributions.
+
+=item insert_source_package($dsc_file, $distribution)
+
+Inserts the source package described by the given C<$dsc_file> in the
+repository and the package database, for the fiven C<$distribution>.
+
+=item insert_binary_package($deb_file, $distribution)
+
+Inserts the given binary package C<$deb_file> in the repository, for the given
+C<$distribution>.
+
+=item last_cmd_output
+
+Returns the text output of the last executed command. This can help debugging
+problems.
+
+=back
+
+=head1 SEE ALSO
+
+C<Arepa::BuilderFarm>, C<Arepa::PackageDb>, C<Arepa::Config>.
