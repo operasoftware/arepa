@@ -50,6 +50,9 @@ sub builder_module {
     my %conf = $self->get_builder_config($builder);
     my $module = $self->builder_type_module($conf{type});
     eval "use $module;";
+    if ($@) {
+        croak "Couldn't load builder module '$module' for type '$conf{type}': $@";
+    }
     return $module;
 }
 
@@ -172,3 +175,126 @@ sub register_source_package {
 }
 
 1;
+
+__END__
+
+=head1 NAME
+
+Arepa::BuilderFarm - Arepa builder farm access class
+
+=head1 SYNOPSIS
+
+ my $repo = Arepa::BuilderFarm->new('path/to/config.yml');
+ $repo->last_build_log;
+ $repo->package_db;
+
+ my %config = $repo->get_builder_config($builder_name);
+ my $module_name = $repo->builder_type_module($type);
+ my $module_name = $repo->builder_module($builder_name);
+
+ $repo->init_builders;
+ $repo->init_builder($builder_name);
+
+ my $r = $repo->compile_package_from_dsc($builder_name,
+                                         $dsc_file,
+                                         $dir);
+ my $r = $repo->compile_package_from_queue($builder_name,
+                                           $request_id,
+                                           $dir);
+
+ $repo->request_package_compilation($source_id);
+ my @arch_distro_pairs = $repo->get_compilation_targets($source_id);
+ my @builders = $repo->get_matching_builders($architecture,
+                                             $distribution);
+
+ my $source_id = $repo->register_source_package(%source_package_attrs);
+
+=head1 DESCRIPTION
+
+This class gives access to the "builder farm", to actions like initialising the
+builders, compiling packages and calculating which builders should compile
+which packages.
+
+The builder farm uses the Arepa configuration to get the needed information.
+
+=head1 METHODS
+
+=over 4
+
+=item new($path)
+
+Creates a new builder farm access object, using the configuration file in
+C<$path>.
+
+=item last_build_log
+
+Returns the output of the last compilation attempt.
+
+=item package_db
+
+Returns a C<Arepa::PackageDb> object pointing to the package database used by
+the builder farm.
+
+=item get_builder_config($builder_name)
+
+Returns a has with the configuration for the builder C<$builder_name>.
+
+=item builder_type_module($type)
+
+Returns the module name implementing the features for the builder type
+C<$type>.
+
+=item builder_module($builder_name)
+
+Returns the module name implementing the features for the given
+C<$builder_name>.
+
+=item init_builders
+
+Initialises all the builders. It should be called once per machine boot (e.g.
+inside an init script).
+
+=item init_builder($builder_name)
+
+Initialises the builder C<$builder_name>. It should be called once per machine
+boot (e.g. inside an init script).
+
+=item compile_package_from_dsc($builder_name, $dsc_file, $dir)
+
+Compiles the source package described by the C<.dsc> file C<$dsc_file> using
+the builder C<$builder_name>, and puts the resulting C<.deb> files in the given
+C<$dir>. If a directory is not specified, they're left in the current
+directory.
+
+=item compile_package_from_queue($builder_name, $request_id, $dir)
+
+Compiles the request C<$request_id> using the builder C<$builder_name>, and
+puts the resulting C<.deb> files in the given C<$dir>. If a directory is not
+specified, they're left in the current directory.
+
+=item request_package_compilation($source_id)
+
+Adds a compilation request for the source package with id C<$source_id>.
+
+=item get_compilation_targets($source_id)
+
+Returns an array of targets for the given source package C<$source_id>. Each
+target is an arrayref with two elements: architecture and distribution.
+
+=item get_matching_builders($architecture, $distribution)
+
+Gets the builders that should compile packages for the given C<$architecture>
+and C<$distribution>.
+
+=item register_source_package(%source_package_attrs)
+
+Registers the source package with the given C<%source_package_attrs>. This
+method is seldom used, as you would normally add the source package to the
+repository first (using C<Arepa::Repository>), which automatically registers
+the source package.
+
+=back
+
+=head1 SEE ALSO
+
+C<Arepa::Repository>, C<Arepa::PackageDb>, C<Arepa::Config>.
