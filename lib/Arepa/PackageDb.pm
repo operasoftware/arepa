@@ -268,6 +268,15 @@ Arepa::PackageDb - Arepa package database API
  $pdb->mark_compilation_completed($compilation_id);
  $pdb->mark_compilation_failed($compilation_id);
 
+=head1 DESCRIPTION
+
+Arepa stores information about the available source packages and the requests
+to compile them in an SQLite 3 database. This class gives a standard and
+abstract way to access and update the information in that database.
+
+Usually this class shouldn't be used directly, but through
+C<Arepa::Repository>, C<Arepa::BuilderFarm> and others.
+
 =head1 METHODS
 
 =over 4
