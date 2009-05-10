@@ -25,13 +25,6 @@ sub new {
     return $self;
 }
 
-sub default_timestamp {
-    my ($self) = @_;
-
-    my ($sec, $min, $hour, $mday, $mon, $year) = localtime;
-    return "$year-$mon-$mday $hour:$min:$sec";
-}
-
 sub create_db {
     my ($self) = @_;
     $self->_dbh->do(<<EOSQL);
@@ -52,6 +45,13 @@ CREATE TABLE compilation_queue (id                       INTEGER PRIMARY KEY,
                                 compilation_started_at   TIMESTAMP,
                                 compilation_completed_at TIMESTAMP);
 EOSQL
+}
+
+sub default_timestamp {
+    my ($self) = @_;
+
+    my ($sec, $min, $hour, $mday, $mon, $year) = localtime;
+    return "$year-$mon-$mday $hour:$min:$sec";
 }
 
 sub _dbh {
@@ -91,20 +91,33 @@ sub insert_source_package {
     my ($self, %props) = @_;
 
     my (@fields, @field_values);
+    # Check that the props are valid
     foreach my $field (keys %props) {
         if (not grep { $_ eq $field } SOURCE_PACKAGE_FIELDS) {
             croak "Don't recognise field '$field'";
         }
     }
+    # Check that at least we have 'name' and 'full_version'
+    if (!defined $props{name} || !defined $props{full_version}) {
+        croak "At least 'name' and 'full_version' are needed in a source package\n";
+    }
 
-    my $sth = $self->_dbh->prepare("INSERT INTO source_packages (" .
-                                        join(", ", keys %props) .
-                                        ") VALUES (" .
-                                        join(", ", map { "?" } keys %props) .
-                                        ")");
-    $sth->execute(values %props);
-    return $self->_dbh->last_insert_id(undef, undef,
-                                       qw(source_packages), undef);
+    my $id = $self->get_source_package_id($props{name},
+                                          $props{full_version});
+    if (defined $id) {
+        return $id;
+    }
+    else {
+        my $sth = $self->_dbh->prepare("INSERT INTO source_packages (" .
+                                            join(", ", keys %props) .
+                                            ") VALUES (" .
+                                            join(", ", map { "?" }
+                                                           keys %props) .
+                                            ")");
+        $sth->execute(values %props);
+        return $self->_dbh->last_insert_id(undef, undef,
+                                           qw(source_packages), undef);
+    }
 }
 
 sub request_compilation {
@@ -181,7 +194,9 @@ sub get_compilation_request_by_id {
                 status                   => $stat,
                 compilation_requested_at => $requested_at);
     }
-    return;
+    else {
+        croak "Can't find any compilation request with id '$compilation_id'";
+    }
 }
 
 sub mark_compilation_started {
@@ -219,3 +234,105 @@ sub mark_compilation_failed {
 }
 
 1;
+
+__END__
+
+=head1 NAME
+
+Arepa::PackageDb - Arepa package database API
+
+=head1 SYNOPSIS
+
+ my $pdb = Arepa::PackageDb->new('path/to/packages.db');
+ %attrs = (name         => 'dhelp',
+           full_version => '0.6.17',
+           architecture => 'all',
+           distribution => 'unstable');
+ my $id = $package_db->insert_source_package(%attrs);
+ my $id2 = $package_db->get_source_package_id($name,
+                                              $full_version);
+ my %source_package = $package_db->get_source_package_by_id($id);
+
+ $pdb->request_compilation($source_id,
+                           $arch,
+                           $distribution);
+
+ @queue        = $pdb->get_compilation_queue;
+ @latest_queue = $pdb->get_compilation_queue(limit => 5);
+ @pending_queue   = $pdb->get_compilation_queue(status => 'pending');
+ @compiling_queue = $pdb->get_compilation_queue(status => 'compiling');
+
+ my %compilation_attrs = $pdb->get_compilation_request_by_id($id);
+
+ $pdb->mark_compilation_started($compilation_id, $builder_name);
+ $pdb->mark_compilation_completed($compilation_id);
+ $pdb->mark_compilation_failed($compilation_id);
+
+=head1 METHODS
+
+=over 4
+
+=item new($path)
+
+It creates a new database access object for the database in the given C<$path>.
+
+=item insert_source_package(%attrs)
+
+Inserts a new source package with the given attributes. At least C<name> and
+C<full_version> have to be given. If a package with the given C<name> and
+C<full_version> already exists, its id is returned and the rest of the
+attributes are ignored. Otherwise, the new source package is created and its id
+is returned.
+
+=item get_source_package_id($name, $full_version)
+
+Returns the id for the package with C<$name> and C<$full_version>. Returns
+C<undef> if there's no package with that name and version.
+
+=item get_source_package_by_id($source_id)
+
+Returns a hash with the attributes for the package with id C<$source_id>. If
+the given id doesn't exist, an exception is thrown.
+
+=item request_compilation($source_id, $architecture, $distribution)
+
+Inserts a new compilation request for the given C<$source_id>, C<$architecture>
+and C<$distribution>. No checks are made as to ensure that the given
+architecture and distribution match the original source package.
+
+=item get_compilation_queue(%filters)
+
+Returns a list compilation requests. Each request is a hashref with all the
+attributes. By default, all elements in the queue are returned. However,
+C<%filters> can be used to limit the number of results: a key C<status> only
+returns the requests in the given status; a key C<limit> limits the results to
+only as many as specified.
+
+=item get_compilation_request_by_id($request_id)
+
+Returns a hash with the attributes of the compilation request with the given
+C<$request_id>. If no request with the given id exists, an exception is thrown.
+
+=item mark_compilation_started($request_id, $builder_name)
+
+=item mark_compilation_started($request_id, $builder_name, $timestamp)
+
+Marks the given compilation request as started by the given C<$builder_name>.
+If C<$timestamp> is passed, that timestamp is used. Otherwise, the current
+time.
+
+=item mark_compilation_completed($request_id)
+
+=item mark_compilation_completed($request_id, $timestamp)
+
+Marks the given compilation request as finished.  If C<$timestamp> is passed,
+that timestamp is used. Otherwise, the current time.
+
+=item mark_compilation_failed($request_id)
+
+=item mark_compilation_failed($request_id, $timestamp)
+
+Marks the given compilation request as failed.  If C<$timestamp> is passed,
+that timestamp is used. Otherwise, the current time.
+
+=back
