@@ -1,0 +1,12 @@
+* Figure out how are the GPG signatures being checked now
+* Create the postinst scripts so the /var/arepa/keyrings and whatever are
+  created on package installation (see also --list-keys to create the initial
+  /var/arepa/gnupg-web directory, and the contents of the default option file
+  inside it)
+* Really rename Parse-Debian-Changes to Parse-Debian-PackageDesc (the .pm
+  itself)
+* Tell Espen to release the module on CPAN
+* Make a Debian package out of it so it can be installed, arepa can depend on
+  it, and work on the arepa Debian package can start
+* Figure out some permissions for package.db that work for both www-data and
+  arepa-master. Should package.db be created by default as an empty database?
