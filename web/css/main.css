@@ -1,0 +1,29 @@
+#topbar { margin: 0; border: 0; position: 0 0; background-color: #AAF }
+
+#logout-link { text-align: right }
+
+#incoming-package-list    { margin-left: 4em }
+
+.valid-signature          { color: #0a0 }
+.invalid-signature        { color: #a00 }
+
+.incoming-package         { margin-bottom: 3ex }
+.incoming-package-name    { font-weight: bold; font-size: large }
+.incoming-package-version { font-size: large }
+.incoming-package-info    { }
+.incoming-package-attr    {
+    display:   block;
+    font-size: small;
+}
+.incoming-package-attr-name   { clear: left }
+.incoming-package-attr-value   { clear: left }
+
+.incoming-unreadable-package {
+    margin-bottom: 3ex;
+    background-color: #ddd;
+    color: #f00;
+}
+
+.urgency-low    { color: #000; }
+.urgency-medium { color: #f80; }
+.urgency-high   { color: #f00; }

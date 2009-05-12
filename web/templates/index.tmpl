@@ -1,0 +1,63 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <title>Incoming packages</title>
+    <link rel="stylesheet" href="[% base_url %]/css/main.css" />
+</head>
+<body>
+<div id="topbar"><a id="logout-link" href="?rm=logout">Log out</a></div>
+
+<h1>Incoming (pending) packages</h1>
+
+<div id="incoming-package-list">
+[% FOREACH package = packages %]
+    <form method="post" action="pa.cgi">
+        <div class="incoming-package">
+            <span class="incoming-package-name urgency-[% package.urgency %]">[% package.name %]</span>
+            <span class="incoming-package-version">[% package.version %]</span>
+            <div class="incoming-package-info">
+                <span class="incoming-package-attr">
+                    <span class="incoming-package-attr-name">Binary packages:</span>
+                    <span class="incoming-package-attr-value">[% package.binary_packages.join(", ") %]</span>
+                </span>
+
+                <span class="incoming-package-attr">
+                    <span class="incoming-package-attr-name">Maintainer:</span>
+                    <span class="incoming-package-attr-value">[% package.maintainer | html %] [% IF package.maintainer != package.changed_by %](<em>But changed by [% package.changed_by | html %]</em>)[% END %]</span>
+                </span>
+
+                <span class="incoming-package-attr">
+                    <span class="incoming-package-attr-name">Distribution:</span>
+                    <span class="incoming-package-attr-value">[% package.distribution %]</span>
+                </span>
+
+                <span class="incoming-package-attr">
+                    <span class="incoming-package-attr-name">Signed by:</span>
+                    <span class="incoming-package-attr-value">[% IF package.signature_id %][% package.signature_id %][% ELSE %][not signed][% END %] ([% IF package.correct_signature == 1 %]<span class="valid-signature">Valid signature</span>[% ELSE %]<span class="invalid-signature">Not valid signature</span>[% END %])</span>
+                </span>
+            </div>
+
+            <input type="hidden" name="rm" value="approve" />
+            <input type="hidden" name="package" value="[% package.path %]" />
+            <input type="hidden" name="component" value="main" />
+            <input type="submit" value="Approve" />
+        </div>
+    </form>
+[% END %]
+[% FOREACH unreadable_package = unreadable_packages %]
+    <div class="incoming-unreadable-package">
+        [% unreadable_package %] [UNREADABLE]
+    </div>
+[% END %]
+</div>
+
+    <form method="post" action="">
+        [% FOREACH package = packages %]
+        <input type="hidden" name="packages" value="[% package.path %]" />
+        [% END %]
+        <input type="hidden" name="rm" value="approve_all" />
+        <input type="hidden" name="component" value="main" />
+        <input type="submit" value="Approve all" />
+    </form>
+</body>
+</html>

@@ -1,0 +1,20 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <title>Incoming packages</title>
+    <link rel="stylesheet" href="/css/main.css" />
+</head>
+<body>
+<div id="topbar"><a id="logout-link" href="?rm=logout">Log out</a></div>
+
+<h1>Error</h1>
+
+<p>Some error(s) occurred:</p>
+
+<ul>
+[% FOREACH error = errors %]
+    <li>[% error %]</li>
+[% END %]
+</ul>
+</body>
+</html>
