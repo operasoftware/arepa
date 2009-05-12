@@ -1,12 +1,16 @@
-* Figure out how are the GPG signatures being checked now
-* Create the postinst scripts so the /var/arepa/keyrings and whatever are
-  created on package installation (see also --list-keys to create the initial
-  /var/arepa/gnupg-web directory, and the contents of the default option file
-  inside it)
-* Really rename Parse-Debian-Changes to Parse-Debian-PackageDesc (the .pm
-  itself)
 * Tell Espen to release the module on CPAN
-* Make a Debian package out of it so it can be installed, arepa can depend on
-  it, and work on the arepa Debian package can start
+* Make a Debian package out of Parse-Debian-PackageDesc so it can be installed,
+  arepa can depend on it, and work on the arepa Debian package can start
+* Create the postinst scripts so /var/arepa/gnupg-web is created on package
+  installation (see --list-keys and the contents of the default option file
+  inside it)
+* Create a default keyring with the Opera key, and make it part of the
+  distribution (use it for the initial /var/arepa/keyring/uploaders.gpg)
 * Figure out some permissions for package.db that work for both www-data and
   arepa-master. Should package.db be created by default as an empty database?
+* Create some directory /var/arepa/upload-queue for the default upload queue
+  and appropriate permissions
+* See if there's any way that other users can use sbuild and stuff: maybe
+  creating the directories as arepa-master:sbuild or similar, and giving group
+  permissions too, and documenting that the user must be member of the sbuild
+  group
