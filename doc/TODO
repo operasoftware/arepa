@@ -14,3 +14,7 @@
   creating the directories as arepa-master:sbuild or similar, and giving group
   permissions too, and documenting that the user must be member of the sbuild
   group
+* Think about the signing the release files (gpg -abs -o Release.gpg Release)
+  and automatic rsync'ing to another host. Keys should be the ones for
+  arepa-master, but the repository will have to be kept writable by both
+  www-data and arepa-master
