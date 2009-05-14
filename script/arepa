@@ -158,6 +158,52 @@ elsif ($command eq 'showqueue') {
         print "$elt->{architecture} $elt->{distribution}\n";
     }
 }
+elsif ($command eq 'sign') {
+    my $sync = 0;
+    $r = GetOptions('sync' => \$sync);
+    if (!$r) {
+        print STDERR "Invalid options for 'sign' command\n";
+        exit 1;
+    }
+
+    my $config    = Arepa::Config->new($config_file);
+    my $repo_path = $config->get_key('repository:path');
+
+    # Sign all the Release files
+    my $repository = Arepa::Repository->new($config_file);
+    foreach my $distribution ($repository->get_distributions) {
+        my $distro_name = $distribution->{codename};
+        my $release_file_path = File::Spec->catfile($repo_path,
+                                                    "dists",
+                                                    $distro_name,
+                                                    "Release");
+        my $gpg_cmd = "gpg -abs -o $release_file_path.gpg $release_file_path &>/dev/null";
+        if (system($gpg_cmd) != 0) {
+            print STDERR "ERROR: couldn't sign Release file for '$distro_name'\n";
+            exit 1;
+        }
+    }
+
+    # If --sync was passed, sync too
+    if ($sync) {
+        my $remote_repo_path = $config->get_key('repository:remote_path');
+        my $rsync_cmd = "rsync -avz $repo_path $remote_repo_path";
+        if (system($rsync_cmd) != 0) {
+            print STDERR "ERROR: rsync command failed\n";
+            print STDERR "Command was '$rsync_cmd'\n";
+        }
+    }
+}
+elsif ($command eq 'sync') {
+    my $config = Arepa::Config->new($config_file);
+    my $local_repo  = $config->get_key('repository:path');
+    my $remote_repo = $config->get_key('repository:remote_path');
+    my $rsync_cmd = "rsync -avz $local_repo $remote_repo";
+    if (system($rsync_cmd) != 0) {
+        print STDERR "ERROR: rsync command failed\n";
+        print STDERR "Command was '$rsync_cmd'\n";
+    }
+}
 else {
     print STDERR "ERROR: Unknown command '$command'\n";
     exit 1;
