@@ -192,7 +192,7 @@ sub approve_package {
         # Files referenced by the changes file
         foreach my $file ($changes_file->files) {
             my $file_path = $config->get_key('upload_queue:path')."/".$file;
-            if (! unlink($file_path)) {
+            if (-e $file_path && ! unlink($file_path)) {
                 $self->add_error("Can't delete $file_path");
             }
         }
