@@ -123,8 +123,13 @@ sub _execute_reprepro {
             croak "Don't know anything about argument '$arg'";
         }
     }
+    # GNUPG home directory
+    my $gpg_homedir = $self->get_config_key('web_ui:gpg_homedir');
+    if (defined $gpg_homedir && $gpg_homedir) {
+        $extra .= " --gnupghome '$gpg_homedir'";
+    }
 
-    my $cmd = "reprepro -b$repo_path $mode $distro $file_path $extra 2>&1";
+    my $cmd = "reprepro -b$repo_path $extra $mode $distro $file_path 2>&1";
     $self->{last_cmd_output} = `$cmd`;
     my $status = $?;
     return ($status == 0);
