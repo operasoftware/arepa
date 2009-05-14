@@ -11,7 +11,7 @@
 
 <div id="incoming-package-list">
 [% FOREACH package = packages %]
-    <form method="post" action="pa.cgi">
+    <form method="post" action="arepa.cgi">
         <div class="incoming-package">
             <span class="incoming-package-name urgency-[% package.urgency %]">[% package.name %]</span>
             <span class="incoming-package-version">[% package.version %]</span>
