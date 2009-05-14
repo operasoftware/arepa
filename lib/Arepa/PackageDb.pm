@@ -114,9 +114,14 @@ sub insert_source_package {
                                             join(", ", map { "?" }
                                                            keys %props) .
                                             ")");
-        $sth->execute(values %props);
-        return $self->_dbh->last_insert_id(undef, undef,
-                                           qw(source_packages), undef);
+        if ($sth->execute(values %props)) {
+            return $self->_dbh->last_insert_id(undef, undef,
+                                               qw(source_packages), undef);
+        }
+        else {
+            print STDERR "ERROR: SQL query failed: ", $self->_dbh->errstr, "\n";
+            return 0;
+        }
     }
 }
 
