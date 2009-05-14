@@ -18,3 +18,9 @@
   and automatic rsync'ing to another host. Keys should be the ones for
   arepa-master, but the repository will have to be kept writable by both
   www-data and arepa-master
+
+* The user, after installation, will have to "su - arepa-master" and create a
+  new GPG key for it. The secret key ID should be in the configuration
+* Also, how is the default repository going to be created? Maybe simply create
+  a default /var/arepa/repository/conf/distributions with a default "squeeze"
+  distribution or something similar?
