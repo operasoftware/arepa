@@ -130,8 +130,11 @@ sub _execute_reprepro {
     }
 
     my $cmd = "reprepro -b$repo_path $extra $mode $distro $file_path 2>&1";
+    my $umask = umask;
+    umask($umask & 0707);           # Always allow group permissions
     $self->{last_cmd_output} = `$cmd`;
     my $status = $?;
+    umask $umask;
     return ($status == 0);
 }
 
