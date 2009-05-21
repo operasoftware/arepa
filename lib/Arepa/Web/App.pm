@@ -88,8 +88,9 @@ sub base_stash {
 }
 
 sub add_error {
-    my ($self, $error) = @_;
-    push @{$self->{error_list}}, $error;
+    my ($self, $error, $output) = @_;
+    push @{$self->{error_list}}, {error  => $error,
+                                  output => $output};
 }
 
 sub error_list {
@@ -179,9 +180,8 @@ sub approve_package {
     if (!$repository->insert_source_package($config->get_key('upload_queue:path')."/".
                                                 $source_file_path,
                                             $distribution)) {
-        $self->add_error("Couldn't approve source package $source_file_path. ".
-                            "Command output was: ".
-                            $repository->last_cmd_output);
+        $self->add_error("Couldn't approve source package '$source_file_path'.",
+                         $repository->last_cmd_output);
     }
 
     if ($self->error_list) {
@@ -193,12 +193,12 @@ sub approve_package {
         foreach my $file ($changes_file->files) {
             my $file_path = $config->get_key('upload_queue:path')."/".$file;
             if (-e $file_path && ! unlink($file_path)) {
-                $self->add_error("Can't delete $file_path");
+                $self->add_error("Can't delete '$file_path'.");
             }
         }
         # Changes file itself
         if (! unlink($path)) {
-            $self->add_error("Can't delete $path");
+            $self->add_error("Can't delete '$path'.");
         }
 
         if ($self->error_list) {

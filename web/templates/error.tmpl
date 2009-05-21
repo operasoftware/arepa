@@ -13,7 +13,7 @@
 
 <ul>
 [% FOREACH error = errors %]
-    <li>[% error %]</li>
+    <li>[% FILTER html %][% error.error %][% END %][% IF error.output %] Command output was:<pre>[% FILTER html %][% error.output %][% END %]</pre>[% END %]</li>
 [% END %]
 </ul>
 </body>
