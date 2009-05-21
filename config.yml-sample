@@ -1,23 +1,30 @@
 ---
 # Where the repo is
 repository:
-  path: /home/zoso/src/apt-web/test-repo/
+  path: /var/arepa/repository
+  # Rsync format
+  # remote_path: machine:/var/www/apt-repo/html/distro
+  signature:
+    # Sign the repository with this ID. This is useful in case you might login
+    # with the wrong user and end up signing the repo with the wrong key
+    # id: 12345678
 # Where the upload queue is (some anonymous FTP upload directory, or
 # SSH-accesible queue or whatever)
 upload_queue:
-  path: /home/zoso/src/apt-web/incoming
-# SQLite package database with states ('pending', 'compiling', 'compiled',
-# 'compilationfailed'), architecture ('source', 'all', 'amd64', etc.),
-# timestamps, etc.
-package_db: /home/zoso/src/apt-web/package.db
+  path: /var/arepa/upload-queue
+# SQLite package database with compilation requests and other stuff
+package_db: /var/arepa/db/package.db
 web_ui:
-  template_dir: /home/zoso/src/apt-web/repo-tools-web/templates/
+  base_url: http://localhost
+  template_dir: /usr/share/arepa/web/templates
+  user_file: /etc/arepa/users.yml
+  gpg_homedir: /var/arepa/gnupg-web
 builders:
   - name: lenny64
     type: sbuild
-    # a new source package with any of these architectures (and distribution,
-    # see below) will trigger a build with this builder
-    archs: [amd64, all]
+    architecture: amd64
+    # Also compile "Architecture: all" packages with this builder
+    architecture_all: yes
     # a new source package with any of these distributions in the *.changes
     # file (and architectures, see above) will trigger a build with this
     # builder. Also, packages compiled in this builder will be part of the
@@ -26,7 +33,7 @@ builders:
     other_distributions: [lenny, unstable]
   - name: lenny32
     type: sbuild
-    archs: i386
+    architecture: i386
     # note that if more than one builder specifies "unstable", any package
     # saying "unstable" in its changelog will be compiled for several
     # distributions
@@ -34,11 +41,12 @@ builders:
     other_distributions: [lenny, unstable]
   - name: etch64
     type: sbuild
-    archs: [amd64, all]
+    architecture: amd64
+    architecture_all: yes
     distribution: etch-opera
     other_distributions: [etch, unstable]
   - name: etch32
     type: sbuild
-    archs: i386
+    architecture: i386
     distribution: etch-opera
     other_distributions: [etch, unstable]
