@@ -22,6 +22,11 @@ sub new {
     return $self;
 }
 
+sub config_key_exists {
+    my ($self, $key) = @_;
+    return $self->{config}->key_exists($key);
+}
+
 sub get_config_key {
     my ($self, $key) = @_;
     return $self->{config}->get_key($key);
@@ -124,9 +129,11 @@ sub _execute_reprepro {
         }
     }
     # GNUPG home directory
-    my $gpg_homedir = $self->get_config_key('web_ui:gpg_homedir');
-    if (defined $gpg_homedir && $gpg_homedir) {
-        $extra .= " --gnupghome '$gpg_homedir'";
+    if ($self->config_key_exists('web_ui:gpg_homedir')) {
+        my $gpg_homedir = $self->get_config_key('web_ui:gpg_homedir');
+        if (defined $gpg_homedir && $gpg_homedir) {
+            $extra .= " --gnupghome '$gpg_homedir'";
+        }
     }
 
     my $cmd = "reprepro -b$repo_path $extra $mode $distro $file_path 2>&1";

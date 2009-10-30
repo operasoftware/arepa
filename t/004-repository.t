@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 11;
+use Test::More tests => 13;
 use Test::Deep;
 use File::Path;
 use IO::Zlib;
@@ -26,6 +26,11 @@ is($r->get_config_key('upload_queue:path'),
    '/home/zoso/src/apt-web/incoming',
    "Nested configuration key should work");
 unlink $r->get_config_key('package_db');
+
+ok($r->config_key_exists('package_db'),
+   "Existing config keys should be recognised");
+ok(!$r->config_key_exists('i_dont_exist'),
+   "Non-existing config keys should NOT be recognised");
 
 my $expected_distributions = [{ codename      => 'lenny-opera',
                                 components    => 'main',
