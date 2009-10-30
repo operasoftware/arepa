@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 4;
+use Test::More tests => 7;
 use Test::Deep;
 use Arepa::Config;
 
@@ -31,3 +31,16 @@ my $expected_builder_info = {
 cmp_deeply({ $c->get_builder_config('lenny64') },
            $expected_builder_info,
            "Builder information for 'lenny64' should be correct");
+
+
+# Non-existent keys
+ok($c->key_exists('repository:path'),
+   "key_exists should find existent keys");
+ok(!$c->key_exists('repository:non_path'),
+   "key_exists should NOT find non-existent keys");
+my $pass = 1;
+eval {
+    $c->get_key('repository:non_path');
+    $pass = 0;
+};
+ok($pass, "get_key should die when given a non-existent key");

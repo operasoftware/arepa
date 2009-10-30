@@ -13,6 +13,19 @@ sub new {
     return $self;
 }
 
+sub key_exists {
+    my ($self, $key) = @_;
+    my $exists = 0;
+
+    # If get_key dies, the key doesn't exist
+    eval {
+        $self->get_key($key);
+        $exists = 1;
+    };
+
+    return $exists;
+}
+
 sub get_key {
     my ($self, $key) = @_;
 
@@ -76,6 +89,9 @@ Arepa::Config - Arepa package database API
  my $config = Arepa::Config->new('path/to/config.yml');
  my $pdb_path = $config->get_key('package_db');
  my $repo_path = $config->get_key('repository:path');
+ if ($config->key_exists('optional:key')) {
+     $value = $config->get_key('optional:key');
+ }
  my @builder_names = $config->get_builders;
  my %builder_config = $config->get_builder_config('some-builder');
  my $value = $config->get_builder_config_key('some-builder', $key);
@@ -119,6 +135,10 @@ or C<Arepa::BuilderFarm>.
 
 It creates a new configuration access object for the configuration file in the
 given C<$path>.
+
+=item key_exists($key)
+
+Return true/false if the given configuration key is defined or not.
 
 =item get_key($key)
 
