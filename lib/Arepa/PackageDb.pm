@@ -12,13 +12,19 @@ use constant COMPILATION_QUEUE_FIELDS => qw(source_package_id architecture
 sub new {
     my ($class, $path) = @_;
 
+    # See if the DB was there before connecting, so we know if we have to
+    # create the table structure
+    my $create_tables = 0;
+    if (-z $path || ! -e $path) {
+        $create_tables = 1;
+    }
+
     my $self = bless {
         path => $path,
         dbh  => DBI->connect("dbi:SQLite:dbname=$path"),
     }, $class;
 
-    # If the file is empty, it means it doesn't have the tables yet
-    if (-z $path) {
+    if ($create_tables) {
         $self->create_db;
     }
 
@@ -27,14 +33,20 @@ sub new {
 
 sub create_db {
     my ($self) = @_;
-    $self->_dbh->do(<<EOSQL);
+    my $r;
+
+    $r = $self->_dbh->do(<<EOSQL);
 CREATE TABLE source_packages (id           INTEGER PRIMARY KEY,
                               name         VARCHAR(50),
                               full_version VARCHAR(20),
                               architecture VARCHAR(10),
                               distribution VARCHAR(30));
 EOSQL
-    $self->_dbh->do(<<EOSQL);
+    if (!$r) {
+        croak "Couldn't create table 'source_packages' in $self->{path}";
+    }
+
+    $r = $self->_dbh->do(<<EOSQL);
 CREATE TABLE compilation_queue (id                       INTEGER PRIMARY KEY,
                                 source_package_id        INTEGER,
                                 architecture             VARCHAR(10),
@@ -45,6 +57,9 @@ CREATE TABLE compilation_queue (id                       INTEGER PRIMARY KEY,
                                 compilation_started_at   TIMESTAMP,
                                 compilation_completed_at TIMESTAMP);
 EOSQL
+    if (!$r) {
+        croak "Couldn't create table 'compilation_queue' in $self->{path}";
+    }
 }
 
 sub default_timestamp {
