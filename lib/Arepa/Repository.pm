@@ -142,7 +142,13 @@ sub _execute_reprepro {
     $self->{last_cmd_output} = `$cmd`;
     my $status = $?;
     umask $umask;
-    return ($status == 0);
+    if ($status == 0) {
+        return 1;
+    }
+    else {
+        print STDERR "Reprepro command failed: '$cmd'\n";
+        return 0;
+    }
 }
 
 1;
