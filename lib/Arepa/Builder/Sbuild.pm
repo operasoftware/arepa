@@ -71,7 +71,7 @@ sub get_builder_directory {
     }
 }
 
-sub init {
+sub do_init {
     my ($self, $builder) = @_;
 
     my $builder_dir = $self->get_builder_directory($builder);
@@ -124,14 +124,14 @@ sub _compile_package_from_spec {
     }
 }
 
-sub compile_package_from_dsc {
+sub do_compile_package_from_dsc {
     my ($self, $builder_name, $dsc_file, $result_dir) = @_;
     return $self->_compile_package_from_spec($builder_name,
                                              $dsc_file,
                                              $result_dir);
 }
 
-sub compile_package_from_repository {
+sub do_compile_package_from_repository {
     my ($self, $builder_name, $pkg_name, $pkg_version, $result_dir) = @_;
     my $package_spec = $pkg_name . '_' . $pkg_version;
 
@@ -140,7 +140,7 @@ sub compile_package_from_repository {
                                              $result_dir);
 }
 
-sub create {
+sub do_create {
     my ($self, $builder_dir, $mirror, $distribution) = @_;
 
     my $builder_name = basename($builder_dir);
@@ -182,6 +182,7 @@ EOCONTENT
     if ($r != 0) {
         print STDERR "Error executing debootstrap: error code $r\n";
         print STDERR $debootstrap_cmd, "\n";
+        unlink $schroot_file;
         exit 1;
     }
 
@@ -245,22 +246,9 @@ EOSOURCES
     Arepa::Builder::Sbuild->init($builder_name);
 
     $self->ui_module->print_info("Installing build-essential and fakeroot");
-    system("chroot '$builder_dir' apt-get -y --force-yes install build-essential fakeroot");
-
-    $self->ui_module->print_info("Configuration for config.yml");
-    print "Please add the following lines to config.yml (inside the\n";
-    print "'builders' section):\n";
-    chomp(my $architecture = `dpkg-architecture -qDEB_BUILD_ARCH`);
-    $YAML::Syck::Headless = 1;
-    my $string = Dump([{name                => $builder_name,
-                        type                => 'sbuild',
-                        architecture        => $architecture,
-                        distribution        => $distribution,
-                        other_distributions => []}]);
-    # Print the string with some extra indentation so it matches the
-    # indentation of the configuration file
-    print join("\n", map { "  $_" }
-                         split("\n", $string)), "\n";
+    my $cmd = "chroot '$builder_dir' apt-get -y --force-yes install " .
+                                                "build-essential fakeroot";
+    return system($cmd);
 }
 
 1;

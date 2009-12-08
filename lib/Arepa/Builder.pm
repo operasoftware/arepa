@@ -27,34 +27,97 @@ sub ui_module {
     return $ui_module;
 }
 
+sub type {
+    my ($self) = @_;
+    my $class = ref $self;
+    $class =~ s/.+:://;
+    return lc($class);
+}
+
 
 # To be implemented by each type
 
+sub do_init {
+    my ($self, $builder) = @_;
+    croak "Not implemented";
+}
+
 sub init {
     my ($self, $builder) = @_;
+    $self->do_init($builder);
+}
+
+sub do_compile_package_from_dsc {
+    my ($self, $builder_name, $dsc_file, $result_dir) = @_;
     croak "Not implemented";
 }
 
 sub compile_package_from_dsc {
     my ($self, $builder_name, $dsc_file, $result_dir) = @_;
+    $self->do_compile_package_from_dsc($builder_name, $dsc_file, $result_dir);
+}
 
+sub do_compile_package_from_repository {
+    my ($self, $builder_name, $pkg_name, $pkg_version, $result_dir) = @_;
     croak "Not implemented";
 }
 
 sub compile_package_from_repository {
     my ($self, $builder_name, $pkg_name, $pkg_version, $result_dir) = @_;
-
-    croak "Not implemented";
+    $self->do_compile_package_from_repository($builder_name,
+                                              $pkg_name,
+                                              $pkg_version,
+                                              $result_dir);
 }
 
 sub last_build_log {
     return;
 }
 
-sub create {
+sub do_create {
     my ($self, $builder_dir, $mirror, $distribution) = @_;
-
     croak "Not implemented";
+}
+
+sub create {
+    my ($self, $builder_dir, $mirror, $distribution, %user_opts) = @_;
+    my %opts = (builder_config_dir => '/etc/arepa/builders', %user_opts);
+
+    $self->do_create($builder_dir, $mirror, $distribution, %opts);
+
+    $self->ui_module->print_info("Configuration for config.yml");
+
+    chomp(my $architecture = `dpkg-architecture -qDEB_BUILD_ARCH`);
+    my $type = $self->type;
+
+    my $config_string = <<EOD;
+type: $type
+architecture: $architecture
+# Compile "Architecture: all" packages with this builder?
+architecture_all: 0
+# This is the distribution the packages compiled by this builder go to. For a
+# package to be compiled by this builder, it has to have the correct
+# architecture and this distribution (or an alias or similar, see below) in
+# its *.changes file.
+distribution: $distribution
+# Other names for this distribution (if the distribution name is
+# mycompany-squeeze, you might want 'squeeze' and 'testing' as aliases)
+distribution_aliases: []
+# Recompile packages (binNMU or Binary-only Non-Maintainer Upload; see
+# http://www.debian.org/doc/developers-reference/pkgs.html#nmu-binnmu)
+# originally uploaded for other distributions in this builder. This option is
+# an easy way to get "for free" packages compiled for several distributions.
+# Typical values for this list would be 'unstable' or 'lenny'
+bin_nmu_from: []
+EOD
+
+    my $builder_name = basename($builder_dir);
+    my $path = File::Spec->catfile($opts{builder_config_dir},
+                                   "$builder_name.yml");
+    open F, ">$path" or croak "Can't write builder configuration in $path";
+    print F $config_string;
+    close F;
+    print "You can tweak the builder configuration in $path\n";
 }
 
 1;
