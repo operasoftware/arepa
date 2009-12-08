@@ -1,0 +1,4 @@
+type: test
+architecture: i386
+distribution: etch-opera
+other_distributions: [etch, unstable]

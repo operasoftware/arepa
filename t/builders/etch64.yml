@@ -1,0 +1,5 @@
+type: sbuild
+architecture: amd64
+architecture_all: yes
+distribution: etch-opera
+other_distributions: [etch, unstable]

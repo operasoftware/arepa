@@ -1,0 +1,7 @@
+type: test
+architecture: i386
+# note that if more than one builder specifies "unstable", any package
+# saying "unstable" in its changelog will be compiled for several
+# distributions
+distribution: lenny-opera
+other_distributions: [lenny, unstable]

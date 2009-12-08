@@ -10,7 +10,9 @@ use constant TEST_CONFIG_FILE         => 't/config-test.yml';
 use constant TEST_TARGETS_CONFIG_FILE => 't/config-compilation-targets-test.yml';
 my $c = Arepa::Config->new(TEST_CONFIG_FILE);
 unlink $c->get_key('package_db');
-my $c2 = Arepa::Config->new(TEST_TARGETS_CONFIG_FILE);
+my $c2 = Arepa::Config->new(TEST_TARGETS_CONFIG_FILE,
+                            builder_config_dir =>
+                                        't/builders-compilation-targets');
 unlink $c2->get_key('package_db');
 
 my $bm = Arepa::BuilderFarm->new(TEST_CONFIG_FILE);
@@ -25,33 +27,35 @@ is($bm->builder_type_module('SBUILD'),
    "All uppercase shouldn't confuse builder_type_module");
 
 cmp_deeply([ $bm->get_matching_builders('amd64', 'unstable') ],
-           [qw(lenny64 etch64)],
+           bag(qw(lenny64 etch64)),
            "Should correctly match builders for 'amd64'/'unstable'");
 
 cmp_deeply([ $bm->get_matching_builders('any', 'lenny-opera') ],
-           [qw(lenny64 lenny32)],
+           bag(qw(lenny64 lenny32)),
            "Should correctly match builders for 'any'/'lenny-opera'");
 
 cmp_deeply([ $bm->get_matching_builders('any', 'lenny') ],
-           [qw(lenny64 lenny32)],
+           bag(qw(lenny64 lenny32)),
            "Alias should be correctly recognised when match builders");
 
 cmp_deeply([ $bm->get_matching_builders('amd64', 'lenny-opera') ],
-           [qw(lenny64)],
+           bag(qw(lenny64)),
            "Should correctly match builders for 'amd64'/'lenny-opera'");
 
 
 
-my $bm2 = Arepa::BuilderFarm->new(TEST_TARGETS_CONFIG_FILE);
+my $bm2 = Arepa::BuilderFarm->new(TEST_TARGETS_CONFIG_FILE,
+                                  builder_config_dir =>
+                                          't/builders-compilation-targets');
 
 my %source_pkg1 = (name         => 'foo',
                    full_version => '1.0',
                    architecture => 'any',
                    distribution => 'unstable');
 my $source_pkg1_id = $bm2->package_db->insert_source_package(%source_pkg1);
-my $expected_targets1 = [[qw(amd64 lenny-opera)],
-                         [qw(i386 lenny-opera)],
-                         [qw(i386 etch-opera)]];
+my $expected_targets1 = bag([qw(amd64 lenny-opera)],
+                            [qw(i386 lenny-opera)],
+                            [qw(i386 etch-opera)]);
 cmp_deeply([ $bm2->get_compilation_targets($source_pkg1_id) ],
            $expected_targets1,
            "The compilation targets for arch 'any' should be right");

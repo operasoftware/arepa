@@ -1,14 +1,34 @@
 package Arepa::Config;
 
 use Carp qw(croak);
+use File::Basename;
+use File::Spec;
 use YAML::Syck;
 
 sub new {
-    my ($class, $path) = @_;
+    my ($class, $path, %user_opts) = @_;
+    my %opts = (builder_config_dir => File::Spec->catfile(dirname($path),
+                                                          'builders'),
+                %user_opts);
 
     my $self = bless {
         config => LoadFile($path),
     }, $class;
+
+    # Now, load the builder configuration
+    opendir D, $opts{builder_config_dir} or
+            croak "Can't read directory $opts{builder_config_dir}";
+    my @builder_config_files = grep /\.yml$/, readdir D;
+    closedir D;
+    $self->{config}->{builders} = [];
+    foreach my $file (@builder_config_files) {
+        my $name = $file;
+        $name =~ s/\.yml$//;
+        my $path = File::Spec->catfile($opts{builder_config_dir}, $file);
+        my $builder_conf = LoadFile($path);
+        push @{$self->{config}->{builders}}, {%$builder_conf,
+                                              name => $name};
+    }
 
     return $self;
 }
@@ -87,11 +107,15 @@ Arepa::Config - Arepa package database API
 =head1 SYNOPSIS
 
  my $config = Arepa::Config->new('path/to/config.yml');
+ my $config = Arepa::Config->new('path/to/config.yml',
+                                 builder_config_dir => 'path/to/builderconf');
+
  my $pdb_path = $config->get_key('package_db');
  my $repo_path = $config->get_key('repository:path');
  if ($config->key_exists('optional:key')) {
      $value = $config->get_key('optional:key');
  }
+
  my @builder_names = $config->get_builders;
  my %builder_config = $config->get_builder_config('some-builder');
  my $value = $config->get_builder_config_key('some-builder', $key);
@@ -99,7 +123,14 @@ Arepa::Config - Arepa package database API
 =head1 DESCRIPTION
 
 This class allows easy access to the Arepa configuration. The configuration is
-stored in a YAML file, and these are the structure for it:
+divided in two parts: the basic configuration (a single YAML file) and the
+configuration for the builders (a YAML file for each builder). Typically you
+would pass a single path for the main configuration, and the builder
+configuration would be loaded from the directory C<builders> inside the same
+parent directory as the main configuration file. However, if you want you can
+specify a custom directory to load the builder configuration from.
+
+This is an example of the basic configuration file:
 
  ---
  repository:
@@ -111,18 +142,14 @@ stored in a YAML file, and these are the structure for it:
    base_url: http://localhost
    template_dir: /home/zoso/src/apt-web/repo-tools-web/templates/
    user_file: /home/zoso/src/apt-web/repo-tools-web/users.yml
- builders:
-   - name: squeeze32
-     type: sbuild
-     architecture: i386
-     distribution: my-squeeze
-     other_distributions: [squeeze, unstable]
-   - name: squeeze64
-     type: sbuild
-     architecture: amd64
-     architecture_all: yes
-     distribution: my-squeeze
-     other_distributions: [squeeze, unstable]
+
+This is an example of a builder configuration file (say, C<squeeze32.yaml>):
+
+ ---
+ type: sbuild
+ architecture: i386
+ distribution: my-squeeze
+ other_distributions: [squeeze, unstable]
 
 Usually this class is not used directly, but internally in C<Arepa::Repository>
 or C<Arepa::BuilderFarm>.
@@ -133,8 +160,11 @@ or C<Arepa::BuilderFarm>.
 
 =item new($path)
 
+=item new($path, %options)
+
 It creates a new configuration access object for the configuration file in the
-given C<$path>.
+given C<$path>. The only valid option is C<builder_config_dir>, the path where
+the builder configuration files are located.
 
 =item key_exists($key)
 

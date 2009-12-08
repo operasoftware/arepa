@@ -11,9 +11,9 @@ use Arepa::Config;
 use Arepa::PackageDb;
 
 sub new {
-    my ($class, $config_path) = @_;
+    my ($class, $config_path, %user_opts) = @_;
 
-    my $config = Arepa::Config->new($config_path);
+    my $config = Arepa::Config->new($config_path, %user_opts);
     my $self = bless {
         config_path => $config_path,
         config      => $config,
@@ -185,6 +185,9 @@ Arepa::BuilderFarm - Arepa builder farm access class
 =head1 SYNOPSIS
 
  my $repo = Arepa::BuilderFarm->new('path/to/config.yml');
+ my $repo = Arepa::BuilderFarm->new('path/to/config.yml',
+                                    builder_config_dir =>
+                                                    'path/to/builderconf');
  $repo->last_build_log;
  $repo->package_db;
 
@@ -223,8 +226,11 @@ The builder farm uses the Arepa configuration to get the needed information.
 
 =item new($path)
 
+=item new($path, %options)
+
 Creates a new builder farm access object, using the configuration file in
-C<$path>.
+C<$path>. The only valid option is C<builder_config_dir> (see L<Arepa::Config>
+documentation for details).
 
 =item last_build_log
 

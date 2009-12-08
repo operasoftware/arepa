@@ -17,7 +17,7 @@ is($c->get_key('upload_queue:path'),
 unlink $c->get_key('package_db');
 
 cmp_deeply([ $c->get_builders ],
-           [ qw(lenny64 lenny32 etch64 etch32) ],
+           bag(qw(lenny64 lenny32 etch64 etch32)),
            "Builder information should be correct");
 
 my $expected_builder_info = {
