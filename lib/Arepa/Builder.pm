@@ -48,26 +48,26 @@ sub init {
 }
 
 sub do_compile_package_from_dsc {
-    my ($self, $builder_name, $dsc_file, $result_dir) = @_;
+    my ($self, $builder_name, $dsc_file, %user_opts) = @_;
     croak "Not implemented";
 }
 
 sub compile_package_from_dsc {
-    my ($self, $builder_name, $dsc_file, $result_dir) = @_;
-    $self->do_compile_package_from_dsc($builder_name, $dsc_file, $result_dir);
+    my ($self, $builder_name, $dsc_file, %user_opts) = @_;
+    $self->do_compile_package_from_dsc($builder_name, $dsc_file, %user_opts);
 }
 
 sub do_compile_package_from_repository {
-    my ($self, $builder_name, $pkg_name, $pkg_version, $result_dir) = @_;
+    my ($self, $builder_name, $pkg_name, $pkg_version, %user_opts) = @_;
     croak "Not implemented";
 }
 
 sub compile_package_from_repository {
-    my ($self, $builder_name, $pkg_name, $pkg_version, $result_dir) = @_;
+    my ($self, $builder_name, $pkg_name, $pkg_version, %user_opts) = @_;
     $self->do_compile_package_from_repository($builder_name,
                                               $pkg_name,
                                               $pkg_version,
-                                              $result_dir);
+                                              %user_opts);
 }
 
 sub last_build_log {
@@ -137,12 +137,13 @@ Arepa::Builder - Arepa builder base "class"
 
  Arepa::Builder->compile_package_from_dsc($builder_name, $dsc_file);
  Arepa::Builder->compile_package_from_dsc($builder_name, $dsc_file,
-                                          $result_dir);
+                                          output_dir => 1);
  Arepa::Builder->compile_package_from_repository($builder_name,
                                                  $dsc_file);
  Arepa::Builder->compile_package_from_repository($builder_name,
                                                  $dsc_file,
-                                                 $result_dir);
+                                                 output_dir => 1,
+                                                 bin_nmu    => 1);
 
  my $log = Arepa::Builder->last_build_log;
 
@@ -178,19 +179,22 @@ done once per machine boot (e.g. in an init script).
 
 =item compile_package_from_dsc($builder_name, $dsc_file)
 
-=item compile_package_from_dsc($builder_name, $dsc_file, $result_dir)
+=item compile_package_from_dsc($builder_name, $dsc_file, %opts)
 
 Compiles the source package described by the given C<$dsc_file> using the given
-C<$builder_name>. The resulting C<.deb> files are put in the given
-C<$result_dir> (by default, the current directory).
+C<$builder_name>. The resulting C<.deb> files are put in the current directory
+by default. Valid options are C<output_dir> and C<bin_nmu> (see
+L<compile_package_from_repository> documentation).
 
 =item compile_package_from_repository($builder_name, $name, $version)
 
-=item compile_package_from_repository($builder_name, $name, $version, $dir)
+=item compile_package_from_repository($builder_name, $name, $version, %opts)
 
 Compiles the source package with the given C<$name> and C<$version> using the
-given C<$builder_name>. The resulting C<.deb> files are put in the given
-C<$result_dir> (by default, the current directory).
+given C<$builder_name>. By default, the resulting C<.deb> files are put in the
+current directory. The only valid options are C<output_dir> (to specify the
+directory where the resulting C<.deb> files should end up in) and C<bin_nmu>
+(to specify if the compilation should be considered a binNMU).
 
 =item last_build_log
 

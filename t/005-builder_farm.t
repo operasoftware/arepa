@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 14;
+use Test::More tests => 15;
 use Test::Deep;
 use File::Path;
 use Arepa::BuilderFarm;
@@ -97,7 +97,7 @@ my $tmp_dir = 't/tmp';
 mkpath($tmp_dir);
 $bm2->compile_package_from_queue('etch32',
                                  $compilation_request_id,
-                                 $tmp_dir);
+                                 output_dir => $tmp_dir);
 my @deb_files;
 opendir D, $tmp_dir;
 while (my $entry = readdir D) {
@@ -112,3 +112,22 @@ rmtree($tmp_dir);
 my @compiled_queue = $bm2->package_db->get_compilation_queue(status => 'compiled');
 is($compiled_queue[0]->{id}, $compilation_request_id,
    "The first 'compiled' in the queue should be the one we just compiled");
+
+
+# binNMU ---------------------------------------------------------------------
+mkpath($tmp_dir);
+$bm2->compile_package_from_queue('lenny32',
+                                 $compilation_request_id,
+                                 output_dir => $tmp_dir,
+                                 bin_nmu    => 1);
+my @nmu_deb_files;
+opendir D, $tmp_dir;
+while (my $entry = readdir D) {
+    if ($entry =~ /\.deb$/ && $entry =~ /\+b\d/) {
+        push @nmu_deb_files, $entry;
+    }
+}
+closedir D;
+ok(scalar @nmu_deb_files > 0,
+   "binNMUs should result in at least one .deb with +b<num> on it");
+rmtree($tmp_dir);

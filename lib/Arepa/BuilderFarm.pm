@@ -84,8 +84,8 @@ sub compile_package_from_dsc {
 }
 
 sub compile_package_from_queue {
-    my ($self, $builder, $request_id, $result_dir) = @_;
-    $result_dir ||= '.';
+    my ($self, $builder, $request_id, %user_opts) = @_;
+    my %opts = (output_dir => '.', %user_opts);
 
     my %request = $self->package_db->get_compilation_request_by_id($request_id);
     $self->package_db->mark_compilation_started($request_id, $builder);
@@ -96,7 +96,7 @@ sub compile_package_from_queue {
                                             $builder,
                                             $source_attrs{name},
                                             $source_attrs{full_version},
-                                            $result_dir);
+                                            %opts);
     $self->{last_build_log} = $module->last_build_log;
     if ($r) {
         $self->package_db->mark_compilation_completed($request_id);
@@ -284,11 +284,13 @@ the builder C<$builder_name>, and puts the resulting C<.deb> files in the given
 C<$dir>. If a directory is not specified, they're left in the current
 directory.
 
-=item compile_package_from_queue($builder_name, $request_id, $dir)
+=item compile_package_from_queue($builder_name, $request_id, %opts)
 
 Compiles the request C<$request_id> using the builder C<$builder_name>, and
-puts the resulting C<.deb> files in the given C<$dir>. If a directory is not
-specified, they're left in the current directory.
+puts the resulting C<.deb> files in the output directory (by default, the
+current directory). Valid options are C<output_dir> (to change the output
+directory) and C<bin_nmu> (compiles the package as a binNMU, adding a
+changelog entry with a different revision before compiling).
 
 =item request_package_compilation($source_id)
 

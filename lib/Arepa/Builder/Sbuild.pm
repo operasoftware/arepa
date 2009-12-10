@@ -89,14 +89,20 @@ sub do_init {
 }
 
 sub _compile_package_from_spec {
-    my ($self, $builder_name, $package_spec, $result_dir) = @_;
+    my ($self, $builder_name, $package_spec, %user_opts) = @_;
+    my %opts = (output_dir => '.', %user_opts);
 
     if ($self->builder_exists($builder_name)) {
         my $tmp_dir = File::Temp::tempdir();
         my $initial_dir = Cwd::cwd;
         chdir $tmp_dir;
 
-        my $build_cmd = "sbuild --chroot $builder_name --apt-update --nolog $package_spec &>/dev/null";
+        my $extra_opts = "";
+        if ($opts{bin_nmu}) {
+            $extra_opts .= " --make-binNMU='Recompiled by Arepa' --binNMU=1";
+        }
+
+        my $build_cmd = "sbuild --chroot $builder_name --apt-update --nolog $package_spec $extra_opts &>/dev/null";
         my $r = system($build_cmd);
         # The build log is in the file (symlink really) 'current'
         if (open F, "current") {
@@ -110,7 +116,7 @@ sub _compile_package_from_spec {
         # Move result to the result directory
         find({ wanted => sub {
                     if ($File::Find::name =~ /\.deb$/) {
-                        move($File::Find::name, $result_dir);
+                        move($File::Find::name, $opts{output_dir});
                     }
                },
                follow => 0 },
@@ -125,19 +131,21 @@ sub _compile_package_from_spec {
 }
 
 sub do_compile_package_from_dsc {
-    my ($self, $builder_name, $dsc_file, $result_dir) = @_;
+    my ($self, $builder_name, $dsc_file, %user_opts) = @_;
+    my %opts = (output_dir => '.', %user_opts);
     return $self->_compile_package_from_spec($builder_name,
                                              $dsc_file,
-                                             $result_dir);
+                                             %opts);
 }
 
 sub do_compile_package_from_repository {
-    my ($self, $builder_name, $pkg_name, $pkg_version, $result_dir) = @_;
+    my ($self, $builder_name, $pkg_name, $pkg_version, %user_opts) = @_;
+    my %opts = (output_dir => '.', %user_opts);
     my $package_spec = $pkg_name . '_' . $pkg_version;
 
     return $self->_compile_package_from_spec($builder_name,
                                              $package_spec,
-                                             $result_dir);
+                                             %opts);
 }
 
 sub do_create {

@@ -17,18 +17,24 @@ sub do_init {
 }
 
 sub do_compile_package_from_dsc {
-    my ($self, $builder_name, $dsc_file, $result_dir) = @_;
+    my ($self, $builder_name, $dsc_file, %user_opts) = @_;
+    my %opts = (output_dir => '.', %user_opts);
+
     my $basename = basename($dsc_file);
     $basename =~ s/\.dsc$//go;
-    open F, ">$result_dir/$basename\_all.deb";
+    my $extra_version = $opts{bin_nmu} ? "+b1" : "";
+    open F, ">$opts{output_dir}/$basename$extra_version\_all.deb";
     print F "Fake contents of the package\n";
     close F;
     return 1;
 }
 
 sub do_compile_package_from_repository {
-    my ($self, $builder_name, $package, $version, $result_dir) = @_;
-    open F, ">$result_dir/$package\_$version\_all.deb";
+    my ($self, $builder_name, $package, $version, %user_opts) = @_;
+    my %opts = (output_dir => '.', %user_opts);
+
+    my $extra_version = $opts{bin_nmu} ? "+b1" : "";
+    open F, ">$opts{output_dir}/$package\_$version$extra_version\_all.deb";
     print F "Fake contents of the package\n";
     close F;
     return 1;
