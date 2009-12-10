@@ -26,20 +26,23 @@ is($bm->builder_type_module('SBUILD'),
    "Arepa::Builder::Sbuild",
    "All uppercase shouldn't confuse builder_type_module");
 
-cmp_deeply([ $bm->get_matching_builders('amd64', 'unstable') ],
-           bag(qw(lenny64 etch64)),
+cmp_deeply([ sort { $a->[0] cmp $b->[0] }
+                  $bm->get_matching_builders('amd64', 'unstable') ],
+           [[qw(etch64 0)], [qw(lenny64 1)]],
            "Should correctly match builders for 'amd64'/'unstable'");
 
-cmp_deeply([ $bm->get_matching_builders('any', 'lenny-opera') ],
-           bag(qw(lenny64 lenny32)),
+cmp_deeply([ sort { $a->[0] cmp $b->[0] }
+                  $bm->get_matching_builders('any', 'lenny-opera') ],
+           [[qw(lenny32 0)], [qw(lenny64 0)]],
            "Should correctly match builders for 'any'/'lenny-opera'");
 
-cmp_deeply([ $bm->get_matching_builders('any', 'lenny') ],
-           bag(qw(lenny64 lenny32)),
+cmp_deeply([ sort { $a->[0] cmp $b->[0] }
+                  $bm->get_matching_builders('any', 'lenny') ],
+           [[qw(lenny32 0)], [qw(lenny64 0)]],
            "Alias should be correctly recognised when match builders");
 
 cmp_deeply([ $bm->get_matching_builders('amd64', 'lenny-opera') ],
-           bag(qw(lenny64)),
+           [[qw(lenny64 0)]],
            "Should correctly match builders for 'amd64'/'lenny-opera'");
 
 

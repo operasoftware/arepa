@@ -21,12 +21,13 @@ cmp_deeply([ $c->get_builders ],
            "Builder information should be correct");
 
 my $expected_builder_info = {
-    name                => 'lenny64',
-    type                => 'sbuild',
-    architecture        => 'amd64',
-    architecture_all    => 'yes',
-    distribution        => 'lenny-opera',
-    other_distributions => [qw(lenny unstable)],
+    name                 => 'lenny64',
+    type                 => 'sbuild',
+    architecture         => 'amd64',
+    architecture_all     => 'yes',
+    distribution         => 'lenny-opera',
+    distribution_aliases => [qw(lenny)],
+    bin_nmu_for          => [qw(unstable)],
 };
 cmp_deeply({ $c->get_builder_config('lenny64') },
            $expected_builder_info,

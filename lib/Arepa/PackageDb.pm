@@ -325,9 +325,9 @@ the given id doesn't exist, an exception is thrown.
 
 =item request_compilation($source_id, $architecture, $distribution)
 
-Inserts a new compilation request for the given C<$source_id>, C<$architecture>
-and C<$distribution>. No checks are made as to ensure that the given
-architecture and distribution match the original source package.
+Inserts a new compilation request for the given C<$source_id>,
+C<$architecture> and C<$distribution>. No checks are made as to ensure that
+the given architecture and distribution match the original source package.
 
 =item get_compilation_queue(%filters)
 

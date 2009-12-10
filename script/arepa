@@ -42,8 +42,10 @@ if ($command eq 'build') {
     if ($pending) {
         foreach my $request ($farm->package_db->get_compilation_queue(status => 'pending')) {
             # Just get the first one if there are multiple matches
-            my ($builder) = $farm->get_matching_builders($request->{architecture},
-                                                         $request->{distribution});
+            my ($builder_info) = $farm->get_matching_builders(
+                                                    $request->{architecture},
+                                                    $request->{distribution});
+            my ($builder, $binnmu) = @$builder_info;
             my $source_pkg_id = $request->{source_package_id};
             my %source_attrs  = $farm->package_db->get_source_package_by_id($source_pkg_id);
             $farm->package_db->mark_compilation_started($request->{id},
@@ -69,10 +71,15 @@ if ($command eq 'build') {
     }
     elsif (defined $recompile) {
         my %req = $farm->package_db->get_compilation_request_by_id($recompile);
-        my $builder = $req{builder};
+
+        # TODO: We should probably figure out if the builder should build this
+        # as binNMU
+        my ($builder, $binnmu) = ($req{builder}, 0);
+
         if (!defined $builder) {
-            ($builder) = $farm->get_matching_builders($req{architecture},
+            my ($info) = $farm->get_matching_builders($req{architecture},
                                                       $req{distribution});
+            ($builder, $binnmu) = @$info;
         }
         $farm->package_db->mark_compilation_started($recompile,
                                                     $builder);

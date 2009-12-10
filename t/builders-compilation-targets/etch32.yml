@@ -1,4 +1,5 @@
 type: test
 architecture: i386
 distribution: etch-opera
-other_distributions: [etch, unstable]
+distribution_aliases: [etch]
+bin_nmu_for: [unstable]

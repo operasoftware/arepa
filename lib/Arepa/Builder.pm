@@ -108,7 +108,7 @@ distribution_aliases: []
 # originally uploaded for other distributions in this builder. This option is
 # an easy way to get "for free" packages compiled for several distributions.
 # Typical values for this list would be 'unstable' or 'lenny'
-bin_nmu_from: []
+bin_nmu_for: []
 EOD
 
     my $builder_name = basename($builder_dir);

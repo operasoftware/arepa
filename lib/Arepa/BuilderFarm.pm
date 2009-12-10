@@ -120,7 +120,8 @@ sub get_compilation_targets {
     my ($self, $source_id) = @_;
 
     my %source_attrs = $self->{package_db}->get_source_package_by_id($source_id);
-    my @builders = $self->get_matching_builders($source_attrs{architecture},
+    my @builder_info = $self->get_matching_builders(
+                                                $source_attrs{architecture},
                                                 $source_attrs{distribution});
     return map {
                my %builder_config = $self->{config}->get_builder_config($_);
@@ -129,7 +130,10 @@ sub get_compilation_targets {
                     $builder_config{distribution}]  :
                    [$source_attrs{architecture},
                     $builder_config{distribution}];
-           } @builders;
+           }
+           map {
+               $_->[0]
+           } @builder_info;
 }
 
 sub get_matching_builders {
@@ -141,7 +145,11 @@ sub get_matching_builders {
 
     # Get builders that match *both*:
     return map {
-                $_->{name}
+                my @binnmu_distros = ref($_->{bin_nmu_for}) eq 'ARRAY' ?
+                                                  @{$_->{bin_nmu_for}} :
+                                                  ($_->{bin_nmu_for} || ());
+                my $bin_nmu = grep { $distro eq $_ } @binnmu_distros;
+                [ $_->{name}, $bin_nmu ]
            }
            # 1) the architecture in 'architecture' (or 'all' if applicable)
            grep {
@@ -150,14 +158,18 @@ sub get_matching_builders {
                 ($arch eq 'all' && $_->{architecture_all}));
            }
            # 2) the $distro in *either* 'distribution' or
-           #    'other_distributions'
+           #    'distribution_aliases'
            grep {
-               my @bdistros = ref($_->{other_distributions}) eq 'ARRAY' ?
-                                   @{$_->{other_distributions}} :
-                                   $_->{other_distributions};
+               my @bdistros = ref($_->{distribution_aliases}) eq 'ARRAY' ?
+                                   @{$_->{distribution_aliases}} :
+                                   $_->{distribution_aliases};
+               my @binnmu_distros = ref($_->{bin_nmu_for}) eq 'ARRAY' ?
+                                                 @{$_->{bin_nmu_for}} :
+                                                 ($_->{bin_nmu_for} || ());
 
                $distro eq $_->{distribution} ||
-                   grep { $distro eq $_ } @bdistros;
+                   grep({ $distro eq $_ } @bdistros) ||
+                   grep({ $distro eq $_ } @binnmu_distros);
            }
            @builder_information;
 }
@@ -207,8 +219,8 @@ Arepa::BuilderFarm - Arepa builder farm access class
 
  $repo->request_package_compilation($source_id);
  my @arch_distro_pairs = $repo->get_compilation_targets($source_id);
- my @builders = $repo->get_matching_builders($architecture,
-                                             $distribution);
+ my @builders_and_binnmu = $repo->get_matching_builders($architecture,
+                                                        $distribution);
 
  my $source_id = $repo->register_source_package(%source_package_attrs);
 
@@ -290,7 +302,9 @@ target is an arrayref with two elements: architecture and distribution.
 =item get_matching_builders($architecture, $distribution)
 
 Gets the builders that should compile packages for the given C<$architecture>
-and C<$distribution>.
+and C<$distribution>. It returns a list of two-element arrayrefs. The first
+element is the builder name, and the second is true if it should be a binNMU,
+false otherwise.
 
 =item register_source_package(%source_package_attrs)
 
