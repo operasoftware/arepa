@@ -31,6 +31,9 @@ sub type {
     my ($self) = @_;
     my $class = ref $self;
     $class =~ s/.+:://;
+    if (!$class) {
+        croak "You should use a proper builder class, not ".ref($self);
+    }
     return lc($class);
 }
 
