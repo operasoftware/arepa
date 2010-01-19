@@ -102,7 +102,7 @@ sub _compile_package_from_spec {
             $extra_opts .= " --make-binNMU='Recompiled by Arepa' --binNMU=1";
         }
 
-        my $build_cmd = "sbuild --chroot $builder_name --apt-update --nolog $package_spec $extra_opts &>/dev/null";
+        my $build_cmd = "sbuild --chroot $builder_name --apt-update --nolog $package_spec $extra_opts";
         my $r = system($build_cmd);
         # The build log is in the file (symlink really) 'current'
         if (open F, "current") {
@@ -114,15 +114,22 @@ sub _compile_package_from_spec {
         }
 
         # Move result to the result directory
+        chdir $initial_dir;
+        my $output_dir = $opts{output_dir};
+        # Relative path?
+        if ($output_dir !~ qr,^/,) {
+            $output_dir = File::Spec->catfile($initial_dir, $opts{output_dir});
+        }
         find({ wanted => sub {
                     if ($File::Find::name =~ /\.deb$/) {
-                        move($File::Find::name, $opts{output_dir});
+                        move($File::Find::name, $output_dir);
                     }
                },
                follow => 0 },
              $tmp_dir);
+        # Remove temporary directory
+        rmtree($tmp_dir);
 
-        chdir $initial_dir;
         return ($r == 0);
     }
     else {
@@ -169,7 +176,7 @@ groups=sbuild
 #aliases=testing
 run-setup-scripts=false
 run-exec-scripts=false
-#personality=linux32"
+#personality=linux32
 EOCONTENT
     $self->ui_module->print_info("Creating schroot file ($schroot_file)");
     if (open F, ">$schroot_file") {
