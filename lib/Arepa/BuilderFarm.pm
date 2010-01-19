@@ -72,13 +72,13 @@ sub init_builder {
 }
 
 sub compile_package_from_dsc {
-    my ($self, $builder, $dsc_file, $result_dir) = @_;
-    $result_dir ||= '.';
+    my ($self, $builder, $dsc_file, %user_opts) = @_;
+    my %opts = (output_dir => '.', %user_opts);
 
     my $module = $self->builder_module($builder);
     my $r = $module->compile_package_from_dsc($builder,
                                               $dsc_file,
-                                              $result_dir);
+                                              %opts);
     $self->{last_build_log} = $module->last_build_log;
     return $r;
 }

@@ -109,7 +109,8 @@ if ($command eq 'build') {
             print STDERR "ERROR: Need a dsc file and a builder name\n";
             exit 1;
         }
-        $farm->compile_package_from_dsc($builder, $dsc_file, '.');
+        $farm->compile_package_from_dsc($builder, $dsc_file,
+                                        output_dir => '.');
         foreach my $deb_package (glob('*.deb')) {
             print "Adding $deb_package to the repository\n";
             if ($repository->insert_binary_package($deb_package)) {
