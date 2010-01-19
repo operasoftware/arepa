@@ -60,10 +60,10 @@ sub setup {
                           SEND_COOKIE    => 1);
     $self->authen->protected_runmodes(':all');
     $self->authen->protected_runmodes('logout');
-    $self->start_mode('list');
+    $self->start_mode('home');
     $self->mode_param('rm');
     $self->run_modes(
-            'list'        => 'list_pending',
+            'home'        => 'home',
             'approve'     => 'approve',
             'approve_all' => 'approve_all',
             'logout'      => 'logout',
@@ -101,13 +101,16 @@ sub last_cmd_output {
     $self->{last_cmd_output};
 }
 
-sub list_pending {
+sub home {
     my ($self) = @_;
 
-    opendir D, $config->get_key('upload_queue:path');
-    my @packages = grep /\.changes$/, readdir D;
-    closedir D;
+    my @packages = ();
+    if (opendir D, $config->get_key('upload_queue:path')) {
+        @packages = grep /\.changes$/, readdir D;
+        closedir D;
+    }
 
+    # Packages pending approval ----------------------------------------------
     my (@readable_packages, @unreadable_packages);
     my $gpg_dir = $config->get_key('web_ui:gpg_homedir');
     foreach my $package (@packages) {
@@ -124,10 +127,41 @@ sub list_pending {
             push @unreadable_packages, $package;
         }
     }
+
+    # Compilation queue ------------------------------------------------------
+    my $packagedb = Arepa::PackageDb->new($config->get_key('package_db'));
+    my @compilation_queue = $packagedb->
+                                get_compilation_queue(status => 'pending',
+                                                      limit  => 10);
+
+    # Builder status ---------------------------------------------------------
+    # Get the builder information and find out which package is being compiled
+    # by each builder, if any
+    my @builder_list = ();
+    my @compiling_packages = $packagedb->
+                                get_compilation_queue(status => 'compiling',
+                                                      limit  => 10);
+    foreach my $builder_name ($config->get_builders) {
+        my $status = "Idle";
+        foreach my $pkg (@compiling_packages) {
+            if ($pkg->{builder} eq $builder_name) {
+                my %source_pkg_attrs = $packagedb->get_source_package_by_id($pkg->{source_package_id});
+                $status = "Compiling $source_pkg_attrs{name}_$source_pkg_attrs{full_version}";
+            }
+        }
+        push @builder_list,
+             { $config->get_builder_config($builder_name),
+               status => $status };
+    }
+
+    # Print everything -------------------------------------------------------
     $self->show_view('index.tmpl',
-                     {packages            => \@readable_packages,
+                     {config              => $config,
+                      packages            => \@readable_packages,
                       unreadable_packages => \@unreadable_packages,
-                      rm                  => join(", ", $self->query->param('rm'))});
+                      builders            => \@builder_list,
+                      rm                  => join(", ", $self->query->param('rm')),
+                      compilation_queue   => \@compilation_queue});
 }
 
 sub approve {

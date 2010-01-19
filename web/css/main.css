@@ -1,4 +1,12 @@
-#topbar { margin: 0; border: 0; position: 0 0; background-color: #AAF }
+body { font-family: verdana, arial, sans-serif }
+
+#topbar  { text-align: right; margin: 0; border: 0; position: 0 0 }
+#sidebar { float: right; width 13% }
+#main    { width: 75% }
+
+h1 { font-size: 14pt; color: #00f }
+
+.warning { font-weight: bold }
 
 #logout-link { text-align: right }
 
@@ -27,3 +35,9 @@
 .urgency-low    { color: #000; }
 .urgency-medium { color: #f80; }
 .urgency-high   { color: #f00; }
+
+.builder-line:nth-child(odd)  { background-color: #cef }
+.builder-line:nth-child(even) { background-color: #bdf }
+.builder-line { padding: 5px }
+.builder-status { float: right; font-weight: bold }
+.builder-props  { display: block; font-size: 8pt }

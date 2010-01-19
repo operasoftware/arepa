@@ -7,8 +7,25 @@
 <body>
 <div id="topbar"><a id="logout-link" href="?rm=logout">Log out</a></div>
 
-<h1>Incoming (pending) packages</h1>
+<div id="sidebar">
+  <h1>Compilation queue</h1>
 
+  <div id="compilation-queue-list">
+    [% FOREACH package = compilation_queue %]
+      <div class="compilation-queue-line">
+        <span class="package-name">[% package.name %]_[% package.revision %]</span>
+      </div>
+    [% END %]
+  </div>
+</div>
+
+<div id="main">
+<h1>Packages pending approval</h1>
+
+[% IF packages.size == 0 %]
+<span class="warning">There aren't any packages pending in <tt>[%
+config.get_key('upload_queue:path') %]</tt></span>
+[% ELSE %]
 <div id="incoming-package-list">
 [% FOREACH package = packages %]
     <form method="post" action="arepa.cgi">
@@ -59,5 +76,36 @@
         <input type="hidden" name="component" value="main" />
         <input type="submit" value="Approve all" />
     </form>
+[% END %]
+
+
+
+
+
+<h1>Builder status</h1>
+
+<div id="builder-status-list">
+[% IF builders.size == 0 %]
+<span class="warning">You haven't defined any builders yet? Go create some with:</span>
+<pre>
+arepa-admin createbuilder &lt;builder-dir&gt; &lt;mirror&gt; &lt;distribution&gt;
+</pre>
+E.g.:
+<pre>
+arepa-admin createbuilder /var/chroot/mybuilder ftp://ftp.se.debian.org/debian squeeze
+</pre>
+[% ELSE %]
+[% FOREACH builder = builders %]
+  <div class="builder-line">
+    <span class="builder-status">[% builder.status %]</span>
+    <span class="builder-name">[% builder.name %]</span>
+    <span class="builder-props">
+      <span class="builder-prop">arch: <span class="builder-prop-value">[% builder.architecture %]</span></span>
+      <span class="builder-prop">distro: <span class="builder-prop-value">[% builder.distribution %]</span></span>
+    </span>
+  </div>
+[% END %]
+[% END %]
+</div>
 </body>
 </html>
