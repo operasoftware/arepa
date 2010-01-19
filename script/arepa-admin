@@ -8,7 +8,7 @@ use Arepa::Config;
 use Arepa::BuilderFarm;
 use Arepa::Builder::Sbuild;
 
-my $config_file = 'config.yml';
+my $config_file = '/etc/arepa/config.yml';
 
 my ($command, @args) = @ARGV;
 if (scalar @ARGV == 0) {

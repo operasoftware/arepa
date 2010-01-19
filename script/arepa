@@ -9,7 +9,7 @@ use Arepa::BuilderFarm;
 use Arepa::Repository;
 
 my ($r);
-my $config_file = 'config.yml';
+my $config_file = '/etc/arepa/config.yml';
 
 Getopt::Long::Configure('pass_through');
 $r = GetOptions('config|c=s', \$config_file);

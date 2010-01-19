@@ -27,9 +27,7 @@ use Parse::Debian::PackageDesc;
 use Arepa::Config;
 use Arepa::Repository;
 
-my @conffiles = qw(/home/estebanm/src/apt-repo/repo-tools-web/config.yml \
-                   /home/aptweb/www/repo-tools-web/config.yml \
-                   /home/zoso/src/apt-web/repo-tools-web/config.yml);
+my @conffiles = qw(/etc/arepa/config.yml);
 our $config      = undef;
 our $config_path = undef;
 foreach my $conffile (@conffiles) {
