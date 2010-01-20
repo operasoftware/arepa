@@ -212,10 +212,10 @@ Arepa::BuilderFarm - Arepa builder farm access class
 
  my $r = $repo->compile_package_from_dsc($builder_name,
                                          $dsc_file,
-                                         $dir);
+                                         %opts);
  my $r = $repo->compile_package_from_queue($builder_name,
                                            $request_id,
-                                           $dir);
+                                           %opts);
 
  $repo->request_package_compilation($source_id);
  my @arch_distro_pairs = $repo->get_compilation_targets($source_id);
@@ -277,11 +277,12 @@ inside an init script).
 Initialises the builder C<$builder_name>. It should be called once per machine
 boot (e.g. inside an init script).
 
-=item compile_package_from_dsc($builder_name, $dsc_file, $dir)
+=item compile_package_from_dsc($builder_name, $dsc_file, %opts)
 
 Compiles the source package described by the C<.dsc> file C<$dsc_file> using
-the builder C<$builder_name>, and puts the resulting C<.deb> files in the given
-C<$dir>. If a directory is not specified, they're left in the current
+the builder C<$builder_name>, and puts the resulting C<.deb> files in the
+appropriate output directory. You can specify it with the C<output_dir> option
+in C<%opts>. If no directory is specified, they're left in the current
 directory.
 
 =item compile_package_from_queue($builder_name, $request_id, %opts)
