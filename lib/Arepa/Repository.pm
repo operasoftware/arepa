@@ -97,7 +97,12 @@ sub insert_binary_package {
 
 sub _shell_escape {
     my ($self, $arg) = @_;
-    $arg =~ s/'/\\'/go;
+    if (defined $arg) {
+        $arg =~ s/'/\\'/go;
+    }
+    else {
+        $arg = "";
+    }
     return "'$arg'";
 }
 
