@@ -128,7 +128,7 @@ arepa-admin createbuilder /var/chroot/mybuilder ftp://ftp.se.debian.org/debian s
 [% FOREACH compilation = failed_compilations %]
   <div class="failed-compilation-line">
     <span class="compilation-options"></span>
-    <span class="package-name">[% compilation.package.name %]</span>
+    <span class="package-name">[% compilation.package.name %]_[% compilation.package.full_version %]</span>
     on
     <span class="builder-name">[% compilation.builder %]</span>
     <span class="compilation-props">
