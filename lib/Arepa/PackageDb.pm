@@ -7,7 +7,9 @@ use constant SOURCE_PACKAGE_FIELDS => qw(name full_version
                                          architecture distribution);
 use constant COMPILATION_QUEUE_FIELDS => qw(source_package_id architecture
                                             distribution builder
-                                            status compilation_requested_at);
+                                            status compilation_requested_at
+                                            compilation_started_at
+                                            compilation_completed_at);
 
 sub new {
     my ($class, $path) = @_;
@@ -178,8 +180,9 @@ sub get_compilation_queue {
                                            $limit");
     $sth->execute;
     $sth->bind_columns(\my $id,
-                       \my $source_id, \my $arch, \my $distro,
-                       \my $builder,   \my $stat, \my $requested_at);
+                       \my $source_id,  \my $arch,         \my $distro,
+                       \my $builder,    \my $stat,         \my $requested_at,
+                       \my $started_at, \my $completed_at);
     my @queue = ();
     while ($sth->fetch) {
         push @queue, {id                       => $id,
@@ -188,7 +191,9 @@ sub get_compilation_queue {
                       distribution             => $distro,
                       builder                  => $builder,
                       status                   => $stat,
-                      compilation_requested_at => $requested_at}
+                      compilation_requested_at => $requested_at,
+                      compilation_started_at   => $started_at,
+                      compilation_completed_at => $completed_at}
     }
     return @queue;
 }
@@ -201,8 +206,9 @@ sub get_compilation_request_by_id {
                                       FROM compilation_queue
                                      WHERE id = ?");
     $sth->execute($compilation_id);
-    $sth->bind_columns(\my $source_id, \my $arch, \my $distro,
-                       \my $builder,   \my $stat, \my $requested_at);
+    $sth->bind_columns(\my $source_id,  \my $arch,         \my $distro,
+                       \my $builder,    \my $stat,         \my $requested_at,
+                       \my $started_at, \my $completed_at);
     my @queue = ();
     if ($sth->fetch) {
         $sth->finish;
@@ -212,7 +218,9 @@ sub get_compilation_request_by_id {
                 distribution             => $distro,
                 builder                  => $builder,
                 status                   => $stat,
-                compilation_requested_at => $requested_at);
+                compilation_requested_at => $requested_at,
+                compilation_started_at   => $started_at,
+                compilation_completed_at => $completed_at);
     }
     else {
         croak "Can't find any compilation request with id '$compilation_id'";

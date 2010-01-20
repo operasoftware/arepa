@@ -38,7 +38,9 @@ cmp_deeply($queue1[0],
             distribution             => $comp1_dist,
             builder                  => undef,
             status                   => 'pending',
-            compilation_requested_at => $comp1_tstamp},
+            compilation_requested_at => $comp1_tstamp,
+            compilation_started_at   => undef,
+            compilation_completed_at => undef},
            "The first compilation should be correct");
 cmp_deeply({ $pdb->get_compilation_request_by_id($queue1[0]->{id}) },
            {id                       => $queue1[0]->{id},
@@ -47,7 +49,9 @@ cmp_deeply({ $pdb->get_compilation_request_by_id($queue1[0]->{id}) },
             distribution             => $comp1_dist,
             builder                  => undef,
             status                   => 'pending',
-            compilation_requested_at => $comp1_tstamp},
+            compilation_requested_at => $comp1_tstamp,
+            compilation_started_at   => undef,
+            compilation_completed_at => undef},
            "Getting the compilation request by id should succeed");
 
 my ($comp2_arch, $comp2_dist, $comp2_tstamp) = ("amd64", "lenny", "20090423");
@@ -66,7 +70,9 @@ cmp_deeply($queue2[1],
             distribution             => $comp2_dist,
             builder                  => undef,
             status                   => 'pending',
-            compilation_requested_at => $comp2_tstamp},
+            compilation_requested_at => $comp2_tstamp,
+            compilation_started_at   => undef,
+            compilation_completed_at => undef},
            "The first compilation should be correct");
 
 is(scalar $pdb->get_compilation_queue(status => 'pending'),
