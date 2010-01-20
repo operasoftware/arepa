@@ -90,7 +90,7 @@ sub do_init {
 
 sub _compile_package_from_spec {
     my ($self, $builder_name, $package_spec, %user_opts) = @_;
-    my %opts = (output_dir => '.', %user_opts);
+    my %opts = (output_dir => '.', bin_nmu => 0, %user_opts);
 
     if ($self->builder_exists($builder_name)) {
         my $tmp_dir = File::Temp::tempdir();
@@ -102,7 +102,7 @@ sub _compile_package_from_spec {
             $extra_opts .= " --make-binNMU='Recompiled by Arepa' --binNMU=1";
         }
 
-        my $build_cmd = "sbuild --chroot $builder_name --apt-update --nolog $package_spec $extra_opts";
+        my $build_cmd = "sbuild --chroot $builder_name --apt-update --nolog -A $package_spec $extra_opts";
         my $r = system($build_cmd);
         # The build log is in the file (symlink really) 'current'
         if (open F, "current") {
