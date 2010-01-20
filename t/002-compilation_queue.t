@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 30;
+use Test::More tests => 35;
 use Test::Deep;
 use Arepa::PackageDb;
 
@@ -166,3 +166,27 @@ is(scalar @pending_queue3,
    "After the compilation failing, the pending element should stay there");
 is($pending_queue3[0]->{id}, $comp2_id,
    "The pending element id is correct");
+
+
+# Requeue (mark as pending) --------------------------------------------------
+$pdb->mark_compilation_pending($comp1_id);
+
+is(scalar $pdb->get_compilation_queue(status => 'compiling'),
+   0,
+   "There shouldn't be any compiling packages anymore");
+is(scalar $pdb->get_compilation_queue(status => 'compiled'),
+   0,
+   "There shouldn't be any compiled packages anymore");
+is(scalar $pdb->get_compilation_queue(status => 'compilationfailed'),
+   0,
+   "There shouldn't be any failed compilation packages anymore");
+my @pending_queue4 = $pdb->get_compilation_queue(status => 'pending');
+is(scalar @pending_queue4,
+   2,
+   "The new request should be correctly marked as pending");
+is_deeply([ sort { $a <=> $b }
+                 ($comp1_id, $comp2_id) ],
+          [ sort { $a <=> $b }
+                 map { $_->{id} }
+                     @pending_queue4 ],
+          "The pending element ids are correct");
