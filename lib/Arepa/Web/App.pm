@@ -133,6 +133,15 @@ sub home {
     my @compilation_queue = $packagedb->
                                 get_compilation_queue(status => 'pending',
                                                       limit  => 10);
+    my @pending_compilations = ();
+    foreach my $comp (@compilation_queue) {
+        my %source_pkg_attrs =
+            $packagedb->get_source_package_by_id($comp->{source_package_id});
+        push @pending_compilations, {
+            %$comp,
+            package => { %source_pkg_attrs },
+        };
+    }
 
     # Builder status ---------------------------------------------------------
     # Get the builder information and find out which package is being compiled
@@ -154,14 +163,29 @@ sub home {
                status => $status };
     }
 
+    # Latest compilation failures --------------------------------------------
+    my @failed_compilations = ();
+    my @failed_compilation_queue = $packagedb->
+                        get_compilation_queue(status => 'compilationfailed',
+                                              limit  => 10);
+    foreach my $comp (@failed_compilation_queue) {
+        my %source_pkg_attrs =
+            $packagedb->get_source_package_by_id($comp->{source_package_id});
+        push @failed_compilations, {
+            %$comp,
+            package => { %source_pkg_attrs },
+        };
+    }
+
     # Print everything -------------------------------------------------------
     $self->show_view('index.tmpl',
                      {config              => $config,
                       packages            => \@readable_packages,
                       unreadable_packages => \@unreadable_packages,
+                      compilation_queue   => \@pending_compilations,
                       builders            => \@builder_list,
-                      rm                  => join(", ", $self->query->param('rm')),
-                      compilation_queue   => \@compilation_queue});
+                      failed_compilations => \@failed_compilations,
+                      rm                  => join(", ", $self->query->param('rm'))});
 }
 
 sub approve {
@@ -171,7 +195,6 @@ sub approve {
     if ($self->error_list) {
         my $r = $self->show_view('error.tmpl',
                                  {errors => [$self->error_list]});
-        use Data::Dumper;
         return $r;
     }
     else {

@@ -1,16 +1,22 @@
 body { font-family: verdana, arial, sans-serif }
 
-#topbar  { text-align: right; margin: 0; border: 0; position: 0 0 }
-#sidebar { float: right; width 13% }
-#main    { width: 75% }
+#topbar  {
+    text-align: right;
+    margin: 0;
+    border: 0;
+    position: 0 0;
+    font-size: 10pt;
+}
+#logout-link { text-align: right }
+#sidebar { float: right; width 18% }
+#main    { width: 70%; padding: 0 1em }
 
 h1 { font-size: 14pt; color: #00f }
 
 .warning { font-weight: bold }
+.option-buttons { text-align: right }
 
-#logout-link { text-align: right }
-
-#incoming-package-list    { margin-left: 4em }
+#incoming-package-list    { margin-left: 1em }
 
 .valid-signature          { color: #0a0 }
 .invalid-signature        { color: #a00 }
@@ -23,8 +29,6 @@ h1 { font-size: 14pt; color: #00f }
     display:   block;
     font-size: small;
 }
-.incoming-package-attr-name   { clear: left }
-.incoming-package-attr-value   { clear: left }
 
 .incoming-unreadable-package {
     margin-bottom: 3ex;
@@ -39,5 +43,12 @@ h1 { font-size: 14pt; color: #00f }
 .builder-line:nth-child(odd)  { background-color: #cef }
 .builder-line:nth-child(even) { background-color: #bdf }
 .builder-line { padding: 5px }
-.builder-status { float: right; font-weight: bold }
-.builder-props  { display: block; font-size: 8pt }
+.builder-status { float: right; color: #005; font-size: 10pt }
+.builder-props      { display: block; font-size: 8pt; color: #777 }
+.builder-prop-value { font-weight: bold }
+.compilation-props       { display: block; font-size: 8pt; color: #777 }
+.compilation-prop-value  { font-weight: bold }
+.failed-compilation-line { color: #777 }
+
+.package-name { color: black }
+.builder-name { color: black }

@@ -3,6 +3,7 @@
 <head>
     <title>Incoming packages</title>
     <link rel="stylesheet" href="[% base_url %]/css/main.css" />
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 </head>
 <body>
 <div id="topbar"><a id="logout-link" href="?rm=logout">Log out</a></div>
@@ -11,9 +12,13 @@
   <h1>Compilation queue</h1>
 
   <div id="compilation-queue-list">
-    [% FOREACH package = compilation_queue %]
+    [% FOREACH comp = compilation_queue %]
       <div class="compilation-queue-line">
-        <span class="package-name">[% package.name %]_[% package.revision %]</span>
+        <span class="package-name">[% comp.package.name %]_[% comp.package.full_version %]</span>
+        <span class="compilation-props">
+          (<span class="compilation-prop">arch: <span class="compilation-prop-value">[% comp.package.architecture %]</span></span>;
+          <span class="compilation-prop">requested: <span class="compilation-prop-value date">[% comp.compilation_requested_at %]</span></span>)
+        </span>
       </div>
     [% END %]
   </div>
@@ -33,24 +38,24 @@ config.get_key('upload_queue:path') %]</tt></span>
             <span class="incoming-package-name urgency-[% package.urgency %]">[% package.name %]</span>
             <span class="incoming-package-version">[% package.version %]</span>
             <div class="incoming-package-info">
-                <span class="incoming-package-attr">
-                    <span class="incoming-package-attr-name">Binary packages:</span>
-                    <span class="incoming-package-attr-value">[% package.binary_packages.join(", ") %]</span>
+                <span class="incoming-package-attr compilation-props compilation-prop">
+                    Binary packages:
+                    <span class="compilation-prop-value">[% package.binary_packages.join(", ") %]</span>
                 </span>
 
-                <span class="incoming-package-attr">
-                    <span class="incoming-package-attr-name">Maintainer:</span>
-                    <span class="incoming-package-attr-value">[% package.maintainer | html %] [% IF package.maintainer != package.changed_by %](<em>But changed by [% package.changed_by | html %]</em>)[% END %]</span>
+                <span class="incoming-package-attr compilation-props compilation-prop">
+                    Maintainer:
+                    <span class="compilation-prop-value">[% package.maintainer | html %] [% IF package.maintainer != package.changed_by %](<em>But changed by [% package.changed_by | html %]</em>)[% END %]</span>
                 </span>
 
-                <span class="incoming-package-attr">
-                    <span class="incoming-package-attr-name">Distribution:</span>
-                    <span class="incoming-package-attr-value">[% package.distribution %]</span>
+                <span class="incoming-package-attr compilation-props compilation-prop">
+                    Distribution:
+                    <span class="compilation-prop-value">[% package.distribution %]</span>
                 </span>
 
-                <span class="incoming-package-attr">
-                    <span class="incoming-package-attr-name">Signed by:</span>
-                    <span class="incoming-package-attr-value">[% IF package.signature_id %][% package.signature_id %][% ELSE %][not signed][% END %] ([% IF package.correct_signature == 1 %]<span class="valid-signature">Valid signature</span>[% ELSE %]<span class="invalid-signature">Not valid signature</span>[% END %])</span>
+                <span class="incoming-package-attr compilation-props compilation-prop">
+                    Signed by:
+                    <span class="compilation-prop-value">[% IF package.signature_id %][% package.signature_id %][% ELSE %][not signed][% END %] ([% IF package.correct_signature == 1 %]<span class="valid-signature">Valid signature</span>[% ELSE %]<span class="invalid-signature">Not valid signature</span>[% END %])</span>
                 </span>
             </div>
 
@@ -74,7 +79,9 @@ config.get_key('upload_queue:path') %]</tt></span>
         [% END %]
         <input type="hidden" name="rm" value="approve_all" />
         <input type="hidden" name="component" value="main" />
-        <input type="submit" value="Approve all" />
+        <div class="option-buttons">
+            <input type="submit" value="Approve all" />
+        </div>
     </form>
 [% END %]
 
@@ -102,6 +109,32 @@ arepa-admin createbuilder /var/chroot/mybuilder ftp://ftp.se.debian.org/debian s
     <span class="builder-props">
       <span class="builder-prop">arch: <span class="builder-prop-value">[% builder.architecture %]</span></span>
       <span class="builder-prop">distro: <span class="builder-prop-value">[% builder.distribution %]</span></span>
+    </span>
+  </div>
+[% END %]
+[% END %]
+</div>
+
+
+
+
+
+<h1>Latest compilation failures</h1>
+
+<div id="compilation-failure-list">
+[% IF failed_compilations.size == 0 %]
+<span class="warning">No failed compilations yet.</span>
+[% ELSE %]
+[% FOREACH compilation = failed_compilations %]
+  <div class="failed-compilation-line">
+    <span class="compilation-options"></span>
+    <span class="package-name">[% compilation.package.name %]</span>
+    on
+    <span class="builder-name">[% compilation.builder %]</span>
+    <span class="compilation-props">
+      <span class="compilation-prop">requested: <span class="compilation-prop-value date">[% compilation.compilation_completed_at %]</span></span>
+      <span class="compilation-prop">started: <span class="compilation-prop-value date">[% compilation.compilation_completed_at %]</span></span>
+      <span class="compilation-prop">finished: <span class="compilation-prop-value date">[% compilation.compilation_completed_at %]</span></span>
     </span>
   </div>
 [% END %]
