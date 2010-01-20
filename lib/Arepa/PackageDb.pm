@@ -227,10 +227,19 @@ sub get_compilation_request_by_id {
     }
 }
 
-sub mark_compilation_started {
-    my ($self, $compilation_id, $builder, $tstamp) = @_;
+sub _set_compilation_status {
+    my ($self, $status, $compilation_id, $tstamp) = @_;
     $tstamp ||= $self->default_timestamp;
 
+    my $sth = $self->_dbh->prepare("UPDATE compilation_queue
+                                       SET status                   = ?,
+                                           compilation_completed_at = ?
+                                     WHERE id = ?");
+    $sth->execute($status, $tstamp, $compilation_id);
+}
+
+sub mark_compilation_started {
+    my ($self, $compilation_id, $builder, $tstamp) = @_;
     my $sth = $self->_dbh->prepare("UPDATE compilation_queue
                                        SET status                 = ?,
                                            builder                = ?,
@@ -241,24 +250,18 @@ sub mark_compilation_started {
 
 sub mark_compilation_completed {
     my ($self, $compilation_id, $tstamp) = @_;
-    $tstamp ||= $self->default_timestamp;
-
-    my $sth = $self->_dbh->prepare("UPDATE compilation_queue
-                                       SET status                   = ?,
-                                           compilation_completed_at = ?
-                                     WHERE id = ?");
-    $sth->execute('compiled', $tstamp, $compilation_id);
+    $self->_set_compilation_status('compiled', $compilation_id, $tstamp);
 }
 
 sub mark_compilation_failed {
     my ($self, $compilation_id, $tstamp) = @_;
-    $tstamp ||= $self->default_timestamp;
+    $self->_set_compilation_status('compilationfailed',
+                                   $compilation_id, $tstamp);
+}
 
-    my $sth = $self->_dbh->prepare("UPDATE compilation_queue
-                                       SET status                   = ?,
-                                           compilation_completed_at = ?
-                                     WHERE id = ?");
-    $sth->execute('compilationfailed', $tstamp, $compilation_id);
+sub mark_compilation_pending {
+    my ($self, $compilation_id, $tstamp) = @_;
+    $self->_set_compilation_status('pending', $compilation_id, $tstamp);
 }
 
 1;
@@ -295,6 +298,7 @@ Arepa::PackageDb - Arepa package database API
  $pdb->mark_compilation_started($compilation_id, $builder_name);
  $pdb->mark_compilation_completed($compilation_id);
  $pdb->mark_compilation_failed($compilation_id);
+ $pdb->mark_compilation_pending($compilation_id);
 
 =head1 DESCRIPTION
 
@@ -371,6 +375,13 @@ that timestamp is used. Otherwise, the current time.
 
 Marks the given compilation request as failed.  If C<$timestamp> is passed,
 that timestamp is used. Otherwise, the current time.
+
+=item mark_compilation_pending($request_id)
+
+=item mark_compilation_pending($request_id, $timestamp)
+
+Marks the given compilation request as pending (re-queue, sort of).  If
+C<$timestamp> is passed, that timestamp is used. Otherwise, the current time.
 
 =back
 
