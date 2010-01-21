@@ -29,7 +29,7 @@ sub ui_module {
 
 sub type {
     my ($self) = @_;
-    my $class = ref $self;
+    my $class = ref($self) || $self;
     $class =~ s/.+:://;
     if (!$class) {
         croak "You should use a proper builder class, not ".ref($self);
