@@ -3,6 +3,7 @@ package Arepa::Builder::Sbuild;
 use strict;
 use warnings;
 
+use English qw(-no_match_vars);
 use Carp;
 use Cwd;
 use File::chmod;
@@ -18,7 +19,7 @@ use Arepa;
 
 use base qw(Arepa::Builder);
 
-my $last_build_log = undef;
+our $last_build_log = undef;
 my $schroot_config = undef;
 
 sub last_build_log {
@@ -103,15 +104,10 @@ sub _compile_package_from_spec {
         }
 
         my $build_cmd = "sbuild --chroot $builder_name --apt-update --nolog -A $package_spec $extra_opts";
-        my $r = system($build_cmd);
-        # The build log is in the file (symlink really) 'current'
-        if (open F, "current") {
-            $last_build_log = join("", <F>);
-            close F;
-        }
-        else {
-            $last_build_log = undef;
-        }
+        $last_build_log = qx/$build_cmd/;
+        my $r = $CHILD_ERROR;
+
+        print STDERR "The build log was\n", $last_build_log;
 
         # Move result to the result directory
         chdir $initial_dir;
