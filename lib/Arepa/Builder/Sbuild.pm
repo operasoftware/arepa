@@ -160,11 +160,13 @@ sub do_create {
 
     my $builder_name = basename($builder_dir);
 
-    my $schroot_file = "/etc/schroot/chroot.d/$builder_name";
+    my $chrootd_dir = "/etc/schroot/chroot.d";
+    my $schroot_file = "$chrootd_dir/$builder_name";
     if (-e $schroot_file) {
         print STDERR "Builder $builder_name already exists ($schroot_file)\n";
         exit 1;
     }
+    mkpath $chrootd_dir;
     my $schroot_content = <<EOCONTENT;
 [$builder_name]
 description=Arepa autobuilder $builder_name
@@ -185,10 +187,7 @@ EOCONTENT
     }
     else {
         print STDERR "Couldn't write to file $schroot_file. Check permissions\n";
-        print STDERR "This is the content that should be in it:\n";
-        print STDERR "---------------------- 8< ----------------------\n";
-        print STDERR $schroot_content;
-        print STDERR "---------------------- >8 ----------------------\n";
+        exit 1;
     }
 
     $self->ui_module->print_info("Creating base chroot");
