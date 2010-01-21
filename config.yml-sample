@@ -19,3 +19,5 @@ web_ui:
   template_dir: /usr/share/arepa/templates
   user_file: /etc/arepa/users.yml
   gpg_homedir: /var/arepa/gnupg-web
+dir:
+  build_logs: /var/arepa/build-logs

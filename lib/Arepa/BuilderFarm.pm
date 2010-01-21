@@ -98,6 +98,17 @@ sub compile_package_from_queue {
                                             $source_attrs{full_version},
                                             %opts);
     $self->{last_build_log} = $module->last_build_log;
+
+    # Save the build log
+    my $build_log_dir = $self->{config}->get_key('dir:build_logs');
+    my $build_log_path = File::Spec->catfile($build_log_dir,
+                                             $request_id);
+    open F, ">$build_log_path" or
+                                croak "Can't write in $build_log_path";
+    print F $self->{last_build_log};
+    close F;
+
+    # Mark the compilation request appropriately
     if ($r) {
         $self->package_db->mark_compilation_completed($request_id);
     }
