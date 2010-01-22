@@ -16,6 +16,7 @@ upload_queue:
 package_db: /var/arepa/db/package.db
 web_ui:
   base_url: /arepa
+  cgi_base_url: /cgi-bin/arepa
   template_dir: /usr/share/arepa/templates
   user_file: /etc/arepa/users.yml
   gpg_homedir: /var/arepa/gnupg-web

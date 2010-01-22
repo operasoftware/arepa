@@ -66,6 +66,8 @@ sub setup {
             'home'        => 'home',
             'approve'     => 'approve',
             'approve_all' => 'approve_all',
+            'build_log'   => 'show_build_log',
+            'requeue'     => 'requeue',
             'logout'      => 'logout',
     );
     $self->tt_include_path($config->get_key('web_ui:template_dir'));
@@ -82,7 +84,8 @@ sub show_view {
 
 sub base_stash {
     my ($self) = @_;
-    (base_url => $config->get_key('web_ui:base_url'));
+    (base_url     => $config->get_key('web_ui:base_url'),
+     cgi_base_url => $config->get_key('web_ui:cgi_base_url'));
 }
 
 sub add_error {
@@ -214,6 +217,52 @@ sub approve_all {
         return $r;
     }
     else {
+        $self->_redirect("arepa.cgi");
+    }
+}
+
+sub show_build_log {
+    my ($self) = @_;
+
+    # Force it to be a number
+    my $request_id = 0 + $self->query->param('id');
+    my $pdb    = Arepa::PackageDb->new($config->get_key('package_db'));
+    eval {
+        $pdb->get_compilation_request_by_id($request_id);
+    };
+    if ($EVAL_ERROR) {
+        return $self->show_view('error.tmpl',
+                                {errors => [{output => "No such compilation request: '$request_id'"}]});
+    }
+    else {
+        my $build_log_path =
+                        File::Spec->catfile($config->get_key('dir:build_logs'),
+                                            $request_id);
+        open F, $build_log_path or do {
+            return $self->show_view('error.tmpl',
+                                    {errors => [{output => "Can't read build log for compilation request '$request_id' from '$build_log_path'"}]});
+        };
+        my $build_log_contents = join("", <F>);
+        close F;
+        return "<pre>$build_log_contents</pre>";
+    }
+}
+
+sub requeue {
+    my ($self) = @_;
+
+    # Force it to be a number
+    my $request_id = 0 + $self->query->param('id');
+    my $pdb    = Arepa::PackageDb->new($config->get_key('package_db'));
+    eval {
+        $pdb->get_compilation_request_by_id($request_id);
+    };
+    if ($EVAL_ERROR) {
+        return $self->show_view('error.tmpl',
+                                {errors => [{output => "No such compilation request: '$request_id'"}]});
+    }
+    else {
+        $pdb->mark_compilation_pending($request_id);
         $self->_redirect("arepa.cgi");
     }
 }

@@ -127,7 +127,10 @@ arepa-admin createbuilder /var/chroot/mybuilder ftp://ftp.se.debian.org/debian s
 [% ELSE %]
 [% FOREACH compilation = failed_compilations %]
   <div class="failed-compilation-line">
-    <span class="compilation-options"></span>
+    <div class="compilation-options">
+      <a href="[% cgi_base_url %]/arepa.cgi?rm=build_log&amp;id=[% compilation.id %]">[See build log]</a> -
+      <a href="[% cgi_base_url %]/arepa.cgi?rm=requeue&amp;id=[% compilation.id %]">[Requeue]</a>
+    </div>
     <span class="package-name">[% compilation.package.name %]_[% compilation.package.full_version %]</span>
     on
     <span class="builder-name">[% compilation.builder %]</span>

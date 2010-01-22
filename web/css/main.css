@@ -15,6 +15,10 @@ h1 { font-size: 14pt; color: #00f }
 
 .warning { font-weight: bold }
 .option-buttons { text-align: right }
+.compilation-options { float: right; font-size: 10pt }
+
+.package-name { color: black }
+.builder-name { color: black }
 
 #incoming-package-list    { margin-left: 1em }
 
@@ -49,6 +53,3 @@ h1 { font-size: 14pt; color: #00f }
 .compilation-props       { display: block; font-size: 8pt; color: #777 }
 .compilation-prop-value  { font-weight: bold }
 .failed-compilation-line { color: #777 }
-
-.package-name { color: black }
-.builder-name { color: black }
