@@ -26,6 +26,7 @@ use Data::Dumper;
 use Parse::Debian::PackageDesc;
 use Arepa::Config;
 use Arepa::Repository;
+use Arepa::BuilderFarm;
 
 my @conffiles = qw(/etc/arepa/config.yml);
 our $config      = undef;
@@ -281,9 +282,11 @@ sub approve_package {
                                         $changes_file->version;
     my $source_file_path = $package_revision_base_name.".dsc";
     my $repository = Arepa::Repository->new($config_path);
-    if (!$repository->insert_source_package($config->get_key('upload_queue:path')."/".
+    my $source_pkg_id = $repository->insert_source_package(
+                                    $config->get_key('upload_queue:path')."/".
                                                 $source_file_path,
-                                            $distribution)) {
+                                    $distribution);
+    if (!$source_pkg_id) {
         $self->add_error("Couldn't approve source package '$source_file_path'.",
                          $repository->last_cmd_output);
     }
@@ -304,6 +307,11 @@ sub approve_package {
         if (! unlink($path)) {
             $self->add_error("Can't delete '$path'.");
         }
+
+        # If everything went fine, add the source package to the compilation
+        # queue
+        my $farm = Arepa::BuilderFarm->new($config_path);
+        $farm->request_package_compilation($source_pkg_id);
 
         if ($self->error_list) {
             return 0;
