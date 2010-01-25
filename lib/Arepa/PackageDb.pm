@@ -68,7 +68,8 @@ sub default_timestamp {
     my ($self) = @_;
 
     my ($sec, $min, $hour, $mday, $mon, $year) = localtime;
-    return "$year-$mon-$mday $hour:$min:$sec";
+    return sprintf("%i-%02i-%02i %02i:%02i:%02i",
+                   $year+1900, $mon+1, $mday, $hour, $min, $sec);
 }
 
 sub _dbh {
