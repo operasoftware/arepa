@@ -205,8 +205,8 @@ EOCONTENT
         };
     print SOURCESLIST <<EOSOURCES;
 deb $mirror $distribution main
-deb http://localhost/arepa-repository $distribution main
-deb-src http://localhost/arepa-repository $distribution main
+deb http://localhost/arepa/repository $distribution main
+deb-src http://localhost/arepa/repository $distribution main
 EOSOURCES
     close SOURCESLIST;
 
