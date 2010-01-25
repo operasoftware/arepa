@@ -8,7 +8,7 @@ body { font-family: verdana, arial, sans-serif }
     font-size: 10pt;
 }
 #logout-link { text-align: right }
-#sidebar { float: right; width 18% }
+#sidebar { float: right; width: 27% }
 #main    { width: 70%; padding: 0 1em }
 
 h1 { font-size: 14pt; color: #00f }
@@ -19,6 +19,8 @@ h1 { font-size: 14pt; color: #00f }
 
 .package-name { color: black }
 .builder-name { color: black }
+.builder-info { font-size: 10pt; color: #3a3 }
+.builder-info .builder-name { color: inherit; font-weight: bold }
 
 #incoming-package-list    { margin-left: 1em }
 
@@ -52,4 +54,6 @@ h1 { font-size: 14pt; color: #00f }
 .builder-prop-value { font-weight: bold }
 .compilation-props       { display: block; font-size: 8pt; color: #777 }
 .compilation-prop-value  { font-weight: bold }
+
+.compilation-queue-line, .failed-compilation-line { padding-bottom: 1ex }
 .failed-compilation-line { color: #777 }

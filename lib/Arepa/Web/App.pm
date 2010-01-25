@@ -181,6 +181,20 @@ sub home {
         };
     }
 
+    # Latest compiled packages -----------------------------------------------
+    my @latest_compilations = ();
+    my @latest_compilation_queue = $packagedb->
+                        get_compilation_queue(status => 'compiled',
+                                              limit  => 10);
+    foreach my $comp (@latest_compilation_queue) {
+        my %source_pkg_attrs =
+            $packagedb->get_source_package_by_id($comp->{source_package_id});
+        push @latest_compilations, {
+            %$comp,
+            package => { %source_pkg_attrs },
+        };
+    }
+
     # Print everything -------------------------------------------------------
     $self->show_view('index.tmpl',
                      {config              => $config,
@@ -189,6 +203,7 @@ sub home {
                       compilation_queue   => \@pending_compilations,
                       builders            => \@builder_list,
                       failed_compilations => \@failed_compilations,
+                      latest_compilations => \@latest_compilations,
                       rm                  => join(", ", $self->query->param('rm'))});
 }
 
