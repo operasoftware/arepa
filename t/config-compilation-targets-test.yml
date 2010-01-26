@@ -12,3 +12,5 @@ upload_queue:
 package_db: t/compilation-targets-package.db
 web_ui:
   template_dir: /home/zoso/src/apt-web/repo-tools-web/templates/
+dir:
+  build_logs: t/tmp

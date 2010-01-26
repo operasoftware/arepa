@@ -11,6 +11,11 @@ use Arepa;
 
 use base qw(Arepa::Builder);
 
+our $last_build_log = undef;
+sub last_build_log {
+    return $last_build_log;
+}
+
 sub do_init {
     my ($self, $builder) = @_;
     return 1;
@@ -23,9 +28,11 @@ sub do_compile_package_from_dsc {
     my $basename = basename($dsc_file);
     $basename =~ s/\.dsc$//go;
     my $extra_version = $opts{bin_nmu} ? "+b1" : "";
-    open F, ">$opts{output_dir}/$basename$extra_version\_all.deb";
+    my $package_file_name = "$basename$extra_version\_all.deb";
+    open F, ">$opts{output_dir}/$package_file_name";
     print F "Fake contents of the package\n";
     close F;
+    $last_build_log = "Building $package_file_name. Not.\n";
     return 1;
 }
 
@@ -34,9 +41,11 @@ sub do_compile_package_from_repository {
     my %opts = (output_dir => '.', %user_opts);
 
     my $extra_version = $opts{bin_nmu} ? "+b1" : "";
-    open F, ">$opts{output_dir}/$package\_$version$extra_version\_all.deb";
+    my $package_file_name = "$package\_$version$extra_version\_all.deb";
+    open F, ">$opts{output_dir}/$package_file_name";
     print F "Fake contents of the package\n";
     close F;
+    $last_build_log = "Building $package_file_name. Not.\n";
     return 1;
 }
 
