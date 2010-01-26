@@ -67,7 +67,7 @@ sub get_architectures {
 }
 
 sub insert_source_package {
-    my ($self, $dsc_file, $distro) = @_;
+    my ($self, $dsc_file, $distro, %extra_args) = @_;
 
     use Parse::Debian::PackageDesc;
     my $parsed_dsc = Parse::Debian::PackageDesc->new($dsc_file);
@@ -78,7 +78,8 @@ sub insert_source_package {
 
     my $r = $self->_execute_reprepro('includedsc',
                                      $args{distribution},
-                                     $dsc_file);
+                                     $dsc_file,
+                                     %extra_args);
     if ($r) {
         return $self->{package_db}->insert_source_package(%args);
     }
@@ -171,6 +172,9 @@ Arepa::Repository - Arepa repository access class
  my @distros = $repo->get_distributions;
  my @archs = $repo->get_architectures;
  my $bool = $repo->insert_source_package($dsc_file, $distro);
+ my $bool = $repo->insert_source_package($dsc_file, $distro,
+                                         priority => 'optional',
+                                         section  => 'perl');
  my $bool = $repo->insert_binary_package($deb_file, $distro);
  my $text = $repo->last_cmd_output;
 
@@ -207,10 +211,12 @@ in the repository C<conf/distributions> configuration file, and contains a key f
 Returns a list of all the architectures mentioned in any of the repository
 distributions.
 
-=item insert_source_package($dsc_file, $distribution)
+=item insert_source_package($dsc_file, $distribution, %extra_args)
 
 Inserts the source package described by the given C<$dsc_file> in the
-repository and the package database, for the fiven C<$distribution>.
+repository and the package database, for the given C<$distribution>. Priority
+and section can be specified with the C<priority> and C<section> options in
+C<%extra_args>.
 
 =item insert_binary_package($deb_file, $distribution)
 
