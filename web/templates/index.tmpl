@@ -17,7 +17,7 @@
         <span class="package-name">[% comp.package.name %]_[% comp.package.full_version %][% IF comp.builder %] <span class="builder-info">(claimed by <span class="builder-name">[% comp.builder %]</span>)</span>[% END %]</span>
         <span class="compilation-props">
           (<span class="compilation-prop">arch: <span class="compilation-prop-value">[% comp.package.architecture %]</span></span>;
-          <span class="compilation-prop">distro: <span class="compilation-prop-value">[% comp.package.distribution %]</span></span>;
+          <span class="compilation-prop">distro: <span class="compilation-prop-value">[% comp.distribution %]</span></span>;
           <span class="compilation-prop">requested: <span class="compilation-prop-value date">[% comp.compilation_requested_at %]</span></span>)
         </span>
       </div>
@@ -32,7 +32,7 @@
         <span class="package-name">[% comp.package.name %]_[% comp.package.full_version %]</span>
         <span class="compilation-props">
           (<span class="compilation-prop">arch: <span class="compilation-prop-value">[% comp.package.architecture %]</span></span>;
-          <span class="compilation-prop">distro: <span class="compilation-prop-value">[% comp.package.distribution %]</span></span>;
+          <span class="compilation-prop">distro: <span class="compilation-prop-value">[% comp.distribution %]</span></span>;
           <span class="compilation-prop">builder: <span class="compilation-prop-value">[% comp.builder %]</span></span>;
           <span class="compilation-prop">compiled: <span class="compilation-prop-value date">[% comp.compilation_completed_at %]</span></span>)
         </span>
@@ -49,7 +49,9 @@ No packages pending in <tt>[%
 config.get_key('upload_queue:path') %]</tt>
 [% ELSE %]
 <div id="incoming-package-list">
+[% package_count = 0 %]
 [% FOREACH package = packages %]
+    [% package_count = package_count + 1 %]
     <form method="post" action="arepa.cgi">
         <div class="incoming-package">
             <span class="incoming-package-name urgency-[% package.urgency %]">[% package.name %]</span>
@@ -77,9 +79,71 @@ config.get_key('upload_queue:path') %]</tt>
             </div>
 
             <input type="hidden" name="rm" value="approve" />
-            <input type="hidden" name="package" value="[% package.path %]" />
-            <input type="hidden" name="component" value="main" />
-            <input type="submit" value="Approve" />
+            <input type="hidden" name="package-[% package_count %]" value="[% package.path %]" />
+            <input type="hidden" name="component-[% package_count %]" value="main" />
+            <span class="compilation-props">
+                <input type="submit" value="Approve" />
+                for priority <select name="priority-[% package_count %]" value="">
+                    <option name="extra">extra</option>
+                    <option name="optional" selected="selected">optional</option>
+                    <option name="standard">standard</option>
+                    <option name="important">important</option>
+                    <option name="required">required</option>
+                </select>
+                and section <select name="section-[% package_count %]">
+                    <option name="admin">admin</option>
+                    <option name="cli-mono">cli-mono</option>
+                    <option name="comm">comm</option>
+                    <option name="database">database</option>
+                    <option name="devel">devel</option>
+                    <option name="debug">debug</option>
+                    <option name="doc">doc</option>
+                    <option name="editors">editors</option>
+                    <option name="electronics">electronics</option>
+                    <option name="embedded">embedded</option>
+                    <option name="fonts">fonts</option>
+                    <option name="games">games</option>
+                    <option name="gnome">gnome</option>
+                    <option name="graphics">graphics</option>
+                    <option name="gnu-r">gnu-r</option>
+                    <option name="gnustep">gnustep</option>
+                    <option name="hamradio">hamradio</option>
+                    <option name="haskell">haskell</option>
+                    <option name="httpd">httpd</option>
+                    <option name="interpreters">interpreters</option>
+                    <option name="java">java</option>
+                    <option name="kde">kde</option>
+                    <option name="kernel">kernel</option>
+                    <option name="libs">libs</option>
+                    <option name="libdevel">libdevel</option>
+                    <option name="lisp">lisp</option>
+                    <option name="localization">localization</option>
+                    <option name="mail">mail</option>
+                    <option name="math">math</option>
+                    <option name="misc">misc</option>
+                    <option name="net">net</option>
+                    <option name="news">news</option>
+                    <option name="ocaml">ocaml</option>
+                    <option name="oldlibs">oldlibs</option>
+                    <option name="otherosfs">otherosfs</option>
+                    <option name="perl">perl</option>
+                    <option name="php">php</option>
+                    <option name="python">python</option>
+                    <option name="ruby">ruby</option>
+                    <option name="science">science</option>
+                    <option name="shells">shells</option>
+                    <option name="sound">sound</option>
+                    <option name="tex">tex</option>
+                    <option name="text">text</option>
+                    <option name="utils">utils</option>
+                    <option name="vcs">vcs</option>
+                    <option name="video">video</option>
+                    <option name="web">web</option>
+                    <option name="x11">x11</option>
+                    <option name="xfce">xfce</option>
+                    <option name="zope">zope</option>
+                </select>
+            </span>
         </div>
     </form>
 [% END %]

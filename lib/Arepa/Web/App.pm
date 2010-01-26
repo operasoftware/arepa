@@ -210,7 +210,13 @@ sub home {
 sub approve {
     my ($self) = @_;
 
-    $self->approve_package($self->query->param('package'));
+    # Find the package. The field will be "package-N", where N is an integer
+    my ($field_name) = grep /^package-\d+$/, $self->query->param;
+    $field_name =~ /^package-(\d+)$/;
+    my $pkg_id = $1;
+    $self->approve_package($self->query->param("package-$pkg_id"),
+                           priority => $self->query->param("priority-$pkg_id"),
+                           section  => $self->query->param("section-$pkg_id"));
     if ($self->error_list) {
         my $r = $self->show_view('error.tmpl',
                                  {errors => [$self->error_list]});
@@ -285,7 +291,7 @@ sub requeue {
 
 
 sub approve_package {
-    my ($self, $changes_file_path) = @_;
+    my ($self, $changes_file_path, %opts) = @_;
 
     # Only get the file basename, and search for it in the incoming directory
     my $path = $config->get_key('upload_queue:path')."/".basename($changes_file_path);
@@ -300,7 +306,8 @@ sub approve_package {
     my $source_pkg_id = $repository->insert_source_package(
                                     $config->get_key('upload_queue:path')."/".
                                                 $source_file_path,
-                                    $distribution);
+                                    $distribution,
+                                    %opts);
     if (!$source_pkg_id) {
         $self->add_error("Couldn't approve source package '$source_file_path'.",
                          $repository->last_cmd_output);
