@@ -83,18 +83,24 @@ if ($command eq 'build') {
         # TODO: We should probably figure out if the builder should build this
         # as binNMU
         my ($builder, $binnmu) = ($req{builder}, 1);
-
-        if (!defined $builder) {
-            my ($info) = $farm->get_matching_builders($req{architecture},
-                                                      $req{distribution});
-            ($builder, $binnmu) = @$info;
+        foreach my $info ($farm->get_matching_builders($req{architecture},
+                                                       $req{distribution})) {
+            # If the package hasn't been claimed, just get the first matching
+            if (!$builder) {
+                $builder = $info->[0];
+            }
+            # In any case, get the binNMU info of the appropriate builder
+            if ($info->[0] eq $builder) {
+                $binnmu = $info->[1];
+            }
         }
+
         my %source_attrs  = $farm->package_db->get_source_package_by_id($req{source_package_id});
         print "Compiling request id $req{id}\n";
         print "$source_attrs{name} $source_attrs{full_version} ";
         print "(arch: $req{architecture}, ";
         print "distro: $req{distribution}) ";
-        print "with builder $builder...";
+        print "with builder $builder...\n";
         if ($farm->compile_package_from_queue($builder, $req{id},
                                               bin_nmu => $binnmu)) {
             print " done.\n";
