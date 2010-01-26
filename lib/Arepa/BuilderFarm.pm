@@ -266,7 +266,7 @@ the builder farm.
 
 =item get_builder_config($builder_name)
 
-Returns a has with the configuration for the builder C<$builder_name>.
+Returns a hash with the configuration for the builder C<$builder_name>.
 
 =item builder_type_module($type)
 
