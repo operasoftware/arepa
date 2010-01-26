@@ -100,14 +100,13 @@ sub _compile_package_from_spec {
 
         my $extra_opts = "";
         if ($opts{bin_nmu}) {
-            $extra_opts .= " --make-binNMU='Recompiled by Arepa' --binNMU=1";
+            $extra_opts .= ' --make-binNMU="Recompiled by Arepa" --binNMU=1 ' .
+                            '--uploader="Arepa <arepa-master@localhost>"';
         }
 
         my $build_cmd = "sbuild --chroot $builder_name --apt-update --nolog -A $package_spec $extra_opts";
         $last_build_log = qx/$build_cmd/;
         my $r = $CHILD_ERROR;
-
-        print STDERR "The build log was\n", $last_build_log;
 
         # Move result to the result directory
         chdir $initial_dir;
@@ -118,7 +117,10 @@ sub _compile_package_from_spec {
         }
         find({ wanted => sub {
                     if ($File::Find::name =~ /\.deb$/) {
-                        move($File::Find::name, $output_dir);
+                        my $r = move($File::Find::name, $output_dir);
+                        if (!$r) {
+                            print STDERR "Couldn't move $File::Find::name to $output_dir.\nCan't write to $output_dir maybe?\n";
+                        }
                     }
                },
                follow => 0 },
