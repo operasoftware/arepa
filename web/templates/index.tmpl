@@ -185,7 +185,7 @@ arepa-admin createbuilder /var/chroot/mybuilder ftp://ftp.se.debian.org/debian s
 [% ELSE %]
 [% FOREACH builder = builders %]
   <div class="builder-line">
-    <span class="builder-status">[% builder.status %]</span>
+    <span class="builder-status">[% IF builder.status == 'compiling' %]Compiling [% builder.package.name %]_[% builder.package.full_version %]<br/>since [% builder.since %][% ELSE %]Idle[% END %]</span>
     <span class="builder-name">[% builder.name %]</span>
     <span class="builder-props">
       <span class="builder-prop">arch: <span class="builder-prop-value">[% builder.architecture %]</span></span>

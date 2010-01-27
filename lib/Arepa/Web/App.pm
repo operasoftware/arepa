@@ -155,16 +155,18 @@ sub home {
                                 get_compilation_queue(status => 'compiling',
                                                       limit  => 10);
     foreach my $builder_name ($config->get_builders) {
-        my $status = "Idle";
+        my %extra_attrs = (status => 'idle');
         foreach my $pkg (@compiling_packages) {
             if ($pkg->{builder} eq $builder_name) {
                 my %source_pkg_attrs = $packagedb->get_source_package_by_id($pkg->{source_package_id});
-                $status = "Compiling $source_pkg_attrs{name}_$source_pkg_attrs{full_version}";
+                $extra_attrs{status}  = 'compiling';
+                $extra_attrs{package} = { %source_pkg_attrs };
+                $extra_attrs{since}   = $pkg->{compilation_started_at};
             }
         }
         push @builder_list,
              { $config->get_builder_config($builder_name),
-               status => $status };
+               %extra_attrs };
     }
 
     # Latest compilation failures --------------------------------------------
