@@ -1,9 +1,10 @@
 ---
-# Where the repo is
 repository:
-  path: /var/arepa/repository
-  # Rsync format
-  # remote_path: machine:/var/www/apt-repo/html/distro
+  # Where the repo is. NOTE: Leave a trailing slash to rsync works correctly
+  path: /var/arepa/repository/
+  # Where the repo should be in the final machine (if it's different). Use
+  # Rsync format (user@machine:/var/www/virtual/aptrepo/html/debian/)
+  # remote_path: machine:/var/www/virtual/aptrepo/html/debian/
   signature:
     # Sign the repository with this ID. This is useful in case you might login
     # with the wrong user and end up signing the repo with the wrong key
