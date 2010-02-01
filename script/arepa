@@ -228,7 +228,7 @@ elsif ($command eq 'sign') {
     # If --sync was passed, sync too
     if ($sync) {
         my $remote_repo_path = $config->get_key('repository:remote_path');
-        my $rsync_cmd = "rsync -avz $repo_path $remote_repo_path";
+        my $rsync_cmd = "rsync -avz --delete $repo_path $remote_repo_path";
         if (system($rsync_cmd) != 0) {
             print STDERR "ERROR: rsync command failed\n";
             print STDERR "Command was '$rsync_cmd'\n";
@@ -239,7 +239,7 @@ elsif ($command eq 'sync') {
     my $config = Arepa::Config->new($config_file);
     my $local_repo  = $config->get_key('repository:path');
     my $remote_repo = $config->get_key('repository:remote_path');
-    my $rsync_cmd = "rsync -avz $local_repo $remote_repo";
+    my $rsync_cmd = "rsync -avz --delete $local_repo $remote_repo";
     if (system($rsync_cmd) != 0) {
         print STDERR "ERROR: rsync command failed\n";
         print STDERR "Command was '$rsync_cmd'\n";
