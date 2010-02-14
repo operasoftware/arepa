@@ -83,6 +83,14 @@ sub compile_package_from_dsc {
     return $r;
 }
 
+sub bin_nmu_id {
+    my ($self, $source_pkg_attrs, $builder) = @_;
+
+    my %builder_cfg = $self->{config}->get_builder_config($builder);
+    return scalar grep { $_ eq $source_pkg_attrs->{distribution} }
+                       @{$builder_cfg{bin_nmu_for} || []};
+}
+
 sub compile_package_from_queue {
     my ($self, $builder, $request_id, %user_opts) = @_;
     my %opts = (output_dir => '.', %user_opts);
@@ -92,11 +100,11 @@ sub compile_package_from_queue {
 
     my $module = $self->builder_module($builder);
     my %source_attrs = $self->package_db->get_source_package_by_id($request{source_package_id});
-    my $r = $module->compile_package_from_repository(
-                                            $builder,
-                                            $source_attrs{name},
-                                            $source_attrs{full_version},
-                                            %opts);
+    $opts{bin_nmu} = $self->bin_nmu_id(\%source_attrs, $builder);
+    my $r = $module->compile_package_from_repository($builder,
+                                                     $source_attrs{name},
+                                                     $source_attrs{full_version},
+                                                     %opts);
     $self->{last_build_log} = $module->last_build_log;
 
     # Save the build log
@@ -131,8 +139,7 @@ sub get_compilation_targets {
     my ($self, $source_id) = @_;
 
     my %source_attrs = $self->{package_db}->get_source_package_by_id($source_id);
-    my @builder_info = $self->get_matching_builders(
-                                                $source_attrs{architecture},
+    my @builders = $self->get_matching_builders($source_attrs{architecture},
                                                 $source_attrs{distribution});
     return map {
                my %builder_config = $self->{config}->get_builder_config($_);
@@ -141,10 +148,7 @@ sub get_compilation_targets {
                     $builder_config{distribution}]  :
                    [$source_attrs{architecture},
                     $builder_config{distribution}];
-           }
-           map {
-               $_->[0]
-           } @builder_info;
+           } @builders;
 }
 
 sub get_matching_builders {
@@ -156,11 +160,7 @@ sub get_matching_builders {
 
     # Get builders that match *both*:
     return map {
-                my @binnmu_distros = ref($_->{bin_nmu_for}) eq 'ARRAY' ?
-                                                  @{$_->{bin_nmu_for}} :
-                                                  ($_->{bin_nmu_for} || ());
-                my $bin_nmu = grep { $distro eq $_ } @binnmu_distros;
-                [ $_->{name}, $bin_nmu ]
+                $_->{name}
            }
            # 1) the architecture in 'architecture' (or 'all' if applicable)
            grep {
@@ -296,13 +296,20 @@ appropriate output directory. You can specify it with the C<output_dir> option
 in C<%opts>. If no directory is specified, they're left in the current
 directory.
 
+=item bin_nmu_id($src_pkg_attrs, $builder_name)
+
+Returns the binary NMU id that C<$builder_name> should use when building the
+given source package. The first parameter, C<$src_pkg_attrs>, is a hashref with
+the attributes of the source package (see C<get_source_package_by_id> in
+L<Arepa::PackageDb>). The binNMU id is a number, or C<undef> if the given
+builder should not build the given source package as a binNMU.
+
 =item compile_package_from_queue($builder_name, $request_id, %opts)
 
 Compiles the request C<$request_id> using the builder C<$builder_name>, and
 puts the resulting C<.deb> files in the output directory (by default, the
-current directory). Valid options are C<output_dir> (to change the output
-directory) and C<bin_nmu> (compiles the package as a binNMU, adding a
-changelog entry with a different revision before compiling).
+current directory). The only valid option is C<output_dir> (to change the
+output directory).
 
 =item request_package_compilation($source_id)
 

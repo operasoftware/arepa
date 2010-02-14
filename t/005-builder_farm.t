@@ -26,23 +26,20 @@ is($bm->builder_type_module('SBUILD'),
    "Arepa::Builder::Sbuild",
    "All uppercase shouldn't confuse builder_type_module");
 
-cmp_deeply([ sort { $a->[0] cmp $b->[0] }
-                  $bm->get_matching_builders('amd64', 'unstable') ],
-           [[qw(etch64 0)], [qw(lenny64 1)]],
+cmp_deeply([ $bm->get_matching_builders('amd64', 'unstable') ],
+           bag(qw(lenny64 etch64)),
            "Should correctly match builders for 'amd64'/'unstable'");
 
-cmp_deeply([ sort { $a->[0] cmp $b->[0] }
-                  $bm->get_matching_builders('any', 'lenny-opera') ],
-           [[qw(lenny32 0)], [qw(lenny64 0)]],
+cmp_deeply([ $bm->get_matching_builders('any', 'lenny-opera') ],
+           bag(qw(lenny64 lenny32)),
            "Should correctly match builders for 'any'/'lenny-opera'");
 
-cmp_deeply([ sort { $a->[0] cmp $b->[0] }
-                  $bm->get_matching_builders('any', 'lenny') ],
-           [[qw(lenny32 0)], [qw(lenny64 0)]],
+cmp_deeply([ $bm->get_matching_builders('any', 'lenny') ],
+           bag(qw(lenny64 lenny32)),
            "Alias should be correctly recognised when match builders");
 
 cmp_deeply([ $bm->get_matching_builders('amd64', 'lenny-opera') ],
-           [[qw(lenny64 0)]],
+           bag(qw(lenny64)),
            "Should correctly match builders for 'amd64'/'lenny-opera'");
 
 
@@ -95,16 +92,18 @@ is(scalar $bm2->package_db->get_compilation_queue(status => 'pending'),
 my $compilation_request_id = $compilation_queue[0]->{id};
 my $tmp_dir = 't/tmp';
 mkpath($tmp_dir);
-$bm2->compile_package_from_queue('etch32',
+$bm2->compile_package_from_queue('lenny32',
                                  $compilation_request_id,
                                  output_dir => $tmp_dir);
 my @deb_files;
 opendir D, $tmp_dir;
 while (my $entry = readdir D) {
-    push @deb_files, $entry if $entry =~ /\.deb$/;
+    if ($entry =~ /\.deb$/ && $entry !~ /\+b\d/) {
+        push @deb_files, $entry;
+    }
 }
 closedir D;
-ok(scalar @deb_files > 0,
+ok(scalar(@deb_files) > 0,
    "There should be at least one .deb package in the result directory");
 rmtree($tmp_dir);
 
@@ -116,10 +115,9 @@ is($compiled_queue[0]->{id}, $compilation_request_id,
 
 # binNMU ---------------------------------------------------------------------
 mkpath($tmp_dir);
-$bm2->compile_package_from_queue('lenny32',
+$bm2->compile_package_from_queue('etch32',
                                  $compilation_request_id,
-                                 output_dir => $tmp_dir,
-                                 bin_nmu    => 1);
+                                 output_dir => $tmp_dir);
 my @nmu_deb_files;
 opendir D, $tmp_dir;
 while (my $entry = readdir D) {
@@ -128,6 +126,6 @@ while (my $entry = readdir D) {
     }
 }
 closedir D;
-ok(scalar @nmu_deb_files > 0,
+ok(scalar(@nmu_deb_files) > 0,
    "binNMUs should result in at least one .deb with +b<num> on it");
 rmtree($tmp_dir);

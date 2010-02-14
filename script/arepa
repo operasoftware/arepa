@@ -46,14 +46,12 @@ if ($command eq 'build') {
     if ($pending) {
         foreach my $request ($farm->package_db->get_compilation_queue(status => 'pending')) {
             # Just get the first one if there are multiple matches
-            my ($builder_info) = $farm->get_matching_builders(
-                                                    $request->{architecture},
-                                                    $request->{distribution});
-            if (!defined $builder_info) {
+            my ($builder) = $farm->get_matching_builders($request->{architecture},
+                                                         $request->{distribution});
+            if (!defined $builder) {
                 print STDERR "Goddamnit! There aren't any builders for $request->{distribution}/$request->{architecture}\n";
                 exit 1;
             }
-            my ($builder, $binnmu) = @$builder_info;
             my $source_pkg_id = $request->{source_package_id};
             my %source_attrs  = $farm->package_db->get_source_package_by_id($source_pkg_id);
             print "Compiling request id $request->{id}\n";
@@ -61,8 +59,7 @@ if ($command eq 'build') {
             print "(arch: $request->{architecture}, ";
             print "distro: $request->{distribution}) ";
             print "with builder $builder...\n";
-            if ($farm->compile_package_from_queue($builder, $request->{id},
-                                                  bin_nmu => $binnmu)) {
+            if ($farm->compile_package_from_queue($builder, $request->{id})) {
                 print "*** SUCCESS ***\n";
                 foreach my $deb_package (glob('*.deb')) {
                     print "Adding $deb_package to the repository\n";
@@ -80,19 +77,12 @@ if ($command eq 'build') {
     elsif (defined $recompile) {
         my %req = $farm->package_db->get_compilation_request_by_id($recompile);
 
-        # TODO: We should probably figure out if the builder should build this
-        # as binNMU
-        my ($builder, $binnmu) = ($req{builder}, 1);
-        foreach my $info ($farm->get_matching_builders($req{architecture},
-                                                       $req{distribution})) {
-            # If the package hasn't been claimed, just get the first matching
-            if (!$builder) {
-                $builder = $info->[0];
-            }
-            # In any case, get the binNMU info of the appropriate builder
-            if ($info->[0] eq $builder) {
-                $binnmu = $info->[1];
-            }
+        # Find out the builder for this compilation. If it's not claimed by any
+        # builder, get the first matching (there should be only one, really)
+        my $builder = $req{builder};
+        if (!$builder) {
+            ($builder) = $farm->get_matching_builders($req{architecture},
+                                                      $req{distribution});
         }
 
         my %source_attrs  = $farm->package_db->get_source_package_by_id($req{source_package_id});
@@ -101,8 +91,7 @@ if ($command eq 'build') {
         print "(arch: $req{architecture}, ";
         print "distro: $req{distribution}) ";
         print "with builder $builder...\n";
-        if ($farm->compile_package_from_queue($builder, $req{id},
-                                              bin_nmu => $binnmu)) {
+        if ($farm->compile_package_from_queue($builder, $req{id})) {
             print " done.\n";
             foreach my $deb_package (glob('*.deb')) {
                 print "Adding $deb_package to the repository\n";
