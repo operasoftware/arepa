@@ -100,8 +100,9 @@ sub _compile_package_from_spec {
 
         my $extra_opts = "";
         if ($opts{bin_nmu}) {
-            $extra_opts .= ' --make-binNMU="Recompiled by Arepa" --binNMU=1 ' .
-                            '--uploader="Arepa <arepa-master@localhost>"';
+            $extra_opts .= " --make-binNMU='Recompiled by Arepa' " .
+                            "--binNMU='$opts{bin_nmu}' " .
+                            "--uploader='Arepa <arepa-master\@localhost>'";
         }
 
         my $build_cmd = "sbuild --chroot $builder_name --apt-update --nolog -A $package_spec $extra_opts";
