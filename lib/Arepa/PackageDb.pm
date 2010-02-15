@@ -164,7 +164,7 @@ sub request_compilation {
 
 sub get_compilation_queue {
     my ($self, %user_opts) = @_;
-    my %opts = (%user_opts);
+    my %opts = (order => "compilation_requested_at", %user_opts);
 
     my $fields = join(", ", COMPILATION_QUEUE_FIELDS);
     my ($condition, $limit) = ("", "");
@@ -177,7 +177,7 @@ sub get_compilation_queue {
     my $sth = $self->_dbh->prepare("SELECT id, $fields
                                       FROM compilation_queue
                                            $condition
-                                  ORDER BY compilation_requested_at
+                                  ORDER BY $opts{order}
                                            $limit");
     $sth->execute;
     $sth->bind_columns(\my $id,
@@ -342,13 +342,14 @@ Inserts a new compilation request for the given C<$source_id>,
 C<$architecture> and C<$distribution>. No checks are made as to ensure that
 the given architecture and distribution match the original source package.
 
-=item get_compilation_queue(%filters)
+=item get_compilation_queue(%options)
 
 Returns a list compilation requests. Each request is a hashref with all the
 attributes. By default, all elements in the queue are returned. However,
-C<%filters> can be used to limit the number of results: a key C<status> only
+C<%options> can be used to customise the results: a key C<status> only
 returns the requests in the given status; a key C<limit> limits the results to
-only as many as specified.
+only as many as specified; a key C<order> tweaks the order (it's plain SQL, so
+you can add more than one field and or "DESC" after each one).
 
 =item get_compilation_request_by_id($request_id)
 
