@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 15;
+use Test::More tests => 22;
 use Test::Deep;
 use File::Path;
 use Arepa::BuilderFarm;
@@ -65,9 +65,20 @@ my %source_pkg2 = (name         => 'bar',
                    architecture => 'all',
                    distribution => 'unstable');
 my $source_pkg2_id = $bm2->package_db->insert_source_package(%source_pkg2);
-my $expected_targets2 = [[qw(all lenny-opera)]];
+my $expected_targets2 = [[qw(all lenny-opera)],
+                         [qw(all etch-opera)]];
 cmp_deeply([ $bm2->get_compilation_targets($source_pkg2_id) ],
            $expected_targets2,
+           "The compilation targets for arch 'all' should be right");
+
+my %source_pkg3 = (name         => 'qux',
+                   full_version => '1.0',
+                   architecture => 'all',
+                   distribution => 'lenny-opera');
+my $source_pkg3_id = $bm2->package_db->insert_source_package(%source_pkg3);
+my $expected_targets3 = [[qw(all lenny-opera)]];
+cmp_deeply([ $bm2->get_compilation_targets($source_pkg3_id) ],
+           $expected_targets3,
            "The compilation targets for arch 'all' should be right");
 
 # Request the compilation of the first source package
@@ -113,7 +124,27 @@ is($compiled_queue[0]->{id}, $compilation_request_id,
    "The first 'compiled' in the queue should be the one we just compiled");
 
 
-# binNMU ---------------------------------------------------------------------
+# binNMU calculation ---------------------------------------------------------
+ok(!defined $bm2->bin_nmu_id(\%source_pkg1, 'lenny64'),
+   "binNMU id for builders that don't need to binNMU should be undef (1)");
+ok(!defined $bm2->bin_nmu_id(\%source_pkg1, 'lenny32'),
+   "binNMU id for builders that don't need to binNMU should be undef (2)");
+ok(defined $bm2->bin_nmu_id(\%source_pkg1, 'etch32'),
+   "binNMU id for builders that don't need to binNMU should be undef");
+my $bm3 = Arepa::BuilderFarm->new(TEST_TARGETS_CONFIG_FILE,
+                                  builder_config_dir =>
+                                          't/builders-binnmu');
+my $etch_binnmu_id = $bm3->bin_nmu_id(\%source_pkg1, 'etch32');
+ok(defined $etch_binnmu_id,
+   "binNMU id for builders that don't need to binNMU should be undef");
+my $squeeze_binnmu_id = $bm3->bin_nmu_id(\%source_pkg1, 'squeeze32');
+ok(defined $squeeze_binnmu_id,
+   "binNMU id for builders that don't need to binNMU should be undef");
+isnt($etch_binnmu_id, $squeeze_binnmu_id,
+     "The binNMU ids for different builders should be different");
+
+
+# binNMU compilation ---------------------------------------------------------
 mkpath($tmp_dir);
 $bm2->compile_package_from_queue('etch32',
                                  $compilation_request_id,

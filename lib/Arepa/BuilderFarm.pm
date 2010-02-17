@@ -87,8 +87,27 @@ sub bin_nmu_id {
     my ($self, $source_pkg_attrs, $builder) = @_;
 
     my %builder_cfg = $self->{config}->get_builder_config($builder);
-    return scalar grep { $_ eq $source_pkg_attrs->{distribution} }
-                       @{$builder_cfg{bin_nmu_for} || []};
+    my $r = scalar grep { $_ eq $source_pkg_attrs->{distribution} }
+                        @{$builder_cfg{bin_nmu_for} || []};
+    if ($r) {
+        # NOTE: This bin_nmu_id thing is explicitly UNSUPPORTED. I'm not sure I
+        # want to go down that path, but it _may_ prove useful. So I'm leaving
+        # these two lines here while I make my mind. When/if I decide that it's
+        # a good idea, I'll add tests and document it.
+        if (exists $builder_cfg{bin_nmu_id}) {
+            return $builder_cfg{bin_nmu_id};
+        }
+        else {
+            my @builders = $self->{config}->get_builders;
+            for (my $i = 0; $i <= scalar @builders; ++$i) {
+                return $i if $builders[$i] eq $builder;
+            }
+            croak "Can't find builder '$builder'?!\n";
+        }
+    }
+    else {
+        return undef;
+    }
 }
 
 sub compile_package_from_queue {
@@ -146,7 +165,7 @@ sub get_compilation_targets {
                $source_attrs{architecture} eq 'any' ?
                    [$builder_config{architecture},
                     $builder_config{distribution}]  :
-                   [$source_attrs{architecture},
+                   [$source_attrs  {architecture},
                     $builder_config{distribution}];
            } @builders;
 }
