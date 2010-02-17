@@ -173,7 +173,7 @@ sub home {
     my @failed_compilations = ();
     my @failed_compilation_queue = $packagedb->
                         get_compilation_queue(status => 'compilationfailed',
-                                              order  => "compilation_requested_at DESC",
+                                              order  => "compilation_completed_at DESC",
                                               limit  => 10);
     foreach my $comp (@failed_compilation_queue) {
         my %source_pkg_attrs =
