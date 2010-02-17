@@ -1,4 +1,4 @@
-0.70  Wed Feb 17 13:33:38 CET 2010
+0.65  Wed Feb 17 13:33:38 CET 2010
         - Show since when a package has been compiling in the "Builder status"
         - Add the --delete option to the rsync calls
         - Fix binNMU calculations so binNMUs are correctly detected
