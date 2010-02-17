@@ -23,6 +23,10 @@ t/002-compilation_queue.t
 t/003-config.t
 t/004-repository.t
 t/005-builder_farm.t
+t/builders-binnmu/etch32.yml
+t/builders-binnmu/lenny32.yml
+t/builders-binnmu/lenny64.yml
+t/builders-binnmu/squeeze32.yml
 t/builders-compilation-targets/etch32.yml
 t/builders-compilation-targets/lenny32.yml
 t/builders-compilation-targets/lenny64.yml
