@@ -99,8 +99,8 @@ sub bin_nmu_id {
         }
         else {
             my @builders = $self->{config}->get_builders;
-            for (my $i = 0; $i <= scalar @builders; ++$i) {
-                return $i if $builders[$i] eq $builder;
+            for (my $i = 0; $i < scalar @builders; ++$i) {
+                return $i+1 if $builders[$i] eq $builder;
             }
             croak "Can't find builder '$builder'?!\n";
         }
