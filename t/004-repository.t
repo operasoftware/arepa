@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 13;
+use Test::More tests => 18;
 use Test::Deep;
 use File::Path;
 use IO::Zlib;
@@ -98,3 +98,35 @@ ok($binary_package_found,
    "After adding a binary package, it should be in the package list");
 ok($binary_version_found,
    "After adding a binary package, the package version should be correct");
+
+
+# Insert a new source package into the repository, with comments -------------
+my $comments = "Now with comments";
+ok($r->insert_source_package('t/upload_queue/foobar_1.0-1.dsc', 'lenny-opera',
+                             comments => $comments),
+   "Inserting a new source package (w/ comments) should succeed");
+my $id_w_comments = $r->{package_db}->get_source_package_id('foobar', '1.0-1');
+ok($id_w_comments,
+   "After inserting the source package, it should be in the package db");
+my %source_pkg_w_comments =
+            $r->{package_db}->get_source_package_by_id($id_w_comments);
+is($source_pkg_w_comments{comments}, $comments,
+   "The source package should keep its comments, if any");
+
+my $fh2 = new IO::Zlib;
+my $package_line_found2    = 0;
+my $correct_version_found2 = 0;
+if ($fh2->open("t/repo-test/dists/lenny-opera/main/source/Sources.gz", "rb")) {
+    while (my $line = <$fh2>) {
+        chomp $line;
+        if ($line eq 'Package: foobar') {
+            $package_line_found2 = 1;
+        }
+        elsif ($line eq 'Version: 1.0-1') {
+            $correct_version_found2 = 1;
+        }
+    }
+    $fh2->close;
+}
+ok($package_line_found2,    "Should find the package in Sources.gz");
+ok($correct_version_found2, "Should find the correct version in Sources.gz");

@@ -67,7 +67,7 @@ sub get_architectures {
 }
 
 sub insert_source_package {
-    my ($self, $dsc_file, $distro, %extra_args) = @_;
+    my ($self, $dsc_file, $distro, %user_opts) = @_;
 
     use Parse::Debian::PackageDesc;
     my $parsed_dsc = Parse::Debian::PackageDesc->new($dsc_file);
@@ -76,10 +76,15 @@ sub insert_source_package {
                 architecture => $parsed_dsc->architecture,
                 distribution => $distro);
 
+    if (exists $user_opts{comments}) {
+        $args{comments} = $user_opts{comments};
+        delete $user_opts{comments};
+    }
+
     my $r = $self->_execute_reprepro('includedsc',
                                      $args{distribution},
                                      $dsc_file,
-                                     %extra_args);
+                                     %user_opts);
     if ($r) {
         return $self->{package_db}->insert_source_package(%args);
     }
@@ -211,12 +216,13 @@ in the repository C<conf/distributions> configuration file, and contains a key f
 Returns a list of all the architectures mentioned in any of the repository
 distributions.
 
-=item insert_source_package($dsc_file, $distribution, %extra_args)
+=item insert_source_package($dsc_file, $distribution, %options)
 
 Inserts the source package described by the given C<$dsc_file> in the
 repository and the package database, for the given C<$distribution>. Priority
 and section can be specified with the C<priority> and C<section> options in
-C<%extra_args>.
+C<%options>. Comments about the source package (e.g. why it was added to the
+repo or its origin) can be passed as the C<comments> key in C<%options>.
 
 =item insert_binary_package($deb_file, $distribution)
 
