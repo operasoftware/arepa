@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 16;
+use Test::More tests => 21;
 use Arepa::PackageDb;
 
 use constant TEST_DATABASE => 't/source_packages_test.db';
@@ -63,3 +63,19 @@ eval {
 };
 is($invalid_id_fails, 1,
    "Asking for a source package with an invalid id should fail");
+
+
+
+my %attrs4 = (name         => 'rabbitmq-server',
+              full_version => '1.7.2-1',
+              architecture => 'all',
+              distribution => 'lenny',
+              comments     => 'rabbitmq-server from squeeze. ' .
+                                     'needed for python-celery');
+my $id4 = $pdb->insert_source_package(%attrs4);
+my %attrs4_from_db = $pdb->get_source_package_by_id($id4);
+foreach my $attr (qw(name full_version architecture distribution comments)) {
+    is($attrs4_from_db{$attr}, $attrs4{$attr},
+       "Attribute '$attr' should be '$attrs4{$attr}' " .
+            "(was '$attrs4_from_db{$attr}')");
+}

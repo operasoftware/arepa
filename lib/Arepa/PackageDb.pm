@@ -4,7 +4,8 @@ use Carp qw(croak);
 use DBI;
 
 use constant SOURCE_PACKAGE_FIELDS => qw(name full_version
-                                         architecture distribution);
+                                         architecture distribution
+                                         comments);
 use constant COMPILATION_QUEUE_FIELDS => qw(source_package_id architecture
                                             distribution builder
                                             status compilation_requested_at
@@ -42,7 +43,8 @@ CREATE TABLE source_packages (id           INTEGER PRIMARY KEY,
                               name         VARCHAR(50),
                               full_version VARCHAR(20),
                               architecture VARCHAR(10),
-                              distribution VARCHAR(30));
+                              distribution VARCHAR(30),
+                              comments     TEXT);
 EOSQL
     if (!$r) {
         croak "Couldn't create table 'source_packages' in $self->{path}";
@@ -96,12 +98,14 @@ sub get_source_package_by_id {
                                       FROM source_packages
                                      WHERE id = ?");
     $sth->execute($id);
-    $sth->bind_columns(\my $name, \my $fv, \my $arch, \my $distro);
+    $sth->bind_columns(\my $name, \my $fv, \my $arch, \my $distro,
+                       \my $comments);
     return $sth->fetch ? (id           => $id,
                           name         => $name,
                           full_version => $fv,
                           architecture => $arch,
-                          distribution => $distro) :
+                          distribution => $distro,
+                          comments     => $comments) :
                          croak "Can't find a source package with id '$id'";
 }
 
