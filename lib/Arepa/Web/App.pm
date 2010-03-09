@@ -64,12 +64,8 @@ sub setup {
     $self->start_mode('home');
     $self->mode_param('rm');
     $self->run_modes(
-            'home'        => 'home',
-            'approve'     => 'approve',
-            'approve_all' => 'approve_all',
-            'build_log'   => 'show_build_log',
-            'requeue'     => 'requeue',
-            'logout'      => 'logout',
+        map { ($_ => $_) }
+            qw(home approve approve_all build_log requeue view_repo logout)
     );
     $self->tt_include_path($config->get_key('web_ui:template_dir'));
 
@@ -220,7 +216,8 @@ sub approve {
     my $pkg_id = $1;
     $self->approve_package($self->query->param("package-$pkg_id"),
                            priority => $self->query->param("priority-$pkg_id"),
-                           section  => $self->query->param("section-$pkg_id"));
+                           section  => $self->query->param("section-$pkg_id"),
+                           comments => $self->query->param("comments-$pkg_id"));
     if ($self->error_list) {
         my $r = $self->show_view('error.tmpl',
                                  {errors => [$self->error_list]});

@@ -1,12 +1,4 @@
-<!DOCTYPE HTML>
-<html>
-<head>
-    <title>Incoming packages</title>
-    <link rel="stylesheet" href="[% base_url %]/css/main.css" />
-    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
-</head>
-<body>
-<div id="topbar"><a id="logout-link" href="?rm=logout">Log out</a></div>
+[% INCLUDE header.tmpl %]
 
 <div id="sidebar">
   <h1>Compilation queue</h1>
@@ -75,6 +67,11 @@ config.get_key('upload_queue:path') %]</tt>
                 <span class="incoming-package-attr compilation-props compilation-prop">
                     Signed by:
                     <span class="compilation-prop-value">[% IF package.signature_id %][% package.signature_id %][% ELSE %][not signed][% END %] ([% IF package.correct_signature == 1 %]<span class="valid-signature">Valid signature</span>[% ELSE %]<span class="invalid-signature">Not valid signature</span>[% END %])</span>
+                </span>
+
+                <span class="incoming-package-attr compilation-props compilation-prop">
+                    Comments:
+                    <span class="compilation-prop-value"><input type="text" size="60" name="comments-[% package_count %]" value="" /></span>
                 </span>
             </div>
 
@@ -224,5 +221,4 @@ arepa-admin createbuilder /var/chroot/mybuilder ftp://ftp.se.debian.org/debian s
 [% END %]
 [% END %]
 </div>
-</body>
-</html>
+[% INCLUDE footer.tmpl %]
