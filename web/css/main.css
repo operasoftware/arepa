@@ -1,13 +1,14 @@
 body { font-family: verdana, arial, sans-serif }
 
 #topbar  {
-    text-align: right;
     margin: 0;
     border: 0;
     position: 0 0;
     font-size: 10pt;
+    padding-bottom: 2px;
+    border-bottom: 1px solid #aaf;
 }
-#logout-link { text-align: right }
+#logout-link { float: right }
 #sidebar { float: right; width: 27% }
 #main    { width: 70%; padding: 0 1em }
 
