@@ -290,6 +290,16 @@ sub requeue {
     }
 }
 
+sub view_repo {
+    my ($self) = @_;
+
+    my $repository = Arepa::Repository->new($config_path);
+
+    # Print everything -------------------------------------------------------
+    $self->show_view('repo.tmpl',
+                     {packages => { $repository->package_list }});
+}
+
 
 sub approve_package {
     my ($self, $changes_file_path, %opts) = @_;
