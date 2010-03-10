@@ -1,3 +1,8 @@
+0.xx  
+        - Order failed compilations by finished date, not requested date
+        - Add the ability to add comments to source packages
+        - Add a repository view showing all the available packages
+
 0.65  Wed Feb 17 13:33:38 CET 2010
         - Show since when a package has been compiling in the "Builder status"
         - Add the --delete option to the rsync calls
