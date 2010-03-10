@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 18;
+use Test::More tests => 20;
 use Test::Deep;
 use File::Path;
 use IO::Zlib;
@@ -130,3 +130,37 @@ if ($fh2->open("t/repo-test/dists/lenny-opera/main/source/Sources.gz", "rb")) {
 }
 ok($package_line_found2,    "Should find the package in Sources.gz");
 ok($correct_version_found2, "Should find the correct version in Sources.gz");
+
+
+
+# Package list ---------------------------------------------------------------
+cmp_deeply({ $r->package_list },
+          {
+              foobar => { "lenny-opera/main" => { "1.0-1"  => ['source'] } },
+              dhelp  => { "lenny-opera/main" => { "0.6.15" => set(qw(i386
+                                                                     amd64
+                                                                     source)),
+                                                } },
+          },
+          "The final package list should be correct");
+
+# Insert mixed versions of a new package
+$r->insert_source_package('t/upload_queue/qux_1.0-1.dsc', 'lenny-opera');
+$r->insert_binary_package('t/upload_queue/qux_1.0-1_i386.deb',  'lenny-opera');
+$r->insert_binary_package('t/upload_queue/qux_1.0-1_amd64.deb', 'lenny-opera');
+$r->insert_binary_package('t/upload_queue/qux_1.0-2_i386.deb',  'lenny-opera');
+
+# Now check the package list
+cmp_deeply({ $r->package_list },
+           {
+               foobar => { "lenny-opera/main" => { "1.0-1" => ['source'] } },
+               qux    => { "lenny-opera/main" => { "1.0-1" => set(qw(amd64
+                                                                     source)),
+                                                   "1.0-2" => ['i386'],
+                                                 } },
+               dhelp  => { "lenny-opera/main" => { "0.6.15" => set(qw(i386
+                                                                      amd64
+                                                                      source)),
+                                                 } },
+           },
+           "The final package list should be correct");

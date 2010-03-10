@@ -162,6 +162,26 @@ sub _execute_reprepro {
     }
 }
 
+sub package_list {
+    my ($self) = @_;
+
+    my %pkg_list;
+    my $repo_path = $self->get_config_key("repository:path");
+    foreach my $codename (map { $_->{codename} } $self->get_distributions) {
+        my $cmd = "reprepro -b$repo_path list $codename";
+        open PIPE, "$cmd |";
+        while (<PIPE>) {
+            my ($distro, $comp, $arch, $pkg_name, $pkg_version) =
+                /(.+)\|(.+)\|(.+): ([^ ]+) (.+)/;
+            $pkg_list{$pkg_name}->{"$distro/$comp"}->{$pkg_version} ||= [];
+            push @{$pkg_list{$pkg_name}->{"$distro/$comp"}->{$pkg_version}},
+                 $arch;
+        }
+        close PIPE;
+    }
+    return %pkg_list;
+}
+
 1;
 
 __END__
@@ -233,6 +253,24 @@ C<$distribution>.
 
 Returns the text output of the last executed command. This can help debugging
 problems.
+
+=item package_list
+
+Returns a data structure representing all the available packages in all the
+known distributions. The data structure is a hash that looks like this:
+
+ (foobar => { "lenny/main" => { "1.0-1" => ['source'] } },
+  pkg2   => { "lenny/main" => { "1.0-1" => [qw(amd64 source)],
+                                "1.0-2" => ['i386'], },
+              "etch/contrib" =>
+                              { "0.8-1" => [qw(i386 amd64 source) }
+            },
+  dhelp  => { "lenny/main" => { "0.6.15" => [qw(i386 source)] } },
+ )
+
+That is, the keys are the package names, and the values are another hash. This
+hash has C<distribution/component> as keys, and hashes as values. These hashes
+have available versions as keys, and a list of architectures as values.
 
 =back
 
