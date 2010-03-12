@@ -12,7 +12,14 @@
       <span class="repo-package-component-info">[% comp %]:
         [% FOREACH version IN packages.$package.$comp.keys.sort %]
             <span class="repo-package-version">[% version %]</span>
-            ([% packages.$package.$comp.$version.join(', ') %])
+            ([% FOREACH arch IN packages.$package.$comp.$version %]
+                [%- IF arch == "source" AND comments.$package.$version -%]
+<span class="source-package-name" title="[% comments.$package.$version %]">[% arch %] (*)</span>
+                [%- ELSE -%]
+                   [%- arch -%]
+                [%- END -%]
+             [%- UNLESS loop.last %], [% END %]
+             [%- END %])
             [%- UNLESS loop.last %],[% END %]
         [% END %]
         </span>

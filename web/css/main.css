@@ -19,6 +19,7 @@ h1 { font-size: 14pt; color: #00f }
 .compilation-options { float: right; font-size: 10pt }
 
 .package-name { color: black }
+.source-package-name { text-decoration: underline }
 .builder-name { color: black }
 .builder-info { font-size: 10pt; color: #3a3 }
 .builder-info .builder-name { color: inherit; font-weight: bold }

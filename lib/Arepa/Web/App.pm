@@ -294,10 +294,26 @@ sub view_repo {
     my ($self) = @_;
 
     my $repository = Arepa::Repository->new($config_path);
+    my $pdb = Arepa::PackageDb->new($config->get_key('package_db'));
 
     # Print everything -------------------------------------------------------
+    my %packages = $repository->package_list;
+    my %comments = ();
+    foreach my $pkg (keys %packages) {
+        foreach my $comp (keys %{$packages{$pkg}}) {
+            foreach my $version (keys %{$packages{$pkg}->{$comp}}) {
+                if (grep { $_ eq 'source' }
+                         @{$packages{$pkg}->{$comp}->{$version}}) {
+                    my $id = $pdb->get_source_package_id($pkg, $version);
+                    my %source_pkg = $pdb->get_source_package_by_id($id);
+                    $comments{$pkg}->{$version} = $source_pkg{comments};
+                }
+            }
+        }
+    }
     $self->show_view('repo.tmpl',
-                     {packages => { $repository->package_list }});
+                     { packages => \%packages,
+                       comments => \%comments });
 }
 
 
