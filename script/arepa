@@ -207,7 +207,16 @@ elsif ($command eq 'sign') {
                                                     "dists",
                                                     $distro_name,
                                                     "Release");
-        my $gpg_cmd = "gpg -abs -o $release_file_path.gpg $release_file_path &>/dev/null";
+        unlink "$release_file_path.gpg";
+
+        my $extra_options = "";
+        if ($config->key_exists('repository:signature:id')) {
+            my $key_id = $config->get_key('repository:signature:id');
+            $extra_options = " -u $key_id";
+        }
+        my $gpg_cmd = "gpg --batch -abs $extra_options -o $release_file_path.gpg $release_file_path &>/dev/null";
+
+        print "Signing $release_file_path...\n";
         if (system($gpg_cmd) != 0) {
             print STDERR "ERROR: couldn't sign Release file for '$distro_name'\n";
             exit 1;
