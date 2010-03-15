@@ -1,4 +1,5 @@
 apache.conf
+Changes
 config.yml-sample
 doc/create-chroot
 doc/database-api
@@ -46,7 +47,7 @@ t/upload_queue/dhelp_0.6.15_i386.changes
 web/cgi/arepa.cgi
 web/css/main.css
 web/templates/error.tmpl
-web/templates/index.tmpl
-web/templates/header.tmpl
 web/templates/footer.tmpl
+web/templates/header.tmpl
+web/templates/index.tmpl
 web/templates/repo.tmpl
