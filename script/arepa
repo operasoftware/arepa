@@ -9,6 +9,26 @@ use Getopt::Long;
 use Arepa::BuilderFarm;
 use Arepa::Repository;
 
+sub sign_distribution {
+    my ($config, $distro_name) = @_;
+
+    my $repo_path = $config->get_key('repository:path');
+    my $release_file_path = File::Spec->catfile($repo_path,
+                                                "dists",
+                                                $distro_name,
+                                                "Release");
+    unlink "$release_file_path.gpg";
+
+    my $extra_options = "";
+    if ($config->key_exists('repository:signature:id')) {
+        my $key_id = $config->get_key('repository:signature:id');
+        $extra_options = " -u $key_id";
+    }
+    my $gpg_cmd = "gpg --batch -abs $extra_options -o $release_file_path.gpg $release_file_path &>/dev/null";
+
+    return (system($gpg_cmd) == 0);
+}
+
 my ($r);
 my $config_file = '/etc/arepa/config.yml';
 
@@ -32,6 +52,8 @@ my $command = shift || do {
     exit 1;
 };
 
+my $config     = Arepa::Config->new($config_file);
+
 if ($command eq 'build') {
     my ($pending, $recompile) = (0, undef);
     $r = GetOptions('pending'     => \$pending,
@@ -44,28 +66,29 @@ if ($command eq 'build') {
     my $farm       = Arepa::BuilderFarm->new($config_file);
     my $repository = Arepa::Repository->new($config_file);
     if ($pending) {
-        foreach my $request ($farm->package_db->get_compilation_queue(status => 'pending')) {
+        foreach my $req ($farm->package_db->get_compilation_queue(status => 'pending')) {
             # Just get the first one if there are multiple matches
-            my ($builder) = $farm->get_matching_builders($request->{architecture},
-                                                         $request->{distribution});
+            my ($builder) = $farm->get_matching_builders($req->{architecture},
+                                                         $req->{distribution});
             if (!defined $builder) {
-                print STDERR "Goddamnit! There aren't any builders for $request->{distribution}/$request->{architecture}\n";
+                print STDERR "Goddamnit! There aren't any builders for $req->{distribution}/$req->{architecture}\n";
                 exit 1;
             }
-            my $source_pkg_id = $request->{source_package_id};
+            my $source_pkg_id = $req->{source_package_id};
             my %source_attrs  = $farm->package_db->get_source_package_by_id($source_pkg_id);
-            print "Compiling request id $request->{id}\n";
+            print "Compiling request id $req->{id}\n";
             print "$source_attrs{name} $source_attrs{full_version} ";
-            print "(arch: $request->{architecture}, ";
-            print "distro: $request->{distribution}) ";
+            print "(arch: $req->{architecture}, ";
+            print "distro: $req->{distribution}) ";
             print "with builder $builder...\n";
-            if ($farm->compile_package_from_queue($builder, $request->{id})) {
+            if ($farm->compile_package_from_queue($builder, $req->{id})) {
                 print "*** SUCCESS ***\n";
                 foreach my $deb_package (glob('*.deb')) {
                     print "Adding $deb_package to the repository\n";
                     if ($repository->insert_binary_package($deb_package,
-                                                           $request->{distribution})) {
+                                                           $req->{distribution})) {
                         unlink $deb_package;
+                        sign_distribution($config, $req->{distribution});
                     }
                 }
             }
@@ -98,6 +121,7 @@ if ($command eq 'build') {
                 if ($repository->insert_binary_package($deb_package,
                                                        $req{distribution})) {
                     unlink $deb_package;
+                    sign_distribution($config, $req{distribution});
                 }
             }
         }
@@ -160,7 +184,6 @@ elsif ($command eq 'requeue') {
         print STDERR "I need a queue id to requeue\n";
         exit 1;
     }
-    my $config = Arepa::Config->new($config_file);
     my $pdb    = Arepa::PackageDb->new($config->get_key('package_db'));
     my %compilation_attrs = ();
     eval {
@@ -180,7 +203,6 @@ elsif ($command eq 'showqueue') {
         print STDERR "Invalid options for 'showqueue' command\n";
         exit 1;
     }
-    my $config = Arepa::Config->new($config_file);
     my $pdb    = Arepa::PackageDb->new($config->get_key('package_db'));
     foreach my $elt ($pdb->get_compilation_queue(status => $status)) {
         my %source = $pdb->get_source_package_by_id($elt->{source_package_id});
@@ -196,28 +218,14 @@ elsif ($command eq 'sign') {
         exit 1;
     }
 
-    my $config    = Arepa::Config->new($config_file);
     my $repo_path = $config->get_key('repository:path');
 
     # Sign all the Release files
     my $repository = Arepa::Repository->new($config_file);
     foreach my $distribution ($repository->get_distributions) {
         my $distro_name = $distribution->{codename};
-        my $release_file_path = File::Spec->catfile($repo_path,
-                                                    "dists",
-                                                    $distro_name,
-                                                    "Release");
-        unlink "$release_file_path.gpg";
-
-        my $extra_options = "";
-        if ($config->key_exists('repository:signature:id')) {
-            my $key_id = $config->get_key('repository:signature:id');
-            $extra_options = " -u $key_id";
-        }
-        my $gpg_cmd = "gpg --batch -abs $extra_options -o $release_file_path.gpg $release_file_path &>/dev/null";
-
-        print "Signing $release_file_path...\n";
-        if (system($gpg_cmd) != 0) {
+        print "Signing $distro_name...\n";
+        if (! sign_distribution($config, $distro_name)) {
             print STDERR "ERROR: couldn't sign Release file for '$distro_name'\n";
             exit 1;
         }
@@ -234,7 +242,6 @@ elsif ($command eq 'sign') {
     }
 }
 elsif ($command eq 'sync') {
-    my $config = Arepa::Config->new($config_file);
     my $local_repo  = $config->get_key('repository:path');
     my $remote_repo = $config->get_key('repository:remote_path');
     my $rsync_cmd = "rsync -avz --delete $local_repo $remote_repo";
