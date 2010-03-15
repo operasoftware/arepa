@@ -335,9 +335,17 @@ sub approve_package {
                                                 $source_file_path,
                                     $distribution,
                                     %opts);
-    if (!$source_pkg_id) {
-        $self->add_error("Couldn't approve source package '$source_file_path'.",
-                         $repository->last_cmd_output);
+    if ($source_pkg_id) {
+        if (system("sudo -n arepa-sign >/dev/null") != 0) {
+            $self->add_error("Couldn't sign repositories, check your " .
+                                "'sudo' configuration and " .
+                                "/usr/share/doc/arepa/README.Debian");
+        }
+    }
+    else {
+        $self->add_error("Couldn't approve source package " .
+                            "'$source_file_path'.",
+                            $repository->last_cmd_output);
     }
 
     if ($self->error_list) {
