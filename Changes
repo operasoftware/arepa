@@ -1,4 +1,11 @@
 0.xx  
+        - Store passwords as MD5-hashes in the users file
+        - Add support for rejecting incoming packages
+        - Support incoming source packages with a distribution that is not a
+          reprepro distribution Suite or Codename (still, that distribution
+          will have to be mentioned in some builder)
+
+0.70  
         - Order failed compilations by finished date, not requested date
         - Add the ability to add comments to source packages
         - Add a repository view showing all the available packages
