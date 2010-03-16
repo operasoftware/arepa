@@ -54,7 +54,7 @@ h1 { font-size: 14pt; color: #00f }
 .builder-status { float: right; color: #005; font-size: 10pt }
 .builder-props      { display: block; font-size: 8pt; color: #777 }
 .builder-prop-value { font-weight: bold }
-.compilation-props       { display: block; font-size: 8pt; color: #777 }
+.compilation-props       { display: block; font-size: 8pt; color: #777; padding-bottom: 1px }
 .compilation-prop-value  { font-weight: bold }
 
 .compilation-queue-line, .failed-compilation-line { padding-bottom: 1ex }
