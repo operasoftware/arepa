@@ -75,11 +75,11 @@ config.get_key('upload_queue:path') %]</tt>
                 </span>
             </div>
 
-            <input type="hidden" name="rm" value="approve" />
+            <input type="hidden" name="rm" value="process" />
             <input type="hidden" name="package-[% package_count %]" value="[% package.path %]" />
             <input type="hidden" name="component-[% package_count %]" value="main" />
             <span class="compilation-props">
-                <input type="submit" value="Approve" />
+                <input name="approve" type="submit" value="Approve" />
                 for priority <select name="priority-[% package_count %]" value="">
                     <option name="extra">extra</option>
                     <option name="optional" selected="selected">optional</option>
@@ -141,6 +141,9 @@ config.get_key('upload_queue:path') %]</tt>
                     <option name="zope">zope</option>
                 </select>
             </span>
+            <span class="compilation-props">
+                <input name="reject" type="submit" value="Reject" onclick="return confirm('Are you sure?')" />
+            </span>
         </div>
     </form>
 [% END %]
@@ -155,7 +158,7 @@ config.get_key('upload_queue:path') %]</tt>
         [% FOREACH package = packages %]
         <input type="hidden" name="packages" value="[% package.path %]" />
         [% END %]
-        <input type="hidden" name="rm" value="approve_all" />
+        <input type="hidden" name="rm" value="process_all" />
         <input type="hidden" name="component" value="main" />
         <div class="option-buttons">
             <input type="submit" value="Approve all" />

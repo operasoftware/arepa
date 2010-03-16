@@ -65,7 +65,7 @@ sub setup {
     $self->mode_param('rm');
     $self->run_modes(
         map { ($_ => $_) }
-            qw(home approve approve_all build_log requeue view_repo logout)
+            qw(home process process_all build_log requeue view_repo logout)
     );
     $self->tt_include_path($config->get_key('web_ui:template_dir'));
 
@@ -207,17 +207,26 @@ sub home {
                       rm                  => join(", ", $self->query->param('rm'))});
 }
 
-sub approve {
+sub process {
     my ($self) = @_;
 
     # Find the package. The field will be "package-N", where N is an integer
     my ($field_name) = grep /^package-\d+$/, $self->query->param;
     $field_name =~ /^package-(\d+)$/;
     my $pkg_id = $1;
-    $self->approve_package($self->query->param("package-$pkg_id"),
-                           priority => $self->query->param("priority-$pkg_id"),
-                           section  => $self->query->param("section-$pkg_id"),
-                           comments => $self->query->param("comments-$pkg_id"));
+    if ($self->query->param("approve")) {
+        $self->approve_package(
+            $self->query->param("package-$pkg_id"),
+            priority => $self->query->param("priority-$pkg_id"),
+            section  => $self->query->param("section-$pkg_id"),
+            comments => $self->query->param("comments-$pkg_id"));
+    }
+    elsif ($self->query->param("reject")) {
+        my $changes_file_path = $self->query->param($field_name);
+        my $path = $config->get_key('upload_queue:path')."/".
+                        basename($changes_file_path);
+        $self->remove_uploaded_package($path);
+    }
     if ($self->error_list) {
         my $r = $self->show_view('error.tmpl',
                                  {errors => [$self->error_list]});
@@ -228,7 +237,7 @@ sub approve {
     }
 }
 
-sub approve_all {
+sub process_all {
     my ($self) = @_;
 
     foreach my $package ($self->query->param('packages')) {
@@ -317,6 +326,25 @@ sub view_repo {
 }
 
 
+sub remove_uploaded_package {
+    my ($self, $changes_file_path) = @_;
+
+    my $changes_file = Parse::Debian::PackageDesc->new($changes_file_path);
+    # Remove all files from the pending queue
+    # Files referenced by the changes file
+    foreach my $file ($changes_file->files) {
+        my $file_path = $config->get_key('upload_queue:path')."/".$file;
+        if (-e $file_path && ! unlink($file_path)) {
+            $self->add_error("Can't delete '$file_path'.");
+        }
+    }
+    # Changes file itself
+    if (! unlink($changes_file_path)) {
+        $self->add_error("Can't delete '$changes_file_path'.");
+    }
+}
+
+
 sub approve_package {
     my ($self, $changes_file_path, %opts) = @_;
 
@@ -352,23 +380,12 @@ sub approve_package {
         return 0;
     }
     else {
-        # Remove all files from the pending queue
-        # Files referenced by the changes file
-        foreach my $file ($changes_file->files) {
-            my $file_path = $config->get_key('upload_queue:path')."/".$file;
-            if (-e $file_path && ! unlink($file_path)) {
-                $self->add_error("Can't delete '$file_path'.");
-            }
-        }
-        # Changes file itself
-        if (! unlink($path)) {
-            $self->add_error("Can't delete '$path'.");
-        }
-
         # If everything went fine, add the source package to the compilation
         # queue
         my $farm = Arepa::BuilderFarm->new($config_path);
         $farm->request_package_compilation($source_pkg_id);
+
+        $self->remove_uploaded_package($path);
 
         if ($self->error_list) {
             return 0;
