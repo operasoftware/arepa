@@ -90,10 +90,10 @@ sub get_builder_config {
 sub get_builder_config_key {
     my ($self, $builder_name, $config_key) = @_;
 
-    my $builder_config = $self->get_builder_config($builder_name);
-    defined($builder_config->{$config_key}) or
+    my %builder_config = $self->get_builder_config($builder_name);
+    defined($builder_config{$config_key}) or
         croak "'$builder_name' doesn't have a configuration key $config_key";
-    return $builder_config->{$config_key};
+    return $builder_config{$config_key};
 }
 
 1;

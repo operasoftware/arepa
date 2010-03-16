@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 7;
+use Test::More tests => 9;
 use Test::Deep;
 use Arepa::Config;
 
@@ -32,6 +32,13 @@ my $expected_builder_info = {
 cmp_deeply({ $c->get_builder_config('lenny64') },
            $expected_builder_info,
            "Builder information for 'lenny64' should be correct");
+is($c->get_builder_config_key('lenny64', 'architecture'),
+   'amd64',
+   "Should find the same values when asking for single configuration keys");
+eval {
+    $c->get_builder_config_key('lenny64', 'architecture2');
+};
+ok($@, "Non-existent config key retrieval should throw an exception");
 
 
 # Non-existent keys
