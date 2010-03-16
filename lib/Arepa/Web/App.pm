@@ -15,6 +15,7 @@ use Carp    qw(carp croak); # NEVER USE warn OR die !
 use English qw(-no_match_vars);
 use File::Basename;
 use File::Copy;
+use Digest::MD5;
 
 use base qw(CGI::Application);
 use CGI::Application::Plugin::TT;
@@ -43,7 +44,7 @@ foreach my $conffile (@conffiles) {
 sub validate_username_password {
     my ($user, $password) = @_;
     my %users = %{YAML::LoadFile($config->get_key('web_ui:user_file'))};
-    return ($users{$user} eq $password);
+    return ($users{$user} eq Digest::MD5::md5_hex($password));
 }
 
 sub setup {
@@ -60,7 +61,6 @@ sub setup {
                           COOKIE_PARAMS  => {-expires => '+24h', -path => '/'},
                           SEND_COOKIE    => 1);
     $self->authen->protected_runmodes(':all');
-    $self->authen->protected_runmodes('logout');
     $self->start_mode('home');
     $self->mode_param('rm');
     $self->run_modes(
