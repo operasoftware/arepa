@@ -358,10 +358,20 @@ sub approve_package {
                                         $changes_file->version;
     my $source_file_path = $package_revision_base_name.".dsc";
     my $repository = Arepa::Repository->new($config_path);
+    my $farm       = Arepa::BuilderFarm->new($config_path);
+
+    # Calculate the canonical distribution. It's needed for the reprepro call.
+    # If reprepro accepted "reprepro includesrc 'funnydistro' ...", having
+    # 'funnydistro' in the AlsoAcceptFor list, this wouldn't be necessary.
+    my ($arch) = grep { $_ ne 'source' } $changes_file->architecture;
+    my ($builder) = $farm->get_matching_builders($arch, $distribution);
+    my $canonical_distro = $config->get_builder_config_key($builder,
+                                                           'distribution');
+
     my $source_pkg_id = $repository->insert_source_package(
                                     $config->get_key('upload_queue:path')."/".
                                                 $source_file_path,
-                                    $distribution,
+                                    $canonical_distro,
                                     %opts);
     if ($source_pkg_id) {
         if (system("sudo -n arepa-sign >/dev/null") != 0) {
@@ -382,7 +392,6 @@ sub approve_package {
     else {
         # If everything went fine, add the source package to the compilation
         # queue
-        my $farm = Arepa::BuilderFarm->new($config_path);
         $farm->request_package_compilation($source_pkg_id);
 
         $self->remove_uploaded_package($path);
