@@ -31,7 +31,6 @@ sub sign_distribution {
 
 sub show_help {
     print STDERR <<EOD;
-ERROR: I need a command
 SYNTAX: arepa [-c|--config=config.yml] <command> [options]
 where <command> is one of:
   build
@@ -77,7 +76,10 @@ if (!$r) {
 
 my $config = Arepa::Config->new($config_file);
 
-my $command = shift || show_help;
+my $command = shift || do {
+    print STDERR "ERROR: I need a command\n";
+    show_help;
+};
 if ($command eq 'build') {
     my ($pending, $recompile) = (0, undef);
     $r = GetOptions('pending'     => \$pending,
