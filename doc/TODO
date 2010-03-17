@@ -5,18 +5,9 @@
   distribution (use it for the initial /var/arepa/keyring/uploaders.gpg)
 * Figure out some permissions for package.db that work for both www-data and
   arepa-master. Should package.db be created by default as an empty database?
-* Create some directory /var/arepa/upload-queue for the default upload queue
-  and appropriate permissions
-* See if there's any way that other users can use sbuild and stuff: maybe
-  creating the directories as arepa-master:sbuild or similar, and giving group
-  permissions too, and documenting that the user must be member of the sbuild
-  group. PROBABLY SCREW IT, LOGIN AS arepa-master.
 
 * The user, after installation, will have to "su - arepa-master" and create a
   new GPG key for it. The secret key ID should be in the configuration
-* Also, how is the default repository going to be created? Maybe simply create
-  a default /var/arepa/repository/conf/distributions with a default "squeeze"
-  distribution or something similar?
 
 * Make www-data be part of a new group, arepa. That group should be the group
   for all the interesting directories, and those directories should have the
@@ -24,5 +15,12 @@
 * Have to set the umask to 0002 to reprepro creates the files with the
   appropriate permissions
 
-* EVERY TIME A PACKAGE IS PUT INTO THE REPO, IT HAS TO BE SIGNED AGAIN. That
-  way, further packages that build-depend on it can be downloaded and compiled
+Pending
+-------
+
+* sometimes installation of build-essential and such fails
+* it would be nice having the canonical distribution name when generating the
+  apt sources line so it just works
+* it would be good having some tool to either generate the reprepro
+  configuration file (and builders?) or at least make sure you have everything
+  in sync.
