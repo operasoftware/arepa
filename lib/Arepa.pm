@@ -43,7 +43,7 @@ Web interface for package approval, compilation status and other tasks.
 
 =back
 
-=head1 INTRODUCTION
+=head1 CONFIGURATION
 
 To use Arepa, you first must decide how you want your repositories to look
 like, then configure Arepa to do what you want. The recommended way of
@@ -190,3 +190,35 @@ For example:
 That will create a builder running Debian squeeze in
 C</var/chroot/squeezebuilder>. Once it's ready, you might want to make sure
 that the C</etc/apt/sources.list> is correct.
+
+=head1 POINTS OF ENTRY
+
+When Arepa is completely configured, you'll have the following "points of
+entry":
+
+=over 4
+
+=item C<http://localhost/cgi-bin/arepa/arepa.cgi>
+
+The web interface to approve packages, check compilation status and have an
+overview of the repository contents.
+
+=item C<http://localhost/arepa/repository>
+
+The repository itself. This is a "local" or "staging" copy that the
+autobuilders will use. As you probably don't want to serve the repository to
+your real users from the same machine that hosts CGIs and whatnot, you can
+easily send the repository to the final machine using C<arepa sync>.
+
+=item C<arepa>
+
+This utility allows you to inspect the compilation queue and insert new
+requests into it. Note that you're expected to run this utility as the
+C<arepa-master> user, at least for some of the operations.
+
+=item C<arepa-admin>
+
+This utility allows you to do certain "admin" operations that require root
+permissions, like creating new autobuilders. Must be run as root.
+
+=back
