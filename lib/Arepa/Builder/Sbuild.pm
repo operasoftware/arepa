@@ -89,6 +89,20 @@ sub do_init {
     }
 }
 
+sub do_uninit {
+    my ($self, $builder) = @_;
+
+    my $builder_dir = $self->get_builder_directory($builder);
+
+    # Bind some important files to the 'host'
+    foreach my $etc_file (qw(resolv.conf passwd shadow group gshadow)) {
+        my $full_path = "$builder_dir/etc/$etc_file";
+        my $umount_cmd = qq(umount "$full_path");
+        $self->ui_module->print_info("Unbinding $full_path from /etc/$etc_file");
+        system($umount_cmd);
+    }
+}
+
 sub _compile_package_from_spec {
     my ($self, $builder_name, $package_spec, %user_opts) = @_;
     my %opts = (output_dir => '.', bin_nmu => 0, %user_opts);

@@ -71,6 +71,21 @@ sub init_builder {
     $module->init($builder);
 }
 
+sub uninit_builders {
+    my ($self) = @_;
+
+    foreach my $builder ($self->{config}->get_builders) {
+        $self->uninit_builder($builder);
+    }
+}
+
+sub uninit_builder {
+    my ($self, $builder) = @_;
+
+    my $module = $self->builder_module($builder);
+    $module->uninit($builder);
+}
+
 sub compile_package_from_dsc {
     my ($self, $builder, $dsc_file, %user_opts) = @_;
     my %opts = (output_dir => '.', %user_opts);
@@ -239,6 +254,8 @@ Arepa::BuilderFarm - Arepa builder farm access class
 
  $repo->init_builders;
  $repo->init_builder($builder_name);
+ $repo->uninit_builders;
+ $repo->uninit_builder($builder_name);
 
  my $r = $repo->compile_package_from_dsc($builder_name,
                                          $dsc_file,
@@ -304,8 +321,16 @@ inside an init script).
 
 =item init_builder($builder_name)
 
-Initialises the builder C<$builder_name>. It should be called once per machine
-boot (e.g. inside an init script).
+Initialises the builder C<$builder_name>.
+
+=item uninit_builders
+
+Uninitialises all the builders. It should be called once per machine shutdown
+(e.g. inside an init script).
+
+=item uninit_builder($builder_name)
+
+Uninitialises the builder C<$builder_name>.
 
 =item compile_package_from_dsc($builder_name, $dsc_file, %opts)
 

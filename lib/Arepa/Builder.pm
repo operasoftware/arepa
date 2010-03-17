@@ -50,6 +50,16 @@ sub init {
     $self->do_init($builder);
 }
 
+sub do_uninit {
+    my ($self, $builder) = @_;
+    croak "Not implemented";
+}
+
+sub uninit {
+    my ($self, $builder) = @_;
+    $self->do_uninit($builder);
+}
+
 sub do_compile_package_from_dsc {
     my ($self, $builder_name, $dsc_file, %user_opts) = @_;
     croak "Not implemented";
