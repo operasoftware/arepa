@@ -14,16 +14,17 @@ sub show_help {
     print STDERR <<EOD;
 SYNTAX: arepa-admin <command> [options]
 where <command> is one of:
-  build
-  queue
-  requeue
-  showqueue
-  sign
-  sync
+  createbuilder
+  init
+  uninit
 
 arepa-admin createbuilder /var/mybuilder ftp://... squeeze
 
 arepa-admin init
+arepa-admin init just_this_builder
+
+arepa-admin uninit
+arepa-admin uninit just_this_builder
 EOD
     exit 1;
 }
@@ -43,7 +44,28 @@ if ($command eq 'createbuilder') {
     Arepa::Builder::Sbuild->create($builder_dir, $mirror, $distribution);
 }
 elsif ($command eq 'init') {
-    Arepa::BuilderFarm->new($config_file)->init_builders;
+    Arepa::Builder->ui_module("Arepa::UI::Null");
+    my $farm = Arepa::BuilderFarm->new($config_file);
+    if (scalar @args) {
+        foreach my $builder (@args) {
+            $farm->init_builder($builder);
+        }
+    }
+    else {
+        $farm->init_builders;
+    }
+}
+elsif ($command eq 'uninit') {
+    Arepa::Builder->ui_module("Arepa::UI::Null");
+    my $farm = Arepa::BuilderFarm->new($config_file);
+    if (scalar @args) {
+        foreach my $builder (@args) {
+            $farm->uninit_builder($builder);
+        }
+    }
+    else {
+        $farm->uninit_builders;
+    }
 }
 else {
     print STDERR "Unknown command '$command'\n";
