@@ -10,24 +10,39 @@ use Arepa::Builder::Sbuild;
 
 my $config_file = '/etc/arepa/config.yml';
 
+sub show_help {
+    print STDERR <<EOD;
+SYNTAX: arepa-admin <command> [options]
+where <command> is one of:
+  build
+  queue
+  requeue
+  showqueue
+  sign
+  sync
+
+arepa-admin createbuilder /var/mybuilder ftp://... squeeze
+
+arepa-admin init
+EOD
+    exit 1;
+}
+
 my ($command, @args) = @ARGV;
 if (scalar @ARGV == 0) {
     print STDERR "arepa-admin needs a command\n";
-    print STDERR "Syntax: arepa-admin <command> <args> ...\n";
-    exit 1;
+    show_help;
 }
 
 if ($command eq 'createbuilder') {
     my ($builder_dir, $mirror, $distribution) = @args;
     if (scalar @args != 3) {
         print STDERR "createbuilder needs exactly three arguments\n";
-        print STDERR "Syntax: arepa-admin createbuilder <schroot_dir> <debian_mirror> <distribution>\n";
-        exit 1;
+        show_help;
     }
     Arepa::Builder::Sbuild->create($builder_dir, $mirror, $distribution);
 }
 elsif ($command eq 'init') {
-    my ($builder_dir) = @args;
     Arepa::BuilderFarm->new($config_file)->init_builders;
 }
 else {
