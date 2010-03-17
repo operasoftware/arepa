@@ -2,8 +2,6 @@ apache.conf
 Changes
 config.yml-sample
 doc/create-chroot
-doc/database-api
-doc/repo-conf-distributions.sample
 doc/TODO
 lib/Arepa.pm
 lib/Arepa/Builder.pm
