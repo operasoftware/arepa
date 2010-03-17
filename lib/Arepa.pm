@@ -191,6 +191,16 @@ That will create a builder running Debian squeeze in
 C</var/chroot/squeezebuilder>. Once it's ready, you might want to make sure
 that the C</etc/apt/sources.list> is correct.
 
+B<IMPORTANT WARNING NOTE:> once you have created a builder chroot, it will
+automatically bind certain files (C</etc/passwd> and others) from the "host"
+machine. So, if you C<rm -rf> the chroot, you'll delete C</etc/passwd> in your
+machine. Make sure you unmount those files with:
+
+ umount /var/chroot/squeezebuilder/etc/passwd
+
+and so on. Check which actual paths are still mounted with C<mount> B<before
+removing the builder>!
+
 =head1 POINTS OF ENTRY
 
 When Arepa is completely configured, you'll have the following "points of
