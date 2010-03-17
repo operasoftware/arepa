@@ -374,7 +374,7 @@ sub approve_package {
                                     $canonical_distro,
                                     %opts);
     if ($source_pkg_id) {
-        if (system("sudo -n arepa-sign >/dev/null") != 0) {
+        if (system("sudo arepa-sign >/dev/null") != 0) {
             $self->add_error("Couldn't sign repositories, check your " .
                                 "'sudo' configuration and " .
                                 "/usr/share/doc/arepa/README.Debian");
