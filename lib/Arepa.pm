@@ -194,12 +194,11 @@ that the C</etc/apt/sources.list> is correct.
 B<IMPORTANT WARNING NOTE:> once you have created a builder chroot, it will
 automatically bind certain files (C</etc/passwd> and others) from the "host"
 machine. So, if you C<rm -rf> the chroot, you'll delete C</etc/passwd> in your
-machine. Make sure you unmount those files with:
+machine. Make sure you "uninit" the builder first:
 
- umount /var/chroot/squeezebuilder/etc/passwd
+ arepa-admin uninit squeezebuilder
 
-and so on. Check which actual paths are still mounted with C<mount> B<before
-removing the builder>!
+Check the output of C<mount> B<before removing the builder> just in case!
 
 =head1 POINTS OF ENTRY
 
