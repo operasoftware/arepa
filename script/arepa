@@ -29,31 +29,55 @@ sub sign_distribution {
     return (system($gpg_cmd) == 0);
 }
 
+sub show_help {
+    print STDERR <<EOD;
+ERROR: I need a command
+SYNTAX: arepa [-c|--config=config.yml] <command> [options]
+where <command> is one of:
+  build
+  queue
+  requeue
+  showqueue
+  sign
+  sync
+
+arepa build --pending
+arepa build --recompile 3
+arepa build source_package.dsc builder_name
+
+arepa queue source_package.dsc
+arepa queue source_package.dsc mydistro
+
+arepa requeue 3
+
+arepa showqueue
+arepa showqueue --status compilationfailed
+arepa showqueue --status compiling
+arepa showqueue --status compiled
+arepa showqueue --status pending
+
+arepa sign
+arepa sign --sync
+
+arepa sync
+EOD
+    exit 1;
+}
+
 my ($r);
 my $config_file = '/etc/arepa/config.yml';
 
 Getopt::Long::Configure('pass_through');
 $r = GetOptions('config|c=s', \$config_file);
+Getopt::Long::Configure('default');
 if (!$r) {
     print STDERR "Invalid global options\n";
-    exit 1;
+    show_help;
 }
 
-my $command = shift || do {
-    print STDERR "ERROR: I need a command\n";
-    print STDERR "SYNTAX: arepa [-c|--config=config.yml] <command> [options]\n";
-    print STDERR "where <command> is one of:\n";
-    print STDERR "  build\n";
-    print STDERR "  queue\n";
-    print STDERR "  requeue\n";
-    print STDERR "  showqueue\n";
-    print STDERR "  sign\n";
-    print STDERR "  sync\n";
-    exit 1;
-};
+my $config = Arepa::Config->new($config_file);
 
-my $config     = Arepa::Config->new($config_file);
-
+my $command = shift || show_help;
 if ($command eq 'build') {
     my ($pending, $recompile) = (0, undef);
     $r = GetOptions('pending'     => \$pending,
@@ -133,8 +157,7 @@ if ($command eq 'build') {
     else {
         my ($dsc_file, $builder) = @ARGV;
         if (!defined $dsc_file || !defined $builder) {
-            print STDERR "ERROR: Need a dsc file and a builder name\n";
-            exit 1;
+            show_help;
         }
         $farm->compile_package_from_dsc($builder, $dsc_file,
                                         output_dir => '.');
@@ -201,7 +224,7 @@ elsif ($command eq 'showqueue') {
     $r = GetOptions('status=s'     => \$status);
     if (!$r) {
         print STDERR "Invalid options for 'showqueue' command\n";
-        exit 1;
+        show_help;
     }
     my $pdb    = Arepa::PackageDb->new($config->get_key('package_db'));
     foreach my $elt ($pdb->get_compilation_queue(status => $status)) {
@@ -215,7 +238,7 @@ elsif ($command eq 'sign') {
     $r = GetOptions('sync' => \$sync);
     if (!$r) {
         print STDERR "Invalid options for 'sign' command\n";
-        exit 1;
+        show_help;
     }
 
     my $repo_path = $config->get_key('repository:path');
@@ -254,13 +277,3 @@ else {
     print STDERR "ERROR: Unknown command '$command'\n";
     exit 1;
 }
-
-__END__
-arepa build --pending       # Process build queue
-arepa build <file.dsc>      # Builds the given .dsc in all relevant builders
-arepa build <file.dsc> <builder_name>
-arepa queue <file.dsc>
-arepa queue <file.dsc> <arch>
-arepa unqueue <file.dsc>
-arepa unqueue <file.dsc> <arch>
-arepa showqueue
