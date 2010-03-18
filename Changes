@@ -1,4 +1,4 @@
-0.73  Xxx Xxx xx hh:mm:ss CET 2010
+0.73  Thu Mar 18 13:39:35 CET 2010
         - Fix stupid bug introduced in 0.71 ("Support incoming ...") that
           would do horrible things when having any binNMUs configured
 
