@@ -5,6 +5,7 @@
         - Don't use the -n option in sudo, as it's only supported from 1.7.0
         - Remove the silly signing script, as it's not needed if sudo is
           configured properly
+        - Add/improve documentation everywhere, add legal information
 
 0.71  
         - Store passwords as MD5-hashes in the users file
