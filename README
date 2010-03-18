@@ -8,6 +8,22 @@ To configure the web interface, you'll have to make web/cgi/arepa.cgi
 available somewhere (as well as the CSS) and configure /etc/arepa/config.yml
 appropriately (there's a sample config file named config.yml-sample).
 
+Dependencies
+------------
+
+You need reprepro, sudo and sbuild installed for Arepa to work.
+
+You must create a user "arepa-master" and give it permissions to run sbuild.
+
+Configuration
+-------------
+
+The main configuration file is /etc/arepa/config.yml. There is a configuration
+sample for it in config.yml-sample.
+
+Read the POD documentation for the Arepa module (lib/Arepa.pm) and follow the
+steps.
+
 You must also add this line to your sudo configuration:
 
  %arepa ALL = (arepa-master) NOPASSWD: /usr/bin/arepa sign
