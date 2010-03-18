@@ -420,72 +420,103 @@ sub _redirect {
 
 1;
 
-__END__
-
-=begin wikidoc
-
-= NAME
-
-PackageApprovalApp - CGI::Application app for Debian package approval
-
-
-= VERSION
-
-This document describes My Opera version %%VERSION%%
-
-= SYNOPSIS
-
-    use PackageApprovalApp;
-    PackageApprovalApp->run;
-
-= DESCRIPTION
-
-Write the modules description here.
-
-= DIAGNOSTICS
-
-No error messages.
-
-= CONFIGURATION AND ENVIRONMENT
-
-This module requires no configuration file or environment variables.
-
-= DEPENDENCIES
-
-* {CGI::Application}
-* {CGI::Application::Plugin::Authentication}
-* {CGI::Application::Plugin::TT}
-
-= INCOMPATIBILITIES
-
-None known.
-
-= BUGS AND LIMITATIONS
-
-No bugs have been reported.
-
-= SEE ALSO
-
-== Parse::Debian::Packages
-
-== CGI::Application
-
-= AUTHOR
-
-Esteban Manchado Velázquez <estebanm@opera.com>.
-
-= LICENSE AND COPYRIGHT
-
-= DISCLAIMER OF WARRANTY
-
-
-=end wikidoc
-
-=for stopwords expandtab shiftround
-
 # Local Variables:
 #   mode: cperl
 #   cperl-indent-level: 4
 #   fill-column: 78
 # End:
 # vim: expandtab tabstop=4 shiftwidth=4 shiftround
+
+__END__
+
+=head1 NAME
+
+Arepa::Web::App - CGI::Application app for Debian repository management
+
+=head1 SYNOPSIS
+
+ use Arepa::Web::App;
+ Arepa::Web::App->run;
+
+=head1 CONFIGURATION
+
+C</etc/arepa/config.yml>
+
+=head1 DEPENDENCIES
+
+=over 4
+
+=item
+
+C<CGI::Application>
+
+=item
+
+C<CGI::Application::Plugin::Authentication>
+
+=item
+
+C<CGI::Application::Plugin::TT>
+
+=back
+
+=head1 SEE ALSO
+
+=over 4
+
+=item
+
+C<Parse::Debian::Packages>
+
+=item
+
+C<CGI::Application>
+
+=back
+
+=head1 AUTHOR
+
+Esteban Manchado Velázquez <estebanm@opera.com>.
+
+=head1 LICENSE AND COPYRIGHT
+
+This code is offered under the Open Source BSD license.
+
+Copyright (c) 2010, Opera Software. All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+=over 4
+
+=item
+
+Redistributions of source code must retain the above copyright notice,
+this list of conditions and the following disclaimer.
+
+=item
+
+Redistributions in binary form must reproduce the above copyright notice,
+this list of conditions and the following disclaimer in the documentation
+and/or other materials provided with the distribution.
+
+=item
+
+Neither the name of Opera Software nor the names of its contributors may
+be used to endorse or promote products derived from this software without
+specific prior written permission.
+
+=back
+
+=head1 DISCLAIMER OF WARRANTY
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
