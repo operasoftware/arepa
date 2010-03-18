@@ -1,3 +1,7 @@
+0.74  Thu Mar 18 14:56:41 CET 2010
+        - More fixes for the 0.71 bug, hopefully this time it's completely
+          fixed
+
 0.73  Thu Mar 18 13:39:35 CET 2010
         - Fix stupid bug introduced in 0.71 ("Support incoming ...") that
           would do horrible things when having any binNMUs configured
