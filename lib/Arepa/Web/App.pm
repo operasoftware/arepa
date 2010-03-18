@@ -366,7 +366,25 @@ sub approve_package {
     # do have to pass the real source package distribution to
     # insert_source_package so the compilation targets are calculated properly
     my ($arch) = grep { $_ ne 'source' } $changes_file->architecture;
-    my ($builder) = $farm->get_matching_builders($arch, $distribution);
+    my @builders = $farm->get_matching_builders($arch, $distribution);
+    my $builder;
+    foreach my $b (@builders) {
+        my %builder_cfg = $config->get_builder_config($b);
+        if (grep { $_ eq $distribution }
+                 @{$builder_cfg{distribution_aliases}}) {
+            # There should be only one; if there's more than one, that's a
+            # problem
+            if ($builder) {
+                $self->add_error("There is more than one builder that " .
+                                    "specifies '$distribution' as alias. " .
+                                    "That's not correct! One of them " .
+                                    "should specify it as bin_nmu_for");
+                $builder = undef;
+                last;
+            }
+            $builder = $b;
+        }
+    }
     my $source_pkg_id;
     if ($builder) {
         my $canonical_distro = $config->get_builder_config_key($builder,
