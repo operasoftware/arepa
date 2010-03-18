@@ -266,8 +266,8 @@ Arepa::BuilderFarm - Arepa builder farm access class
 
  $repo->request_package_compilation($source_id);
  my @arch_distro_pairs = $repo->get_compilation_targets($source_id);
- my @builders_and_binnmu = $repo->get_matching_builders($architecture,
-                                                        $distribution);
+ my @builders = $repo->get_matching_builders($architecture,
+                                             $distribution);
 
  my $source_id = $repo->register_source_package(%source_package_attrs);
 
@@ -367,9 +367,7 @@ target is an arrayref with two elements: architecture and distribution.
 =item get_matching_builders($architecture, $distribution)
 
 Gets the builders that should compile packages for the given C<$architecture>
-and C<$distribution>. It returns a list of two-element arrayrefs. The first
-element is the builder name, and the second is true if it should be a binNMU,
-false otherwise.
+and C<$distribution>. It returns a list of builder names.
 
 =item register_source_package(%source_package_attrs)
 
