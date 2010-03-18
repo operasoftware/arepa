@@ -1,4 +1,8 @@
-0.72  
+0.73  Xxx Xxx xx hh:mm:ss CET 2010
+        - Fix stupid bug introduced in 0.71 ("Support incoming ...") that
+          would do horrible things when having any binNMUs configured
+
+0.72  Thu Mar 18 11:28:50 CET 2010
         - Implement an "uninit" command in arepa-admin
         - Make both init and uninit receive an optional list of builders to
           init/uninit (as opposed to init/uninit all of them)
@@ -7,7 +11,7 @@
           configured properly
         - Add/improve documentation everywhere, add legal information
 
-0.71  
+0.71  Wed Mar 17 14:01:36 CET 2010
         - Store passwords as MD5-hashes in the users file
         - Add support for rejecting incoming packages
         - Support incoming source packages with a distribution that is not a
@@ -16,7 +20,7 @@
         - Added introductory documentation, improved a bit the help/error
           messages on the command-line tools
 
-0.70  
+0.70  Mon Mar 15 14:04:43 CET 2010
         - Order failed compilations by finished date, not requested date
         - Add the ability to add comments to source packages
         - Add a repository view showing all the available packages

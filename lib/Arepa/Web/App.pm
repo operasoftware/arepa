@@ -88,7 +88,7 @@ sub base_stash {
 sub add_error {
     my ($self, $error, $output) = @_;
     push @{$self->{error_list}}, {error  => $error,
-                                  output => $output};
+                                  output => $output || ""};
 }
 
 sub error_list {
@@ -362,28 +362,39 @@ sub approve_package {
 
     # Calculate the canonical distribution. It's needed for the reprepro call.
     # If reprepro accepted "reprepro includesrc 'funnydistro' ...", having
-    # 'funnydistro' in the AlsoAcceptFor list, this wouldn't be necessary.
+    # 'funnydistro' in the AlsoAcceptFor list, this wouldn't be necessary. We
+    # do have to pass the real source package distribution to
+    # insert_source_package so the compilation targets are calculated properly
     my ($arch) = grep { $_ ne 'source' } $changes_file->architecture;
     my ($builder) = $farm->get_matching_builders($arch, $distribution);
-    my $canonical_distro = $config->get_builder_config_key($builder,
-                                                           'distribution');
+    my $source_pkg_id;
+    if ($builder) {
+        my $canonical_distro = $config->get_builder_config_key($builder,
+                                                               'distribution');
 
-    my $source_pkg_id = $repository->insert_source_package(
-                                    $config->get_key('upload_queue:path')."/".
-                                                $source_file_path,
-                                    $canonical_distro,
-                                    %opts);
-    if ($source_pkg_id) {
-        if (system("sudo -H -u arepa-master arepa sign >/dev/null") != 0) {
-            $self->add_error("Couldn't sign repositories, check your " .
-                                "'sudo' configuration and " .
-                                "the README file");
+        $source_pkg_id = $repository->insert_source_package(
+                                     $config->get_key('upload_queue:path').
+                                                 "/".$source_file_path,
+                                     $distribution,
+                                     canonical_distro => $canonical_distro,
+                                     %opts);
+
+        if ($source_pkg_id) {
+            if (system("sudo -H -u arepa-master arepa sign >/dev/null") != 0) {
+                $self->add_error("Couldn't sign repositories, check your " .
+                                    "'sudo' configuration and " .
+                                    "the README file");
+            }
+        }
+        else {
+            $self->add_error("Couldn't approve source package " .
+                                "'$source_file_path'.",
+                                $repository->last_cmd_output);
         }
     }
     else {
-        $self->add_error("Couldn't approve source package " .
-                            "'$source_file_path'.",
-                            $repository->last_cmd_output);
+        $self->add_error("Can't find any builder for $source_file_path " .
+                            "($distribution/$arch)");
     }
 
     if ($self->error_list) {
