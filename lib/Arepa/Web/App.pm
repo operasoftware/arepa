@@ -377,7 +377,7 @@ sub approve_package {
         if (system("sudo arepa-sign >/dev/null") != 0) {
             $self->add_error("Couldn't sign repositories, check your " .
                                 "'sudo' configuration and " .
-                                "/usr/share/doc/arepa/README.Debian");
+                                "the README file");
         }
     }
     else {
