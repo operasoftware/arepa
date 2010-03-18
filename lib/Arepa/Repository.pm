@@ -81,8 +81,14 @@ sub insert_source_package {
         delete $user_opts{comments};
     }
 
+    my $canonical_distro = $distro;
+    if ($user_opts{canonical_distro}) {
+        $canonical_distro = $user_opts{canonical_distro};
+        delete $user_opts{canonical_distro};
+    }
+
     my $r = $self->_execute_reprepro('includedsc',
-                                     $args{distribution},
+                                     $canonical_distro,
                                      $dsc_file,
                                      %user_opts);
     if ($r) {
@@ -200,6 +206,11 @@ Arepa::Repository - Arepa repository access class
  my $bool = $repo->insert_source_package($dsc_file, $distro,
                                          priority => 'optional',
                                          section  => 'perl');
+ my $bool = $repo->insert_source_package($dsc_file, $distro,
+                                         priority => 'optional',
+                                         section  => 'perl',
+                                         comments => 'Why this was approved',
+                                         canonical_distro => 'lenny');
  my $bool = $repo->insert_binary_package($deb_file, $distro);
  my $text = $repo->last_cmd_output;
 
@@ -241,8 +252,11 @@ distributions.
 Inserts the source package described by the given C<$dsc_file> in the
 repository and the package database, for the given C<$distribution>. Priority
 and section can be specified with the C<priority> and C<section> options in
-C<%options>. Comments about the source package (e.g. why it was added to the
-repo or its origin) can be passed as the C<comments> key in C<%options>.
+C<%options>. Other possible options are C<comments> (comments about the source
+package e.g. why it was added to the repo or its origin) and
+C<canonical_distro> (the "canonical" distribution, that is the distribution in
+your repository the source package should be added to, as opposed to the
+distribution specified in the actual source package changes file).
 
 =item insert_binary_package($deb_file, $distribution)
 

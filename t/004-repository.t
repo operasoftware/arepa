@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 20;
+use Test::More tests => 23;
 use Test::Deep;
 use File::Path;
 use IO::Zlib;
@@ -132,7 +132,6 @@ ok($package_line_found2,    "Should find the package in Sources.gz");
 ok($correct_version_found2, "Should find the correct version in Sources.gz");
 
 
-
 # Package list ---------------------------------------------------------------
 cmp_deeply({ $r->package_list },
           {
@@ -164,3 +163,20 @@ cmp_deeply({ $r->package_list },
                                                  } },
            },
            "The final package list should be correct");
+
+
+# Insert a source package with non-canonical distribution --------------------
+ok(! $r->insert_source_package('t/upload_queue/experimental-package_1.0.dsc',
+                               'experimental'),
+   "Inserting source package w/ non-canonical distro should fail");
+
+ok($r->insert_source_package('t/upload_queue/experimental-package_1.0.dsc',
+                             'experimental',
+                             canonical_distro => 'lenny-opera'),
+   "Inserting non-canonical distro source package w/ canonical distro hint");
+# Ugly way of checking that the source package is correctly inserted
+my $id = $r->{package_db}->get_source_package_id('experimental-package',
+                                                 '1.0');
+my %source_package_attrs = $r->{package_db}->get_source_package_by_id($id);
+is($source_package_attrs{distribution}, 'experimental',
+   "When inserting a non-canonical distro package, the distro is correct");
