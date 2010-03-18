@@ -3,6 +3,8 @@
         - Make both init and uninit receive an optional list of builders to
           init/uninit (as opposed to init/uninit all of them)
         - Don't use the -n option in sudo, as it's only supported from 1.7.0
+        - Remove the silly signing script, as it's not needed if sudo is
+          configured properly
 
 0.71  
         - Store passwords as MD5-hashes in the users file
