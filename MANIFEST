@@ -11,10 +11,13 @@ lib/Arepa/BuilderFarm.pm
 lib/Arepa/Config.pm
 lib/Arepa/PackageDb.pm
 lib/Arepa/Repository.pm
+lib/Arepa/UI/Null.pm
 lib/Arepa/UI/Text.pm
 lib/Arepa/Web/App.pm
+LICENSE
 Makefile.PL
 MANIFEST			This list of files
+README
 script/arepa
 script/arepa-admin
 script/arepa-sign.sh
@@ -53,6 +56,7 @@ t/upload_queue/qux_1.0-1_i386.build
 t/upload_queue/qux_1.0-1_i386.changes
 t/upload_queue/qux_1.0-1_i386.deb
 t/upload_queue/qux_1.0-2_i386.deb
+users.yml-sample
 web/cgi/arepa.cgi
 web/css/main.css
 web/templates/error.tmpl

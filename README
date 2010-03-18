@@ -1,0 +1,13 @@
+Arepa
+=====
+
+Arepa (Apt REPository Assistant) is a suite of tools to manage a Debian
+package repository. It consists of command-line tools and a web interface.
+
+To configure the web interface, you'll have to make web/cgi/arepa.cgi
+available somewhere (as well as the CSS) and configure /etc/arepa/config.yml
+appropriately (there's a sample config file named config.yml-sample).
+
+You must also add this line to your sudo configuration:
+
+ %arepa ALL = (arepa-master) NOPASSWD: /usr/bin/arepa sign
