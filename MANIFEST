@@ -20,7 +20,6 @@ MANIFEST			This list of files
 README
 script/arepa
 script/arepa-admin
-script/arepa-sign.sh
 t/001-source_packages.t
 t/002-compilation_queue.t
 t/003-config.t
