@@ -371,7 +371,8 @@ sub approve_package {
     foreach my $b (@builders) {
         my %builder_cfg = $config->get_builder_config($b);
         if (grep { $_ eq $distribution }
-                 @{$builder_cfg{distribution_aliases}}) {
+                 @{$builder_cfg{distribution_aliases}},
+                 $builder_cfg{distribution}) {
             # There should be only one; if there's more than one, that's a
             # problem
             if ($builder) {
