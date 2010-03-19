@@ -1,3 +1,7 @@
+0.7x  Xxx Xxx xx xx:xx:xx CET 2010
+        - It turns out it wasn't completely fixed, oh well
+        - Add missing dependency YAML::Syck to Makefile.PL
+
 0.74  Thu Mar 18 14:56:41 CET 2010
         - More fixes for the 0.71 bug, hopefully this time it's completely
           fixed
