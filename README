@@ -11,7 +11,8 @@ appropriately (there's a sample config file named config.yml-sample).
 Dependencies
 ------------
 
-You need reprepro, sudo and sbuild installed for Arepa to work.
+You need reprepro (3.9 or higher), sudo and sbuild installed for Arepa to
+work.
 
 You must create a user "arepa-master" and give it permissions to run sbuild.
 
