@@ -1,4 +1,4 @@
-0.7x  Xxx Xxx xx xx:xx:xx CET 2010
+0.75  Wed Jun  2 13:42:56 CEST 2010
         - It turns out it wasn't completely fixed, oh well
         - Add missing dependency YAML::Syck to Makefile.PL
         - Escape the source package comment
