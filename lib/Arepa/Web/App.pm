@@ -15,7 +15,9 @@ use Carp    qw(carp croak); # NEVER USE warn OR die !
 use English qw(-no_match_vars);
 use File::Basename;
 use File::Copy;
+use File::stat;
 use Digest::MD5;
+use POSIX qw(strftime);
 
 use base qw(CGI::Application);
 use CGI::Application::Plugin::TT;
@@ -23,6 +25,7 @@ use CGI::Application::Plugin::Authentication;
 use CGI::Application::Plugin::Session;
 use YAML;
 use Data::Dumper;
+use XML::RSS;
 
 use Parse::Debian::PackageDesc;
 use Arepa::Config;
@@ -60,12 +63,13 @@ sub setup {
                           DEFAULT_EXPIRY => '+1w',
                           COOKIE_PARAMS  => {-expires => '+24h', -path => '/'},
                           SEND_COOKIE    => 1);
-    $self->authen->protected_runmodes(':all');
+    $self->authen->protected_runmodes(qr/^(?!public_)/);
     $self->start_mode('home');
     $self->mode_param('rm');
     $self->run_modes(
         map { ($_ => $_) }
-            qw(home process process_all build_log requeue view_repo logout)
+            qw(home process process_all build_log requeue view_repo logout
+               public_rss)
     );
     $self->tt_include_path($config->get_key('web_ui:template_dir'));
 
@@ -440,6 +444,89 @@ sub logout {
 
     $self->authen->logout;
     $self->_redirect("arepa.cgi");
+}
+
+# Assuming here that the contents of the upload queue are not really secret,
+# hence this runmode is not protected
+sub public_rss {
+    my ($self) = @_;
+
+    my $rss = XML::RSS->new(version => '2.0');
+    $rss->channel(
+        title        => "Arepa upload queue",
+        link         => "http://search.cpan.org/~opera/",
+        description  => "Packages waiting to be approved for your Debian repository",
+        dc => {
+            date       => '2010-06-02T09:15+00:00',
+            subject    => "Software distribution",
+            creator    => 'estebanm@opera.com',
+            language   => 'en-us',
+        },
+        syn => {
+            updatePeriod     => "hourly",
+            updateBase       => "1901-01-01T00:00+00:00",
+        },
+        taxo => [
+            'http://dmoz.org/Computers/Software/Operating_Systems/Linux/Distributions/Debian/',
+        ]
+    );
+
+
+    my @changes_files = ();
+    if (opendir D, $config->get_key('upload_queue:path')) {
+        @changes_files = grep /\.changes$/, readdir D;
+        closedir D;
+    }
+    my @packages;
+    my $gpg_dir = $config->get_key('web_ui:gpg_homedir');
+    foreach my $changes_file (@changes_files) {
+        my $changes_file_path = $config->get_key('upload_queue:path')."/".
+                                    $changes_file;
+        eval {
+            push @packages,
+                 Parse::Debian::PackageDesc->new($changes_file_path,
+                                                 gpg_homedir => $gpg_dir);
+        };
+    }
+
+    foreach my $pkg (@packages) {
+        my $signature_info = "";
+        if ($pkg->signature_id) {
+            $signature_info = "It is signed with id " .
+                                $pkg->signature_id . ".";
+            if (! $pkg->correct_signature) {
+                $signature_info .= " The signature is <strong>NOT " .
+                                    "VALID</strong>";
+            }
+        }
+        else {
+            $signature_info = "It is <strong>NOT SIGNED</strong>.";
+        }
+
+        $rss->add_item(
+            title       => $pkg->name . " " . $pkg->version . " for " .
+                            $pkg->distribution,
+            link        => $config->get_key('web_ui:base_url') .
+                            "/" . $pkg->name,
+            description => $pkg->name . " " . $pkg->version .
+                            " was uploaded by " .
+                            $self->_retarded_escape($pkg->maintainer) .
+                            ".<br/>" .  $signature_info,
+            pubDate     => strftime("%a, %d %b %Y %H:%M:%S %z",
+                                    localtime(stat($pkg->path)->mtime)),
+        );
+    }
+
+    return $rss->as_string;
+}
+
+sub _retarded_escape {
+    my ($self, $value) = @_;
+
+    $value =~ s/&/&amp;/g;
+    $value =~ s/</&lt;/g;
+    $value =~ s/>/&gt;/g;
+    return $value;
 }
 
 sub _redirect {
