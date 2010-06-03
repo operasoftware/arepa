@@ -1,7 +1,15 @@
 use strict;
 use warnings;
 
-use Test::More tests => 23;
+use Test::More;
+
+if (exists $ENV{REPREPRO4PATH} and -x $ENV{REPREPRO4PATH}) {
+    plan tests => 23;
+}
+else {
+    plan skip_all => "Please specify the path to reprepro 4 in \$REPREPRO4PATH";
+}
+
 use Test::Deep;
 use File::Path;
 use IO::Zlib;
