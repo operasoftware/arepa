@@ -1,3 +1,7 @@
+0.xx  Xxx Xxx  x xx:xx:xx CEST 2010
+        - Make App::Repository tests depend on an environment variable
+          $REPREPRO4PATH (ie. be nice to CPANTS)
+
 0.75  Wed Jun  2 13:42:56 CEST 2010
         - It turns out it wasn't completely fixed, oh well
         - Add missing dependency YAML::Syck to Makefile.PL
