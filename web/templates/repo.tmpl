@@ -16,7 +16,7 @@
             <span class="repo-package-version">[% version %]</span>
             ([% FOREACH arch IN packages.$package.$comp.$version %]
                 [%- IF arch == "source" AND comments.$package.$version -%]
-<span class="source-package-name" [% HTML.attributes(title => comments.$package.$version) %]">[% arch %] (*)</span>
+<span class="source-package-name" [% HTML.attributes(title => comments.$package.$version) %]>[% arch %] (*)</span>
                 [%- ELSE -%]
                    [%- arch -%]
                 [%- END -%]
