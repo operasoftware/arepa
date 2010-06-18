@@ -79,6 +79,7 @@ sub setup {
 sub show_view {
     my ($self, $template, $stash) = @_;
 
+    $self->header_props(-charset => 'UTF-8');
     $self->tt_process($template, { $self->base_stash,
                                    %$stash });
 }
@@ -280,7 +281,8 @@ sub build_log {
         };
         my $build_log_contents = join("", <F>);
         close F;
-        return "<pre>$build_log_contents</pre>";
+        return $self->show_view('build_log.tmpl',
+                                {log => $build_log_contents});
     }
 }
 
