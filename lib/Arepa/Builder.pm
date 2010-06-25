@@ -88,7 +88,7 @@ sub last_build_log {
 }
 
 sub do_create {
-    my ($self, $builder_dir, $mirror, $distribution) = @_;
+    my ($self, $builder_dir, $mirror, $distribution, %opts) = @_;
     croak "Not implemented";
 }
 

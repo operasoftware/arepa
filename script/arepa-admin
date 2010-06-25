@@ -3,6 +3,7 @@
 use strict;
 use warnings;
 use Carp;
+use Getopt::Long;
 
 use Arepa::Config;
 use Arepa::BuilderFarm;
@@ -19,6 +20,7 @@ where <command> is one of:
   uninit
 
 arepa-admin createbuilder /var/mybuilder ftp://... squeeze
+arepa-admin createbuilder --arch i386 /var/mybuilder ftp://... squeeze
 
 arepa-admin init
 arepa-admin init just_this_builder
@@ -29,25 +31,33 @@ EOD
     exit 1;
 }
 
-my ($command, @args) = @ARGV;
 if (scalar @ARGV == 0) {
     print STDERR "arepa-admin needs a command\n";
     show_help;
 }
 
+my $command = shift;
 if ($command eq 'createbuilder') {
-    my ($builder_dir, $mirror, $distribution) = @args;
-    if (scalar @args != 3) {
+    my $arch = undef;
+    my $r = GetOptions('arch=s' => \$arch);
+    if (!$r) {
+        print STDERR "Invalid options for build command\n";
+        exit 1;
+    }
+
+    my ($builder_dir, $mirror, $distribution) = @ARGV;
+    if (scalar @ARGV != 3) {
         print STDERR "createbuilder needs exactly three arguments\n";
         show_help;
     }
-    Arepa::Builder::Sbuild->create($builder_dir, $mirror, $distribution);
+    Arepa::Builder::Sbuild->create($builder_dir, $mirror, $distribution,
+                                   (arch => $arch));
 }
 elsif ($command eq 'init') {
     Arepa::Builder->ui_module("Arepa::UI::Null");
     my $farm = Arepa::BuilderFarm->new($config_file);
-    if (scalar @args) {
-        foreach my $builder (@args) {
+    if (scalar @ARGV) {
+        foreach my $builder (@ARGV) {
             $farm->init_builder($builder);
         }
     }
@@ -58,8 +68,8 @@ elsif ($command eq 'init') {
 elsif ($command eq 'uninit') {
     Arepa::Builder->ui_module("Arepa::UI::Null");
     my $farm = Arepa::BuilderFarm->new($config_file);
-    if (scalar @args) {
-        foreach my $builder (@args) {
+    if (scalar @ARGV) {
+        foreach my $builder (@ARGV) {
             $farm->uninit_builder($builder);
         }
     }

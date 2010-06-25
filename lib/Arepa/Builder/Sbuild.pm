@@ -97,9 +97,8 @@ sub do_uninit {
     # Bind some important files to the 'host'
     foreach my $etc_file (qw(resolv.conf passwd shadow group gshadow)) {
         my $full_path = "$builder_dir/etc/$etc_file";
-        my $umount_cmd = qq(umount "$full_path");
         $self->ui_module->print_info("Unbinding $full_path from /etc/$etc_file");
-        system($umount_cmd);
+        system(qq(umount "$full_path" 2>/dev/null));
     }
 }
 
@@ -169,7 +168,7 @@ sub do_compile_package_from_repository {
 }
 
 sub do_create {
-    my ($self, $builder_dir, $mirror, $distribution) = @_;
+    my ($self, $builder_dir, $mirror, $distribution, %opts) = @_;
 
     my $builder_name = basename($builder_dir);
 
@@ -204,7 +203,12 @@ EOCONTENT
     }
 
     $self->ui_module->print_info("Creating base chroot");
-    my $debootstrap_cmd = "debootstrap --variant=buildd $distribution '$builder_dir' $mirror";
+    my $extra_opts = "";
+    if (defined $opts{arch}) {
+        $extra_opts .= " --arch $opts{arch}";
+    }
+    my $debootstrap_cmd = "debootstrap --variant=buildd $extra_opts " .
+                            "$distribution '$builder_dir' $mirror";
     my $r = system($debootstrap_cmd);
     if ($r != 0) {
         print STDERR "Error executing debootstrap: error code $r\n";
