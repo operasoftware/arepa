@@ -170,10 +170,9 @@ you can change it in the configuration file C</etc/arepa/config.yml>.
 
 Finally, you need to create an autobuilder for every combination of
 distribution and architecture you want (in this case, let's say
-C<mysqueeze>/C<amd64> and C<mylenny>/C<amd64>). Note that currently Arepa only
-supports compiling for the same architecture, but theoretically you can
-configure C<sbuild> manually to cross-compile for i386 in an amd64 environment
-(see the C<personality> field in L<schroot(1)>).
+C<mysqueeze>/C<amd64> and C<mylenny>/C<amd64>). If you are in an amd64
+environment, you can create a builder for the i386 architecture by passing the
+special option C<--arch i386> to C<arepa-admin createbuilder>.
 
 To create an autobuilder, simply execute this command as root:
 
@@ -184,7 +183,7 @@ To create an autobuilder, simply execute this command as root:
 For example:
 
  arepa-admin createbuilder /var/chroot/squeezebuilder \
-                           ftp://ftp.se.debian.org/debian \
+                           ftp://ftp.no.debian.org/debian \
                            squeeze
 
 That will create a builder running Debian squeeze in

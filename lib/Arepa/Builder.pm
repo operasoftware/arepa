@@ -94,18 +94,20 @@ sub do_create {
 
 sub create {
     my ($self, $builder_dir, $mirror, $distribution, %user_opts) = @_;
-    my %opts = (builder_config_dir => '/etc/arepa/builders', %user_opts);
+    my %opts = (builder_config_dir => '/etc/arepa/builders',
+                arch               => `dpkg-architecture -qDEB_BUILD_ARCH`,
+                %user_opts);
+    chomp($opts{arch});
 
     $self->do_create($builder_dir, $mirror, $distribution, %opts);
 
     $self->ui_module->print_info("Configuration for config.yml");
 
-    chomp(my $architecture = `dpkg-architecture -qDEB_BUILD_ARCH`);
     my $type = $self->type;
 
     my $config_string = <<EOD;
 type: $type
-architecture: $architecture
+architecture: $opts{arch}
 # Compile "Architecture: all" packages with this builder?
 architecture_all: 0
 # This is the distribution the packages compiled by this builder go to. For a
