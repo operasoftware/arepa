@@ -4,6 +4,7 @@
   <h1>Compilation queue</h1>
 
   <div id="compilation-queue-list">
+    [% IF compilation_queue.size > 0 %]
     [% FOREACH comp = compilation_queue %]
       <div class="compilation-queue-line">
         <span class="package-name">[% comp.package.name %]_[% comp.package.full_version %][% IF comp.builder %] <span class="builder-info">(claimed by <span class="builder-name">[% comp.builder %]</span>)</span>[% END %]</span>
@@ -13,6 +14,9 @@
           <span class="compilation-prop">requested: <span class="compilation-prop-value date">[% comp.compilation_requested_at %]</span></span>)
         </span>
       </div>
+    [% END %]
+    [% ELSE %]
+      No packages waiting to be compiled
     [% END %]
   </div>
 
