@@ -508,8 +508,8 @@ sub public_rss {
         $rss->add_item(
             title       => $pkg->name . " " . $pkg->version . " for " .
                             $pkg->distribution,
-            link        => $config->get_key('web_ui:base_url') .
-                            "/" . $pkg->name,
+            link        => $config->get_key('web_ui:cgi_base_url') .
+                            "/arepa.cgi",
             description => $pkg->name . " " . $pkg->version .
                             " was uploaded by " .
                             $self->_retarded_escape($pkg->maintainer) .

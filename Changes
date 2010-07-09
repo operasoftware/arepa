@@ -6,6 +6,7 @@
         - Make the show build log page use the same header/footer
         - Allow creating builders of specific architectures (useful when you
           are running amd64 and want a builder for i386)
+        - Fix RSS link (doh!)
 
 0.75  Wed Jun  2 13:42:56 CEST 2010
         - It turns out it wasn't completely fixed, oh well
