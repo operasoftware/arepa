@@ -1,9 +1,9 @@
-0.xx  Xxx Xxx  x xx:xx:xx CEST 2010
+0.76  Tue Jul 13 11:27:33 CEST 2010
         - Make App::Repository tests depend on an environment variable
           $REPREPRO4PATH (ie. be nice to CPANTS)
-        - Remove silly extra quote in the repo view template
-        - Set charset explicitly
-        - Make the show build log page use the same header/footer
+        - Small fixes in the web UI (remove extra quote, set explicit charset,
+          show a message when the compilation queue is empty, improve the
+          build log page a bit)
         - Allow creating builders of specific architectures (useful when you
           are running amd64 and want a builder for i386)
         - Fix RSS link (doh!)
