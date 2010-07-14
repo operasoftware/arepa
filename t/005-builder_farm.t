@@ -53,12 +53,12 @@ my %source_pkg1 = (name         => 'foo',
                    architecture => 'any',
                    distribution => 'unstable');
 my $source_pkg1_id = $bm2->package_db->insert_source_package(%source_pkg1);
-my $expected_targets1 = bag([qw(amd64 lenny-opera)],
-                            [qw(i386 lenny-opera)],
-                            [qw(i386 etch-opera)]);
-cmp_deeply([ $bm2->get_compilation_targets($source_pkg1_id) ],
-           $expected_targets1,
-           "The compilation targets for arch 'any' should be right");
+my $expected_targets1 = [[qw(amd64 lenny-opera)],
+                         [qw(i386 lenny-opera)],
+                         [qw(i386 etch-opera)]];
+cmp_bag([ $bm2->get_compilation_targets($source_pkg1_id) ],
+        $expected_targets1,
+        "The compilation targets for arch 'any' ('foo') should be right");
 
 my %source_pkg2 = (name         => 'bar',
                    full_version => '1.0',
@@ -67,9 +67,9 @@ my %source_pkg2 = (name         => 'bar',
 my $source_pkg2_id = $bm2->package_db->insert_source_package(%source_pkg2);
 my $expected_targets2 = [[qw(all lenny-opera)],
                          [qw(all etch-opera)]];
-cmp_deeply([ $bm2->get_compilation_targets($source_pkg2_id) ],
-           $expected_targets2,
-           "The compilation targets for arch 'all' should be right");
+cmp_bag([ $bm2->get_compilation_targets($source_pkg2_id) ],
+        $expected_targets2,
+        "The compilation targets for arch 'all' ('bar') should be right");
 
 my %source_pkg3 = (name         => 'qux',
                    full_version => '1.0',
@@ -77,9 +77,9 @@ my %source_pkg3 = (name         => 'qux',
                    distribution => 'lenny-opera');
 my $source_pkg3_id = $bm2->package_db->insert_source_package(%source_pkg3);
 my $expected_targets3 = [[qw(all lenny-opera)]];
-cmp_deeply([ $bm2->get_compilation_targets($source_pkg3_id) ],
-           $expected_targets3,
-           "The compilation targets for arch 'all' should be right");
+cmp_bag([ $bm2->get_compilation_targets($source_pkg3_id) ],
+        $expected_targets3,
+        "The compilation targets for arch 'all' ('qux') should be right");
 
 # Request the compilation of the first source package
 is(scalar $bm2->package_db->get_compilation_queue,
