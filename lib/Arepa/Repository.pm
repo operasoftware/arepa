@@ -188,6 +188,43 @@ sub package_list {
     return %pkg_list;
 }
 
+sub add_distribution {
+    my ($self, %properties) = @_;
+
+    my $repository_path = $self->get_config_key('repository:path');
+    my $distributions_config_file = "$repository_path/conf/distributions";
+
+    my @existing_distros = $self->get_distributions;
+
+    if (! defined $properties{codename}) {
+        return 0;
+    }
+    if (grep { $_->{codename} eq $properties{codename} }
+             @existing_distros) {
+        return 0;
+    }
+    foreach my $suite (split /\s*,\s*/, ($properties{suite} || "")) {
+        foreach my $distro (@existing_distros) {
+            if (grep { $_ eq $suite }
+                     split /\s*,\s*/, ($distro->{suite} || "")) {
+                return 0;
+            }
+        }
+    }
+
+    # Everything seems alright, serialise the distribution properties
+    my $serialised_distro = join("\n",
+                                 map { "$_: $properties{$_}"  }
+                                     keys %properties);
+
+    open F, ">>$distributions_config_file" or return 0;
+    print F <<EOD;
+
+$serialised_distro
+EOD
+    close F;
+}
+
 1;
 
 __END__
@@ -240,7 +277,8 @@ Gets the configuration key C<$key> from the Arepa configuration.
 =item get_distributions
 
 Returns an array of hashrefs. Each hashref represents a distribution declared
-in the repository C<conf/distributions> configuration file, and contains a key for every distribution attribute.
+in the repository C<conf/distributions> configuration file, and contains a
+(always lowercase) key for every distribution attribute.
 
 =item get_architectures
 
@@ -285,6 +323,14 @@ known distributions. The data structure is a hash that looks like this:
 That is, the keys are the package names, and the values are another hash. This
 hash has C<distribution/component> as keys, and hashes as values. These hashes
 have available versions as keys, and a list of architectures as values.
+
+=item add_distribution(%properties)
+
+Adds a new distribution to the repository, with whatever properties are
+specified. The properties are specified in lowercase (see
+C<get_distributions>) and C<codename> is mandatory. Also, you can't specify a
+codename of an existing distribution, or a suite name that an existing
+distribution already has. It returns 1 on success, or 0 on failure.
 
 =back
 

@@ -4,7 +4,7 @@ use warnings;
 use Test::More;
 
 if (exists $ENV{REPREPRO4PATH} and -x $ENV{REPREPRO4PATH}) {
-    plan tests => 23;
+    plan tests => 30;
 }
 else {
     plan skip_all => "Please specify the path to reprepro 4 in \$REPREPRO4PATH";
@@ -16,7 +16,8 @@ use IO::Zlib;
 
 use Arepa::Repository;
 
-use constant TEST_CONFIG_FILE => 't/config-test.yml';
+use constant TEST_CONFIG_FILE          => 't/config-test.yml';
+use constant TEST_REPO_ADD_CONFIG_FILE => 't/config-repo-test.yml';
 
 # Always start fresh
 my $test_repo_path = 't/repo-test';
@@ -188,3 +189,63 @@ my $id = $r->{package_db}->get_source_package_id('experimental-package',
 my %source_package_attrs = $r->{package_db}->get_source_package_by_id($id);
 is($source_package_attrs{distribution}, 'experimental',
    "When inserting a non-canonical distro package, the distro is correct");
+
+
+# Try to add new distributions -----------------------------------------------
+my $tmp_repo = 't/repo-add-test';
+mkpath "$tmp_repo/conf";
+open F, ">$tmp_repo/conf/distributions";
+print F <<EOD;
+Codename: initial
+Components: main
+Architectures: i386
+Suite: unstable, lenny
+
+Codename: another
+Components: main
+Architectures: i386
+Suite: squeeze, lucid
+EOD
+close F;
+my @initial_distro_list = ({ codename      => 'initial',
+                             components    => 'main',
+                             architectures => 'i386',
+                             suite         => 'unstable, lenny' },
+                           { codename      => 'another',
+                             components    => 'main',
+                             architectures => 'i386',
+                             suite         => 'squeeze, lucid' });
+
+my $r2 = Arepa::Repository->new(TEST_REPO_ADD_CONFIG_FILE);
+cmp_deeply([ $r2->get_distributions ], \@initial_distro_list,
+           "Distribution information should be correct");
+
+# Duplicate codename
+ok(! $r2->add_distribution(codename      => 'initial',
+                           components    => 'main',
+                           architectures => 'i386'),
+   "Shouldn't be able to add a duplicate codename");
+cmp_deeply([ $r2->get_distributions ], \@initial_distro_list,
+           "Distribution information should be correct");
+
+# Duplicate suite
+ok(! $r2->add_distribution(codename      => 'new',
+                           components    => 'main',
+                           architectures => 'i386',
+                           suite         => 'ubuntu, lucid'),
+   "Shouldn't be able to add a duplicate suite");
+cmp_deeply([ $r2->get_distributions ], \@initial_distro_list,
+           "Distribution information should be correct");
+
+# Add a distribution
+my %new_distro = (codename      => 'new',
+                  components    => 'main',
+                  architectures => 'i386',
+                  suite         => 'ubuntu, lucidlynx');
+ok($r2->add_distribution(%new_distro),
+   "Should be able to add a new distribution");
+cmp_deeply([ $r2->get_distributions ],
+           [ @initial_distro_list, \%new_distro ],
+           "Distribution information should be correct");
+
+rmtree($tmp_repo);
