@@ -4,7 +4,7 @@ use warnings;
 use Test::More;
 
 if (exists $ENV{REPREPRO4PATH} and -x $ENV{REPREPRO4PATH}) {
-    plan tests => 31;
+    plan tests => 35;
 }
 else {
     plan skip_all => "Please specify the path to reprepro 4 in \$REPREPRO4PATH";
@@ -199,22 +199,26 @@ print F <<EOD;
 Codename: initial
 Components: main
 Architectures: i386
-Suite: unstable, lenny
+Suite: unstable
+AlsoAcceptFor: lenny
 
 Codename: another
 Components: main
 Architectures: i386
-Suite: squeeze, lucid
+Suite: ubuntu
+AlsoAcceptFor: lucid lucidlynx
 EOD
 close F;
 my @initial_distro_list = ({ codename      => 'initial',
                              components    => 'main',
                              architectures => 'i386',
-                             suite         => 'unstable, lenny' },
+                             suite         => 'unstable',
+                             alsoacceptfor => 'lenny' },
                            { codename      => 'another',
                              components    => 'main',
                              architectures => 'i386',
-                             suite         => 'squeeze, lucid' });
+                             suite         => 'ubuntu',
+                             alsoacceptfor => 'lucid lucidlynx' });
 
 my $r2 = Arepa::Repository->new(TEST_REPO_ADD_CONFIG_FILE);
 cmp_deeply([ $r2->get_distributions ], \@initial_distro_list,
@@ -232,16 +236,34 @@ cmp_deeply([ $r2->get_distributions ], \@initial_distro_list,
 ok(! $r2->add_distribution(codename      => 'new',
                            components    => 'main',
                            architectures => 'i386',
-                           suite         => 'ubuntu, lucid'),
-   "Shouldn't be able to add a duplicate suite");
+                           suite         => 'ubuntu'),
+   "Shouldn't be able to add a duplicate distribution alias");
 cmp_deeply([ $r2->get_distributions ], \@initial_distro_list,
            "Distribution information should be correct");
 
-# Add a distribution
+# "Cross duplicates" (a suite shouldn't be already there as codename)
+ok(! $r2->add_distribution(codename      => 'new',
+                           components    => 'main',
+                           architectures => 'i386',
+                           suite         => 'another'),
+   "Shouldn't be able to add a suite that existed as a codename");
+cmp_deeply([ $r2->get_distributions ], \@initial_distro_list,
+           "Distribution information should be correct");
+
+# "Cross duplicates" (codename as suite this time)
+ok(! $r2->add_distribution(codename      => 'ubuntu',
+                           components    => 'main',
+                           architectures => 'i386',
+                           suite         => 'newone'),
+   "Shouldn't be able to add a codename that existed as a suite");
+cmp_deeply([ $r2->get_distributions ], \@initial_distro_list,
+           "Distribution information should be correct");
+
+# Add a distribution (repeating AlsoAcceptFor is ok though)
 my %new_distro = (codename      => 'new',
                   components    => 'main',
                   architectures => 'i386',
-                  suite         => 'ubuntu, lucidlynx');
+                  suite         => 'lucidlynx');
 ok($r2->add_distribution(%new_distro),
    "Should be able to add a new distribution");
 cmp_deeply([ $r2->get_distributions ],

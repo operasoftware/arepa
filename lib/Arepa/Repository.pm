@@ -187,27 +187,33 @@ sub package_list {
     return %pkg_list;
 }
 
+sub _all_names_for_distro {
+    my ($self, %properties) = @_;
+
+    my @aliases = ($properties{codename});
+    if (defined $properties{suite}) {
+        push @aliases, $properties{suite};
+    }
+    return @aliases;
+}
+
 sub add_distribution {
     my ($self, %properties) = @_;
 
     my $repository_path = $self->get_config_key('repository:path');
     my $distributions_config_file = "$repository_path/conf/distributions";
 
-    my @existing_distros = $self->get_distributions;
 
     if (! defined $properties{codename}) {
         return 0;
     }
-    if (grep { $_->{codename} eq $properties{codename} }
-             @existing_distros) {
-        return 0;
-    }
-    foreach my $suite (split /\s*,\s*/, ($properties{suite} || "")) {
-        foreach my $distro (@existing_distros) {
-            if (grep { $_ eq $suite }
-                     split /\s*,\s*/, ($distro->{suite} || "")) {
-                return 0;
-            }
+    # Duplicate names of any kind
+    my @new_distro_names = $self->_all_names_for_distro(%properties);
+    my @existing_distro_names = map { $self->_all_names_for_distro(%$_) }
+                                    $self->get_distributions;
+    foreach my $distro_name (@new_distro_names) {
+        if (grep { $_ eq $distro_name } @existing_distro_names) {
+            return 0;
         }
     }
 
