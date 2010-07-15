@@ -4,7 +4,7 @@ use warnings;
 use Test::More;
 
 if (exists $ENV{REPREPRO4PATH} and -x $ENV{REPREPRO4PATH}) {
-    plan tests => 30;
+    plan tests => 31;
 }
 else {
     plan skip_all => "Please specify the path to reprepro 4 in \$REPREPRO4PATH";
@@ -247,5 +247,9 @@ ok($r2->add_distribution(%new_distro),
 cmp_deeply([ $r2->get_distributions ],
            [ @initial_distro_list, \%new_distro ],
            "Distribution information should be correct");
+
+# Check that after adding a distribution, the repository is updated
+ok(-d "$tmp_repo/dists/new",
+   "After adding distribution 'new', '$tmp_repo/dists/new' should exist");
 
 rmtree($tmp_repo);

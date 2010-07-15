@@ -111,11 +111,10 @@ sub _shell_escape {
     my ($self, $arg) = @_;
     if (defined $arg) {
         $arg =~ s/'/\\'/go;
+        return "'$arg'";
     }
-    else {
-        $arg = "";
-    }
-    return "'$arg'";
+
+    return "";
 }
 
 sub last_cmd_output {
@@ -223,6 +222,9 @@ sub add_distribution {
 $serialised_distro
 EOD
     close F;
+
+    # Now, update the repository with the new distro
+    $self->_execute_reprepro('export', $properties{codename});
 }
 
 1;
