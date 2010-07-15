@@ -5,7 +5,7 @@ use warnings;
 use Carp;
 use Getopt::Long;
 
-use Arepa::Config;
+use Arepa::Repository;
 use Arepa::BuilderFarm;
 use Arepa::Builder::Sbuild;
 
@@ -21,6 +21,11 @@ where <command> is one of:
 
 arepa-admin createbuilder /var/mybuilder ftp://... squeeze
 arepa-admin createbuilder --arch i386 /var/mybuilder ftp://... squeeze
+
+arepa-admin createdistribution mysqueeze
+arepa-admin createdistribution --arch "amd64 source" mysqueeze
+arepa-admin createdistribution --components "main contrib" mysqueeze
+arepa-admin createdistribution --extra-field version:5.0 mysqueeze
 
 arepa-admin init
 arepa-admin init just_this_builder
@@ -41,8 +46,8 @@ if ($command eq 'createbuilder') {
     my $arch = undef;
     my $r = GetOptions('arch=s' => \$arch);
     if (!$r) {
-        print STDERR "Invalid options for build command\n";
-        exit 1;
+        print STDERR "Invalid options for createbuilder command\n";
+        show_help;
     }
 
     my ($builder_dir, $mirror, $distribution) = @ARGV;
@@ -52,6 +57,38 @@ if ($command eq 'createbuilder') {
     }
     Arepa::Builder::Sbuild->create($builder_dir, $mirror, $distribution,
                                    (arch => $arch));
+}
+elsif ($command eq 'createdistribution') {
+    my ($arch, $components, @extra_fields) =
+            ("source " . `dpkg-architecture -qDEB_BUILD_ARCH`, 'main');
+    my $r = GetOptions('arch=s'        => \$arch,
+                       'components=s'  => \$components,
+                       'extra-field=s' => \@extra_fields);
+    if (!$r) {
+        print STDERR "Invalid options for createdistribution command\n";
+        show_help;
+    }
+
+    my ($codename, $suites) = @ARGV;
+    if (scalar @ARGV < 1 or scalar @ARGV > 2) {
+        print STDERR "createdistribution needs one or two arguments\n";
+        show_help;
+    }
+    my $repo = Arepa::Repository->new($config_file);
+    $r = $repo->add_distribution(codename      => $codename,
+                                 components    => $components,
+                                 architectures => $arch,
+                                 map {
+                                         my ($field, $value) =
+                                                 split(/:\s*/, $_);
+                                         (ucfirst($field) => $value);
+                                     }
+                                     @extra_fields);
+    if (! $r) {
+        print STDERR "There was a problem adding the new distribution " .
+                        "'$codename'.\nProbably a distribution with that " .
+                        "codename or suite already exists?\n";
+    }
 }
 elsif ($command eq 'init') {
     Arepa::Builder->ui_module("Arepa::UI::Null");
