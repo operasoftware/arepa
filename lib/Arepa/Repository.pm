@@ -219,7 +219,7 @@ sub add_distribution {
 
     # Everything seems alright, serialise the distribution properties
     my $serialised_distro = join("\n",
-                                 map { "$_: $properties{$_}"  }
+                                 map { ucfirst($_) . ": $properties{$_}"  }
                                      keys %properties);
 
     open F, ">>$distributions_config_file" or return 0;
