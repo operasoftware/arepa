@@ -1,5 +1,8 @@
 0.xx  Xxx Xxx xx xx:xx:xx XXXX xxxx
         - Add createdistribution to arepa-admin
+        - Encode packager name correctly
+        - Add information about the remote repository synchronization status
+        - Add a button to easily synchronize the remote repository
 
 0.76  Tue Jul 13 11:27:33 CEST 2010
         - Make App::Repository tests depend on an environment variable

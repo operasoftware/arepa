@@ -70,7 +70,7 @@ sub setup {
     $self->run_modes(
         map { ($_ => $_) }
             qw(home process process_all build_log requeue view_repo logout
-               public_rss)
+               sync public_rss)
     );
     $self->tt_include_path($config->get_key('web_ui:template_dir'));
 
@@ -202,6 +202,12 @@ sub home {
         };
     }
 
+    my $is_synced;
+    if ($config->key_exists('repository:remote_path')) {
+        my $r = system("sudo -H -u arepa-master arepa issynced >/dev/null");
+        $is_synced = ($r == 0);
+    }
+
     # Print everything -------------------------------------------------------
     $self->show_view('index.tmpl',
                      {config              => $config,
@@ -211,6 +217,7 @@ sub home {
                       builders            => \@builder_list,
                       failed_compilations => \@failed_compilations,
                       latest_compilations => \@latest_compilations,
+                      is_synced           => $is_synced,
                       rm                  => join(", ", $self->query->param('rm'))});
 }
 
@@ -447,6 +454,18 @@ sub logout {
     my ($self) = @_;
 
     $self->authen->logout;
+    $self->_redirect("arepa.cgi");
+}
+
+sub sync {
+    my ($self) = @_;
+
+    if ($config->key_exists('repository:remote_path')) {
+        my $cmd = "sudo -H -u arepa-master arepa sync";
+        if (system("$cmd >/dev/null") != 0) {
+            $self->add_error("Couldn't synchronize the repository with the command '$cmd'");
+        }
+    }
     $self->_redirect("arepa.cgi");
 }
 

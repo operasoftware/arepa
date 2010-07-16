@@ -7,4 +7,4 @@
     <link rel="alternate" type="application/rss+xml" title="Packages pending approval" href="?rm=public_rss" >
 </head>
 <body>
-<div id="topbar"><a accesskey="h" title="Home" href="arepa.cgi">Home</a><a id="logout-link" href="?rm=logout">Log out</a></div>
+<div id="topbar"><a accesskey="h" title="Home" href="arepa.cgi">Home</a>[% IF is_synced.defined %] | [% IF is_synced %]<span class="inactive">Remote repo in sync</span>[% ELSE %]Remote repo not in sync (<a title="Synchronize remote repository" href="arepa.cgi?rm=sync">Synchronize</a>)[% END %][% END %]<a id="logout-link" href="?rm=logout">Log out</a></div>

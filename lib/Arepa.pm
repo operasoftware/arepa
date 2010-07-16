@@ -158,7 +158,7 @@ hashed with MD5. For example, you can use:
 =item
 
 Configure your C<sudo> so users in the group C<arepa> can execute
-C</usr/bin/arepa-sign>.
+C</usr/bin/arepa sign>, C</usr/bin/arepa sync> and C</usr/bin/arepa issynced>.
 
 =item
 

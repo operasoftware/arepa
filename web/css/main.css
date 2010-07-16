@@ -63,3 +63,5 @@ h1 { font-size: 14pt; color: #00f }
 .repo-package-line { padding-bottom: 1ex }
 .repo-package-info { display: block; font-size: 8pt; color: #777 }
 .repo-package-version  { font-weight: bold }
+
+.inactive { color: #777 }
