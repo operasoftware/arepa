@@ -69,7 +69,7 @@ sub setup {
     $self->mode_param('rm');
     $self->run_modes(
         map { ($_ => $_) }
-            qw(home process process_all build_log requeue view_repo logout
+            qw(home process_pending build_log requeue view_repo logout
                sync public_rss)
     );
     $self->tt_include_path($config->get_key('web_ui:template_dir'));
@@ -221,41 +221,26 @@ sub home {
                       rm                  => join(", ", $self->query->param('rm'))});
 }
 
-sub process {
+sub process_pending {
     my ($self) = @_;
 
-    # Find the package. The field will be "package-N", where N is an integer
-    my ($field_name) = grep /^package-\d+$/, $self->query->param;
-    $field_name =~ /^package-(\d+)$/;
-    my $pkg_id = $1;
-    if ($self->query->param("approve")) {
-        $self->approve_package(
-            $self->query->param("package-$pkg_id"),
-            priority => $self->query->param("priority-$pkg_id"),
-            section  => $self->query->param("section-$pkg_id"),
-            comments => $self->query->param("comments-$pkg_id"));
-    }
-    elsif ($self->query->param("reject")) {
-        my $changes_file_path = $self->query->param($field_name);
-        my $path = $config->get_key('upload_queue:path')."/".
-                        basename($changes_file_path);
-        $self->remove_uploaded_package($path);
-    }
-    if ($self->error_list) {
-        my $r = $self->show_view('error.tmpl',
-                                 {errors => [$self->error_list]});
-        return $r;
-    }
-    else {
-        $self->_redirect("arepa.cgi");
-    }
-}
-
-sub process_all {
-    my ($self) = @_;
-
-    foreach my $package ($self->query->param('packages')) {
-        $self->approve_package($package);
+    my @field_ids = map { /^package-(\d+)$/; $1 }
+                        grep /^package-\d+$/, $self->query->param;
+    foreach my $field_id (@field_ids) {
+        if ($self->query->param("approve_all") ||
+                    $self->query->param("approve-$field_id")) {
+            $self->approve_package(
+                $self->query->param("package-$field_id"),
+                priority => $self->query->param("priority-$field_id"),
+                section  => $self->query->param("section-$field_id"),
+                comments => $self->query->param("comments-$field_id"));
+        }
+        elsif ($self->query->param("reject-$field_id")) {
+            my $changes_file_path = $self->query->param("package-$field_id");
+            my $path = $config->get_key('upload_queue:path')."/".
+                            basename($changes_file_path);
+            $self->remove_uploaded_package($path);
+        }
     }
     if ($self->error_list) {
         my $r = $self->show_view('error.tmpl',

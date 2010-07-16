@@ -46,9 +46,9 @@ config.get_key('upload_queue:path') %]</tt>
 [% ELSE %]
 <div id="incoming-package-list">
 [% package_count = 0 %]
+<form method="post" action="arepa.cgi">
 [% FOREACH package = packages %]
     [% package_count = package_count + 1 %]
-    <form method="post" action="arepa.cgi">
         <div class="incoming-package">
             <span class="incoming-package-name urgency-[% package.urgency %]">[% package.name %]</span>
             <span class="incoming-package-version">[% package.version %]</span>
@@ -79,11 +79,10 @@ config.get_key('upload_queue:path') %]</tt>
                 </span>
             </div>
 
-            <input type="hidden" name="rm" value="process" />
             <input type="hidden" name="package-[% package_count %]" value="[% package.path %]" />
             <input type="hidden" name="component-[% package_count %]" value="main" />
             <span class="compilation-props">
-                <input name="approve" type="submit" value="Approve" />
+                <input name="approve-[% package_count %]" type="submit" value="Approve" />
                 for priority <select name="priority-[% package_count %]" value="">
                     <option name="extra">extra</option>
                     <option name="optional" selected="selected">optional</option>
@@ -146,10 +145,9 @@ config.get_key('upload_queue:path') %]</tt>
                 </select>
             </span>
             <span class="compilation-props">
-                <input name="reject" type="submit" value="Reject" onclick="return confirm('Are you sure?')" />
+                <input name="reject-[% package_count %]" type="submit" value="Reject" onclick="return confirm('Are you sure?')" />
             </span>
         </div>
-    </form>
 [% END %]
 [% FOREACH unreadable_package = unreadable_packages %]
     <div class="incoming-unreadable-package">
@@ -158,14 +156,9 @@ config.get_key('upload_queue:path') %]</tt>
 [% END %]
 </div>
 
-    <form method="post" action="">
-        [% FOREACH package = packages %]
-        <input type="hidden" name="packages" value="[% package.path %]" />
-        [% END %]
-        <input type="hidden" name="rm" value="process_all" />
-        <input type="hidden" name="component" value="main" />
+        <input type="hidden" name="rm" value="process_pending" />
         <div class="option-buttons">
-            <input type="submit" value="Approve all" />
+            <input name="approve_all" type="submit" value="Approve all" />
         </div>
     </form>
 [% END %]
