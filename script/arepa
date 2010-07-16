@@ -9,26 +9,6 @@ use Getopt::Long;
 use Arepa::BuilderFarm;
 use Arepa::Repository;
 
-sub sign_distribution {
-    my ($config, $distro_name) = @_;
-
-    my $repo_path = $config->get_key('repository:path');
-    my $release_file_path = File::Spec->catfile($repo_path,
-                                                "dists",
-                                                $distro_name,
-                                                "Release");
-    unlink "$release_file_path.gpg";
-
-    my $extra_options = "";
-    if ($config->key_exists('repository:signature:id')) {
-        my $key_id = $config->get_key('repository:signature:id');
-        $extra_options = " -u $key_id";
-    }
-    my $gpg_cmd = "gpg --batch -abs $extra_options -o $release_file_path.gpg $release_file_path &>/dev/null";
-
-    return (system($gpg_cmd) == 0);
-}
-
 sub show_help {
     print STDERR <<EOD;
 SYNTAX: arepa [-c|--config=config.yml] <command> [options]
@@ -59,6 +39,8 @@ arepa sign
 arepa sign --sync
 
 arepa sync
+
+arepa issynced
 EOD
     exit 1;
 }
@@ -114,9 +96,9 @@ if ($command eq 'build') {
                     if ($repository->insert_binary_package($deb_package,
                                                            $req->{distribution})) {
                         unlink $deb_package;
-                        sign_distribution($config, $req->{distribution});
                     }
                 }
+                $repository->sign_distribution($req->{distribution});
             }
             else {
                 print "*** FAILED ***\n";
@@ -147,9 +129,9 @@ if ($command eq 'build') {
                 if ($repository->insert_binary_package($deb_package,
                                                        $req{distribution})) {
                     unlink $deb_package;
-                    sign_distribution($config, $req{distribution});
                 }
             }
+            $repository->sign_distribution($req{distribution});
         }
         else {
             print " failed.\n";
@@ -243,14 +225,12 @@ elsif ($command eq 'sign') {
         show_help;
     }
 
-    my $repo_path = $config->get_key('repository:path');
-
     # Sign all the Release files
     my $repository = Arepa::Repository->new($config_file);
     foreach my $distribution ($repository->get_distributions) {
         my $distro_name = $distribution->{codename};
         print "Signing $distro_name...\n";
-        if (! sign_distribution($config, $distro_name)) {
+        if (! $repository->sign_distribution($distro_name)) {
             print STDERR "ERROR: couldn't sign Release file for '$distro_name'\n";
             exit 1;
         }
@@ -258,22 +238,20 @@ elsif ($command eq 'sign') {
 
     # If --sync was passed, sync too
     if ($sync) {
-        my $remote_repo_path = $config->get_key('repository:remote_path');
-        my $rsync_cmd = "rsync -avz --delete $repo_path $remote_repo_path";
-        if (system($rsync_cmd) != 0) {
+        if (! $repository->sync_remote) {
             print STDERR "ERROR: rsync command failed\n";
-            print STDERR "Command was '$rsync_cmd'\n";
         }
     }
 }
 elsif ($command eq 'sync') {
-    my $local_repo  = $config->get_key('repository:path');
-    my $remote_repo = $config->get_key('repository:remote_path');
-    my $rsync_cmd = "rsync -avz --delete $local_repo $remote_repo";
-    if (system($rsync_cmd) != 0) {
+    my $repository = Arepa::Repository->new($config_file);
+    if (! $repository->sync_remote) {
         print STDERR "ERROR: rsync command failed\n";
-        print STDERR "Command was '$rsync_cmd'\n";
     }
+}
+elsif ($command eq 'issynced') {
+    my $repository = Arepa::Repository->new($config_file);
+    exit ($repository->is_synced ? 0 : 1);
 }
 else {
     print STDERR "ERROR: Unknown command '$command'\n";

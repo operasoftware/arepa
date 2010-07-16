@@ -233,6 +233,67 @@ EOD
     $self->_execute_reprepro('export', $properties{codename});
 }
 
+sub sign_distribution {
+    my ($self, $distro_name) = @_;
+
+    my $repo_path = $self->get_config_key('repository:path');
+    my $release_file_path = File::Spec->catfile($repo_path,
+                                                "dists",
+                                                $distro_name,
+                                                "Release");
+    unlink "$release_file_path.gpg";
+
+    my $extra_options = "";
+    if ($self->config_key_exists('repository:signature:id')) {
+        my $key_id = $self->get_config_key('repository:signature:id');
+        $extra_options = " -u $key_id";
+    }
+    my $gpg_cmd = "gpg --batch -abs $extra_options -o $release_file_path.gpg $release_file_path &>/dev/null";
+
+    return (system($gpg_cmd) == 0);
+}
+
+sub sync_remote {
+    my ($self) = @_;
+
+    my $repo_path = $self->get_config_key('repository:path');
+    if ($self->config_key_exists('repository:remote_path')) {
+        my $remote_repo_path = $self->get_config_key('repository:remote_path');
+        my $rsync_cmd = "rsync -avz --delete $repo_path $remote_repo_path";
+        if (system($rsync_cmd) == 0) {
+            return 1;
+        }
+        else {
+            print STDERR "Command was '$rsync_cmd'\n";
+            return 0;
+        }
+    }
+    return 0;
+}
+
+sub is_synced {
+    my ($self) = @_;
+
+    my $repo_path = $self->get_config_key('repository:path');
+    if ($self->config_key_exists('repository:remote_path')) {
+        my $remote_repo_path = $self->get_config_key('repository:remote_path');
+        my $rsync_cmd = "rsync -avz --delete --dry-run --out-format='AREPA_CHANGE %i' $repo_path $remote_repo_path";
+        my $changes = 0;
+
+        open RSYNCOUTPUT, "$rsync_cmd |";
+        while (<RSYNCOUTPUT>) {
+            next unless /^AREPA_CHANGE/;
+            if (/^AREPA_CHANGE [^.]/) {
+                $changes = 1;
+            }
+        }
+        close RSYNCOUTPUT;
+
+        return (! $changes);
+    }
+    return 0;
+}
+
 1;
 
 __END__
@@ -339,6 +400,22 @@ specified. The properties are specified in lowercase (see
 C<get_distributions>) and C<codename> is mandatory. Also, you can't specify a
 codename of an existing distribution, or a suite name that an existing
 distribution already has. It returns 1 on success, or 0 on failure.
+
+=item sign_distribution($dist_name)
+
+Signs the C<Release> file for a single distribution (with codename
+C<$dist_name>). It returns if GPG returned error status zero.
+
+=item sync_remote
+
+Syncs the local repository to the remote location, if available in the config.
+Returns if the synchronisation worked (needs the C<rsync> command) or false if
+there wasn't any remote repository location in the config. 
+
+=item is_synced
+
+Returns if the local repository is synced with the remote repository. It
+returns false if there's no remote repository location in the config.
 
 =back
 
