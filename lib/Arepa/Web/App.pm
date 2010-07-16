@@ -18,6 +18,7 @@ use File::Copy;
 use File::stat;
 use Digest::MD5;
 use POSIX qw(strftime);
+use Encode;
 
 use base qw(CGI::Application);
 use CGI::Application::Plugin::TT;
@@ -87,7 +88,8 @@ sub show_view {
 sub base_stash {
     my ($self) = @_;
     (base_url     => $config->get_key('web_ui:base_url'),
-     cgi_base_url => $config->get_key('web_ui:cgi_base_url'));
+     cgi_base_url => $config->get_key('web_ui:cgi_base_url'),
+     encode       => sub { encode('utf-8', shift); });
 }
 
 sub add_error {

@@ -60,7 +60,7 @@ config.get_key('upload_queue:path') %]</tt>
 
                 <span class="incoming-package-attr compilation-props compilation-prop">
                     Maintainer:
-                    <span class="compilation-prop-value">[% package.maintainer | html %] [% IF package.maintainer != package.changed_by %](<em>But changed by [% package.changed_by | html %]</em>)[% END %]</span>
+                    <span class="compilation-prop-value">[% encode(package.maintainer) | html %] [% IF package.maintainer != package.changed_by %](<em>But changed by [% encode(package.changed_by) | html %]</em>)[% END %]</span>
                 </span>
 
                 <span class="incoming-package-attr compilation-props compilation-prop">
