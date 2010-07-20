@@ -45,7 +45,7 @@ No packages pending in <tt><%= $config->get_key('upload_queue:path') %></tt>
    else { %>
 <div id="incoming-package-list">
 <% my $package_count = 0; %>
-<form method="post" action="<%= url_for('generic', controller => 'pending', action => 'process') %>">
+<form method="post" action="<%= url_for('generic', controller => 'incoming', action => 'process') %>">
 <% foreach my $package (@$packages) { %>
     <% $package_count += 1; %>
         <div class="incoming-package">
