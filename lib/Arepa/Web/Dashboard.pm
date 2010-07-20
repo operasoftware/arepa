@@ -107,7 +107,8 @@ sub index {
     }
 
     my $is_synced;
-    if (($config->get_key('web_ui:check_remote_repo') || 0) &&
+    if ($self->config->key_exists('web_ui:check_remote_repo') &&
+            $self->config->get_key('web_ui:check_remote_repo') &&
             $self->config->key_exists('repository:remote_path')) {
         my $r = system("sudo -H -u arepa-master arepa issynced >/dev/null");
         $is_synced = ($r == 0);
