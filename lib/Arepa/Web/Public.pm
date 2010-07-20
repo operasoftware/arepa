@@ -5,7 +5,6 @@ use warnings;
 
 use base 'Mojolicious::Controller';
 
-# This action will render a template
 sub rss {
     my $self = shift;
 
