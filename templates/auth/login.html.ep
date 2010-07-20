@@ -1,0 +1,6 @@
+<form>
+  <div>Username: <input name="username" /></div>
+  <div>Password: <input name="password" /></div>
+
+  <div><input type="submit" /></div>
+</form>
