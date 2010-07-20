@@ -91,7 +91,7 @@ sub _approve_package {
         # queue
         $farm->request_package_compilation($source_pkg_id);
 
-        $self->remove_uploaded_package($path);
+        $self->_remove_uploaded_package($path);
 
         if ($self->_error_list) {
             return 0;
@@ -99,6 +99,24 @@ sub _approve_package {
     }
 
     return 1;
+}
+
+sub _remove_uploaded_package {
+    my ($self, $changes_file_path) = @_;
+
+    my $changes_file = Parse::Debian::PackageDesc->new($changes_file_path);
+    # Remove all files from the pending queue
+    # Files referenced by the changes file
+    foreach my $file ($changes_file->files) {
+        my $file_path = $self->config->get_key('upload_queue:path')."/".$file;
+        if (-e $file_path && ! unlink($file_path)) {
+            $self->add_error("Can't delete '$file_path'.");
+        }
+    }
+    # Changes file itself
+    if (! unlink($changes_file_path)) {
+        $self->add_error("Can't delete '$changes_file_path'.");
+    }
 }
 
 sub process {
@@ -120,7 +138,7 @@ sub process {
             my $changes_file_path = $self->param("package-$field_id");
             my $path = $self->config->get_key('upload_queue:path')."/".
                             basename($changes_file_path);
-            $self->remove_uploaded_package($path);
+            $self->_remove_uploaded_package($path);
         }
     }
     if ($self->_error_list) {
