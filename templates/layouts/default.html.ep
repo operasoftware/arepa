@@ -7,7 +7,7 @@
     <link rel="alternate" type="application/rss+xml" title="Packages pending approval" href="?rm=public_rss" >
 </head>
 <body>
-    <div id="topbar"><a accesskey="h" title="Home" href="arepa.cgi">Home</a><% if (defined $is_synced) { %> | <% if ($is_synced) { %><span class="inactive">Remote repo in sync</span><% } else { %>Remote repo not in sync (<a title="Synchronize remote repository" href="arepa.cgi?rm=sync">Synchronize</a>)<% } %><% } %><a id="logout-link" href="?rm=logout">Log out</a></div>
+    <div id="topbar"><a accesskey="h" title="Home" href="<%= $cgi_base_url %>">Home</a><% if (defined $is_synced) { %> | <% if ($is_synced) { %><span class="inactive">Remote repo in sync</span><% } else { %>Remote repo not in sync (<a title="Synchronize remote repository" href="arepa.cgi?rm=sync">Synchronize</a>)<% } %><% } %><a id="logout-link" href="?rm=logout">Log out</a></div>
 <%== content %>
 </body>
 </html>
