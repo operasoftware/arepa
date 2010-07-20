@@ -5,7 +5,6 @@ use warnings;
 
 use base 'Mojolicious';
 
-# This method will run once at server start
 sub startup {
     my $self = shift;
 
@@ -15,7 +14,7 @@ sub startup {
 
     # Default route
     $auth->route('/')->to('dashboard#index');
-    $auth->route('/:controller/:action')->to('example#welcome');
+    $auth->route('/:controller/:action')->name('generic');
 }
 
 1;
