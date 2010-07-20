@@ -33,14 +33,6 @@ sub _error_list {
     @{$self->{error_list} || []};
 }
 
-sub _base_stash {
-    my ($self) = @_;
-    my %r = ();
-    use Data::Dumper;
-    print STDERR Dumper(\%r);
-    return %r;
-}
-
 sub vars {
     my ($self, @args) = @_;
 
@@ -48,6 +40,17 @@ sub vars {
         base_url     => $self->config->get_key('web_ui:base_url'),
         cgi_base_url => $self->config->get_key('web_ui:cgi_base_url'),
         @args);
+}
+
+sub show_view {
+    my ($self, $stash) = @_;
+
+    $self->stash(
+        base_url     => $self->config->get_key('web_ui:base_url'),
+        cgi_base_url => $self->config->get_key('web_ui:cgi_base_url'),
+        is_synced    => undef,
+        %$stash);
+    $self->render(layout => 'default');
 }
 
 1;
