@@ -206,8 +206,8 @@ arepa-admin createbuilder /var/chroot/mybuilder ftp://ftp.se.debian.org/debian s
 <% foreach my $compilation (@$failed_compilations) { %>
   <div class="failed-compilation-line">
     <div class="compilation-options">
-      <a href="<%= $cgi_base_url %>/arepa.cgi?rm=build_log&amp;id=<%= $compilation->{id} %>">[See build log]</a> -
-      <a href="<%= $cgi_base_url %>/arepa.cgi?rm=requeue&amp;id=<%= $compilation->{id} %>">[Requeue]</a>
+      <a href="<%= url_for('generic_id', controller => 'queue', action => 'build_log', id => $compilation->{id}) %>">[See build log]</a> -
+      <a href="<%= url_for('generic_id', controller => 'queue', action => 'requeue', id => $compilation->{id}) %>">[Requeue]</a>
     </div>
     <span class="package-name"><%= $compilation->{package}->{name} %>_<%= $compilation->{package}->{full_version} %></span>
     on
