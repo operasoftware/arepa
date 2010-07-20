@@ -19,7 +19,7 @@
     <% } %>
   </div>
 
-  <h1>Latest packages (<a accesskey="r" title="Repository" href="arepa.cgi?rm=view_repo">all</a>)</h1>
+  <h1>Latest packages (<a accesskey="r" title="Repository" href="<%= url_for('generic', controller => 'repository') %>">all</a>)</h1>
 
   <div id="compilation-queue-list">
     <% foreach my $comp (@$latest_compilations) { %>
