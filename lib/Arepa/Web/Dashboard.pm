@@ -3,45 +3,28 @@ package Arepa::Web::Dashboard;
 use strict;
 use warnings;
 
-use base 'Mojolicious::Controller';
+use base 'Arepa::Web::Base';
 
 use Parse::Debian::PackageDesc;
 use Arepa::Config;
 use Arepa::Repository;
 use Arepa::BuilderFarm;
 
-my @conffiles = qw(/etc/arepa/config.yml);
-our $config      = undef;
-our $config_path = undef;
-foreach my $conffile (@conffiles) {
-    if (-r $conffile) {
-        $config_path = $conffile;
-        $config = Arepa::Config->new($config_path);
-        last ;
-    }
-}
-
-sub base_stash {
-    my ($self) = @_;
-    (base_url     => $config->get_key('web_ui:base_url'),
-     cgi_base_url => $config->get_key('web_ui:cgi_base_url'),
-     encode       => sub { encode('utf-8', shift); });
-}
-
 sub index {
     my ($self) = @_;
 
     my @packages = ();
-    if (opendir D, $config->get_key('upload_queue:path')) {
+    if (opendir D, $self->config->get_key('upload_queue:path')) {
         @packages = grep /\.changes$/, readdir D;
         closedir D;
     }
 
     # Packages pending approval ----------------------------------------------
     my (@readable_packages, @unreadable_packages);
-    my $gpg_dir = $config->get_key('web_ui:gpg_homedir');
+    my $gpg_dir = $self->config->get_key('web_ui:gpg_homedir');
     foreach my $package (@packages) {
-        my $package_path = $config->get_key('upload_queue:path')."/".$package;
+        my $package_path =
+                $self->config->get_key('upload_queue:path')."/".$package;
         my $obj = undef;
         eval {
             $obj = Parse::Debian::PackageDesc->new($package_path,
@@ -56,7 +39,8 @@ sub index {
     }
 
     # Compilation queue ------------------------------------------------------
-    my $packagedb = Arepa::PackageDb->new($config->get_key('package_db'));
+    my $packagedb =
+            Arepa::PackageDb->new($self->config->get_key('package_db'));
     my @compilation_queue = $packagedb->
                                 get_compilation_queue(status => 'pending',
                                                       limit  => 10);
@@ -77,7 +61,7 @@ sub index {
     my @compiling_packages = $packagedb->
                                 get_compilation_queue(status => 'compiling',
                                                       limit  => 10);
-    foreach my $builder_name ($config->get_builders) {
+    foreach my $builder_name ($self->config->get_builders) {
         my %extra_attrs = (status => 'idle');
         foreach my $pkg (@compiling_packages) {
             if ($pkg->{builder} eq $builder_name) {
@@ -88,7 +72,7 @@ sub index {
             }
         }
         push @builder_list,
-             { $config->get_builder_config($builder_name),
+             { $self->config->get_builder_config($builder_name),
                %extra_attrs };
     }
 
@@ -123,21 +107,21 @@ sub index {
     }
 
     my $is_synced;
-    if ($config->key_exists('repository:remote_path')) {
+    if (($config->get_key('web_ui:check_remote_repo') || 0) &&
+            $self->config->key_exists('repository:remote_path')) {
         my $r = system("sudo -H -u arepa-master arepa issynced >/dev/null");
         $is_synced = ($r == 0);
     }
 
     # Print everything -------------------------------------------------------
-    $self->stash($self->base_stash,
-                 config              => $config,
-                 packages            => \@readable_packages,
-                 unreadable_packages => \@unreadable_packages,
-                 compilation_queue   => \@pending_compilations,
-                 builders            => \@builder_list,
-                 failed_compilations => \@failed_compilations,
-                 latest_compilations => \@latest_compilations,
-                 is_synced           => $is_synced);
+    $self->vars(config              => $self->config,
+                packages            => \@readable_packages,
+                unreadable_packages => \@unreadable_packages,
+                compilation_queue   => \@pending_compilations,
+                builders            => \@builder_list,
+                failed_compilations => \@failed_compilations,
+                latest_compilations => \@latest_compilations,
+                is_synced           => $is_synced);
 
     $self->render(layout => 'default');
 }

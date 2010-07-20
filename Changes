@@ -2,6 +2,7 @@
         - Add createdistribution to arepa-admin
         - Encode packager name correctly
         - Add information about the remote repository synchronization status
+          (see web_ui:check_remote_repo configuration key)
         - Add a button to easily synchronize the remote repository
         - When approving all packages, honour the comments, priority and
           section for each package

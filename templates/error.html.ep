@@ -1,0 +1,20 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <title>Incoming packages</title>
+    <link rel="stylesheet" href="<%= $base_url %>/css/main.css" />
+</head>
+<body>
+<div id="topbar"><a accesskey="h" title="Home" href="<%= $cgi_base_url %>">Home</a><a id="logout-link" href="?rm=logout">Log out</a></div>
+
+<h1>Error</h1>
+
+<p>Some error(s) occurred:</p>
+
+<ul>
+<% foreach my $error (@$errors) { %>
+    <li><%= $error->{error} %><% if ($error->{output}) { %> Command output was:<pre><%= $error->{output} %></pre><% } %></li>
+<% } %>
+</ul>
+</body>
+</html>

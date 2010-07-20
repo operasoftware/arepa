@@ -3,7 +3,7 @@ package Arepa::Web::Public;
 use strict;
 use warnings;
 
-use base 'Mojolicious::Controller';
+use base 'Arepa::Web::Base';
 
 sub rss {
     my $self = shift;
