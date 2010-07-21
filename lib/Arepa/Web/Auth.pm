@@ -9,7 +9,7 @@ use Digest::MD5;
 use YAML;
 use MojoX::Session;
 
-my $session_db = "sessions.db";
+my $session_db = "/tmp/sessions.db";
 
 sub _auth {
     my ($self, $username, $password) = @_;
@@ -52,7 +52,7 @@ sub login {
     if ($session->sid) {
         return 1;
     }
-    $self->vars({});
+    $self->vars();
     $self->render('auth/login', layout => 'default');
 }
 
