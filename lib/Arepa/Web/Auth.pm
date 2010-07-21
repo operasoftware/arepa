@@ -4,11 +4,19 @@ use strict;
 use warnings;
 
 use base 'Arepa::Web::Base';
-use MojoX::Session;
 use DBI;
 use Digest::MD5;
+use YAML;
+use MojoX::Session;
 
 my $session_db = "sessions.db";
+
+sub _auth {
+    my ($self, $username, $password) = @_;
+
+    my %users = %{YAML::LoadFile($self->config->get_key('web_ui:user_file'))};
+    return ($users{$username} eq Digest::MD5::md5_hex($password));
+}
 
 sub login {
     my $self = shift;
@@ -28,11 +36,13 @@ sub login {
     # Logging the user if it's giving credentials
     if (defined $self->param('username') &&
             defined $self->param('password')) {
-        # my %users = %{YAML::LoadFile($config->get_key('web_ui:user_file'))};
-        # if ($users{$user} eq Digest::MD5::md5_hex($password)) {
-        if ($self->param('username') eq 'foo') {
+        if ($self->_auth($self->param('username'),
+                         $self->param('password'))) {
             $session->create;
             $session->flush;
+        }
+        else {
+            $self->vars("error" => "Invalid username or password");
         }
     }
     else {
@@ -42,7 +52,8 @@ sub login {
     if ($session->sid) {
         return 1;
     }
-    $self->render('auth/login');
+    $self->vars({});
+    $self->render('auth/login', layout => 'default');
 }
 
 sub logout {

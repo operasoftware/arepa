@@ -39,17 +39,14 @@ sub vars {
     $self->stash(
         base_url     => $self->config->get_key('web_ui:base_url'),
         cgi_base_url => $self->config->get_key('web_ui:cgi_base_url'),
+        is_synced    => undef,
         @args);
 }
 
 sub show_view {
     my ($self, $stash) = @_;
 
-    $self->stash(
-        base_url     => $self->config->get_key('web_ui:base_url'),
-        cgi_base_url => $self->config->get_key('web_ui:cgi_base_url'),
-        is_synced    => undef,
-        %$stash);
+    $self->vars(%$stash);
     $self->render(layout => 'default');
 }
 

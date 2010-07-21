@@ -1,6 +1,9 @@
+<% if ($self->stash('error')) { %>
+    <div class="warning"><%= $self->stash('error') %></div>
+<% } %>
 <form method="post">
   <div>Username: <input name="username" /></div>
-  <div>Password: <input name="password" /></div>
+  <div>Password: <input name="password" type="password" /></div>
 
   <div><input type="submit" /></div>
 </form>
