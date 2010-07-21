@@ -5,7 +5,7 @@
     <link rel="stylesheet" href="<%= $base_url %>/css/main.css" />
 </head>
 <body>
-<div id="topbar"><a accesskey="h" title="Home" href="<%= $cgi_base_url %>">Home</a><a id="logout-link" href="?rm=logout">Log out</a></div>
+<div id="topbar"><a accesskey="h" title="Home" href="<%= url_for('home') %>">Home</a><a id="logout-link" href="?rm=logout">Log out</a></div>
 
 <h1>Error</h1>
 
