@@ -1,9 +1,3 @@
-#!/usr/bin/perl
+#!/bin/sh
 
-use strict;
-use warnings;
-
-use Arepa::Web::App;
-
-my $webapp = Arepa::Web::App->new;
-$webapp->run;
+MOJO_HOME=/usr/share/arepa/mojolicious /usr/bin/arepaweb cgi
