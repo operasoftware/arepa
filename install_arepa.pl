@@ -12,16 +12,31 @@ use File::Spec;
 use Arepa::Config;
 use Arepa::PackageDb;
 
+my $arepa_user  = "arepa-master";
+my $arepa_group = "arepa";
+my $web_user    = "www-data";
+my $web_group   = "www-data";
+
 my $config = Arepa::Config->new("/etc/arepa/config.yml");
 
-my $uid = getgrnam("arepa-master");
+my $uid = getgrnam($arepa_user);
 if (!defined $uid) {
-    print STDERR "ERROR: User 'arepa-master' doesn't exist\n";
+    print STDERR "ERROR: User '$arepa_user' doesn't exist\n";
     exit 1;
 }
-my $gid = getgrnam("arepa");
+my $gid = getgrnam($arepa_group);
 if (!defined $gid) {
-    print STDERR "ERROR: Group 'arepa' doesn't exist\n";
+    print STDERR "ERROR: Group '$arepa_group' doesn't exist\n";
+    exit 1;
+}
+my $web_uid = getgrnam($web_user);
+if (!defined $web_uid) {
+    print STDERR "ERROR: User '$web_user' doesn't exist\n";
+    exit 1;
+}
+my $web_gid = getgrnam($web_group);
+if (!defined $web_gid) {
+    print STDERR "ERROR: Group '$web_group' doesn't exist\n";
     exit 1;
 }
 
@@ -31,8 +46,7 @@ foreach my $path (dirname($package_db_path),
                   File::Spec->catfile($config->get_key("repository:path"),
                                       "conf"),
                   $config->get_key("upload_queue:path"),
-                  $config->get_key("dir:build_logs"),
-                  $config->get_key("web_ui:gpg_homedir")) {
+                  $config->get_key("dir:build_logs")) {
     print "Creating directory $path\n";
     mkpath($path);
     chown($uid, $gid, $path);
@@ -58,3 +72,27 @@ open F, ">>$repo_dists_conf";
 close F;
 chown($uid, $gid, $repo_dists_conf);
 symchmod("g+w", $repo_dists_conf);
+
+my $gpg_dir = $config->get_key("web_ui:gpg_homedir");
+print "Creating GPG directory in $gpg_dir\n";
+mkpath($gpg_dir);
+chown($web_uid, $web_gid, $gpg_dir);
+chmod(0770, $gpg_dir);
+
+my $gpg_options = File::Spec->catfile($config->get_key("web_ui:gpg_homedir"),
+                                      "options");
+if (! -f $gpg_options) {
+    print "Creating options file $gpg_options\n";
+    my $keyrings_dir =
+        File::Spec->catfile(dirname($config->get_key("web_ui:gpg_homedir")),
+                            "keyrings");
+    mkpath($keyrings_dir);
+    chown($uid, $gid, $keyrings_dir);
+    symchmod("g+w", $keyrings_dir);
+
+    open F, ">$gpg_options";
+    print F "keyring $keyrings_dir/uploaders.gpg\n";
+    close F;
+    chown($uid, $gid, $gpg_options);
+    symchmod("g+w", $gpg_options);
+}
