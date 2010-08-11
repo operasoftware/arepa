@@ -1,11 +1,14 @@
 0.xx  Xxx Xxx xx xx:xx:xx XXXX xxxx
-        - Add createdistribution to arepa-admin
+        - Rewrote the whole web UI in Mojolicious instead of CGI::Application
         - Encode packager name correctly
         - Add information about the remote repository synchronization status
           (see web_ui:check_remote_repo configuration key)
         - Add a button to easily synchronize the remote repository
         - When approving all packages, honour the comments, priority and
           section for each package
+        - Add an option to import uploader GPG keys on the web interface
+        - Add createdistribution to arepa-admin
+        - Improve the installation instructions considerably
 
 0.76  Tue Jul 13 11:27:33 CEST 2010
         - Make App::Repository tests depend on an environment variable
