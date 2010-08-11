@@ -9,8 +9,6 @@ use Digest::MD5;
 use YAML;
 use MojoX::Session;
 
-my $session_db = "/tmp/sessions.db";
-
 sub _auth {
     my ($self, $username, $password) = @_;
 
@@ -21,6 +19,7 @@ sub _auth {
 sub login {
     my $self = shift;
 
+    my $session_db = $self->config->get_key('web_ui:session_db');
     my $dbh = DBI->connect("dbi:SQLite:dbname=$session_db");
     my $session = MojoX::Session->new(tx    => $self->tx,
                                       store => [dbi => {dbh => $dbh}]);
@@ -59,6 +58,7 @@ sub login {
 sub logout {
     my $self = shift;
 
+    my $session_db = $self->config->get_key('web_ui:session_db');
     my $dbh = DBI->connect("dbi:SQLite:dbname=$session_db");
     my $session = MojoX::Session->new(tx    => $self->tx,
                                       store => [dbi => {dbh => $dbh}]);
