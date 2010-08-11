@@ -12,6 +12,8 @@ use File::Spec;
 use Arepa::Config;
 use Arepa::PackageDb;
 
+$File::chmod::UMASK = 0;
+
 my $arepa_user  = "arepa-master";
 my $arepa_group = "arepa";
 my $web_user    = "www-data";
@@ -63,6 +65,24 @@ print "Creating package DB in $package_db_path\n";
 my $package_db = Arepa::PackageDb->new($package_db_path);
 chown($uid, $gid, $package_db_path);
 symchmod("g+w", $package_db_path);
+
+my $db_dir = dirname($package_db_path);
+print "Fixing permissions for database directory $db_dir\n";
+chown($uid, $gid, $db_dir);
+symchmod("g+w", $db_dir);
+
+my $session_db_path = $config->get_key("web_ui:session_db");
+if (! -r $session_db_path) {
+    print "Creating web UI session DB in $session_db_path\n";
+    open F, ">>$session_db_path"; close F;
+    my $sqlite_cmd = <<EOC;
+echo "CREATE TABLE session (sid VARCHAR(40) PRIMARY KEY, data TEXT, expires INTEGER UNSIGNED NOT NULL, UNIQUE(sid));" | sqlite3 '$session_db_path'
+EOC
+    print "Creating session DB schema with:\n$sqlite_cmd";
+    system($sqlite_cmd);
+    chown($web_uid, $web_gid, $session_db_path);
+    symchmod("g+w", $session_db_path);
+}
 
 my $repo_dists_conf = File::Spec->catfile($config->get_key("repository:path"),
                                           "conf",
