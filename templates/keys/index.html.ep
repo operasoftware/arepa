@@ -1,0 +1,4 @@
+<!-- Executing: <%= $cmd %> -->
+<pre>
+<%= $output %>
+</pre>
