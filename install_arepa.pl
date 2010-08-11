@@ -97,7 +97,7 @@ my $gpg_dir = $config->get_key("web_ui:gpg_homedir");
 print "Creating GPG directory in $gpg_dir\n";
 mkpath($gpg_dir);
 chown($web_uid, $web_gid, $gpg_dir);
-chmod(0770, $gpg_dir);
+chmod(0700, $gpg_dir);
 
 my $gpg_options = File::Spec->catfile($config->get_key("web_ui:gpg_homedir"),
                                       "options");
