@@ -9,7 +9,9 @@ WriteMakefile(
                               'Parse::Debian::PackageDesc' => 0,
                               'Config::Tiny'               => 0,
                               'YAML::Syck'                 => 0,
-                              'XML::RSS'                   => 0},
+                              'XML::RSS'                   => 0,
+                              'Mojolicious'                => 0,
+                              'MojoX::Session'             => 0},
     'ABSTRACT_FROM'       => 'lib/Arepa.pm',
     'AUTHOR'              => 'Esteban Manchado Velázquez <estebanm@opera.com>',
 );
