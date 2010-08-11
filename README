@@ -28,10 +28,6 @@ you.
 When that's ready, read the POD documentation for the Arepa module
 (lib/Arepa.pm) and follow the steps.
 
-You must also add this line to your sudo configuration:
-
- %arepa ALL = (arepa-master) NOPASSWD: /usr/bin/arepa sign
-
 To configure the web interface, you'll have to make web/cgi/arepa.cgi
 available somewhere (as well as the CSS) and configure /etc/arepa/config.yml
 appropriately (there's a sample config file named config.yml-sample). Make sure
