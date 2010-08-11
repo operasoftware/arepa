@@ -169,10 +169,8 @@ You can add these lines in C<visudo>:
 =item
 
 Add the keys of the developers that will upload packages to the uploader
-keyring (C</var/arepa/keyrings/uploaders.gpg>). You can do that by running the
-following command B<<< as C<arepa-master> >>>:
-
- arepa importgpgkey mykey.gpg.asc
+keyring (C</var/arepa/keyrings/uploaders.gpg>). You can do that in the web
+interface itself.
 
 =back
 

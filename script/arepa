@@ -35,6 +35,8 @@ arepa showqueue --status compiling
 arepa showqueue --status compiled
 arepa showqueue --status pending
 
+arepa importgpgkey key.gpg
+
 arepa sign
 arepa sign --sync
 
@@ -216,6 +218,12 @@ elsif ($command eq 'showqueue') {
         print $elt->{id}, ": $source{name} $source{full_version} ";
         print "$elt->{architecture} $elt->{distribution}\n";
     }
+}
+elsif ($command eq 'importgpgkey') {
+    my ($gpg_key_path) = @ARGV;
+    my $gpg_homedir = $config->get_key('web_ui:gpg_homedir');
+    system("gpg --homedir '$gpg_homedir' --no-default-keyring " .
+                "--import '$gpg_key_path'");
 }
 elsif ($command eq 'sign') {
     my $sync = 0;
