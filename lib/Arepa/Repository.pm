@@ -41,14 +41,14 @@ sub get_distributions {
     my ($line, $repo_attrs, @repos);
     while ($line = <F>) {
         if ($line =~ /^\s*$/) {
-            push @repos, $repo_attrs if %$repo_attrs;
+            push @repos, $repo_attrs if (ref($repo_attrs) && %$repo_attrs);
             $repo_attrs = {};
         }
         elsif ($line =~ /^([^:]+):\s+(.+)/i) {
             $repo_attrs->{lc($1)} = $2;
         }
     }
-    push @repos, $repo_attrs if %$repo_attrs;
+    push @repos, $repo_attrs if (ref($repo_attrs) && %$repo_attrs);
     close F;
     return @repos;
 }
@@ -222,7 +222,10 @@ sub add_distribution {
                                  map { ucfirst($_) . ": $properties{$_}"  }
                                      keys %properties);
 
-    open F, ">>$distributions_config_file" or return 0;
+    open F, ">>$distributions_config_file" or do {
+        print STDERR "Can't open $distributions_config_file for writing\n";
+        return 0;
+    };
     print F <<EOD;
 
 $serialised_distro
