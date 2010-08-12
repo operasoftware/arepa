@@ -44,7 +44,7 @@ sub sync {
             $self->_add_error("Couldn't synchronize the repository with the command '$cmd'");
         }
     }
-    $self->redirect_to($self->config->get_key('web_ui:cgi_base_url'));
+    $self->redirect_to('home');
 }
 
 1;

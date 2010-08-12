@@ -146,7 +146,7 @@ sub process {
         $self->render('error');
     }
     else {
-        $self->redirect_to($self->config->get_key('web_ui:cgi_base_url'));
+        $self->redirect_to('home');
     }
 }
 

@@ -54,7 +54,7 @@ sub requeue {
     }
     else {
         $pdb->mark_compilation_pending($request_id);
-        $self->redirect_to($self->config->get_key('web_ui:cgi_base_url'));
+        $self->redirect_to('home');
     }
 }
 

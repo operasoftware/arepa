@@ -65,7 +65,7 @@ sub logout {
     $session->expire;
     $session->flush;
 
-    $self->redirect_to($self->config->get_key('web_ui:cgi_base_url'));
+    $self->redirect_to('home');
 }
 
 1;
