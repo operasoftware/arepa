@@ -13,6 +13,11 @@ use Arepa::BuilderFarm;
 sub index {
     my ($self) = @_;
 
+    # For backwards compatibility with old RSS URLs
+    if ($self->param('rm') && $self->param('rm') eq 'public_rss') {
+        return $self->redirect_to(controller => 'public', action => 'rss');
+    }
+
     my @packages = ();
     if (opendir D, $self->config->get_key('upload_queue:path')) {
         @packages = grep /\.changes$/, readdir D;
