@@ -20,8 +20,6 @@ web_ui:
   public_url: http://localhost/cgi-bin/arepa/arepa.cgi
   # Base URL for CSS files and stuff
   base_url: /arepa
-  # The templates under web/templates/
-  template_dir: /usr/share/arepa/templates
   # This is the users/passwords allowed into the web UI. See example in
   # users.yml-sample
   user_file: /etc/arepa/users.yml
