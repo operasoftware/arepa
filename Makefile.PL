@@ -3,6 +3,8 @@ use ExtUtils::MakeMaker;
 WriteMakefile(
     'NAME'                => 'Arepa',
     'VERSION_FROM'        => 'lib/Arepa.pm',
+    'ABSTRACT_FROM'       => 'lib/Arepa.pm',
+    'AUTHOR'              => 'Esteban Manchado Velázquez <estebanm@opera.com>',
     'PREREQ_PM'           => {'Test::Deep'                 => 0,
                               'DBD::SQLite'                => 0,
                               'File::chmod'                => 0,
@@ -12,6 +14,5 @@ WriteMakefile(
                               'XML::RSS'                   => 0,
                               'Mojolicious'                => 0,
                               'MojoX::Session'             => 0},
-    'ABSTRACT_FROM'       => 'lib/Arepa.pm',
-    'AUTHOR'              => 'Esteban Manchado Velázquez <estebanm@opera.com>',
+    'test'                => { TESTS => 't/*.t t/*/*.t' },
 );
