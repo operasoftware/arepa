@@ -6,9 +6,13 @@
         - Add a button to easily synchronize the remote repository
         - When approving all packages, honour the comments, priority and
           section for each package
-        - Add an option to import uploader GPG keys on the web interface
-        - Add createdistribution to arepa-admin
+        - Add an option to see (and import) uploader GPG keys on the web UI
+        - Add createdistribution command to arepa-admin
         - Improve the installation instructions considerably
+        - Minor improvements in administration tasks
+        - Deprecate web_ui:cgi_base_url, not needed anymore
+        - Add a new configuration key, web_ui:public_url, which will be used
+          for the RSS feeds and other "public URL" needs
 
 0.76  Tue Jul 13 11:27:33 CEST 2010
         - Make App::Repository tests depend on an environment variable
