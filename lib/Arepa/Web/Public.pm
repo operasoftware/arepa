@@ -65,6 +65,11 @@ sub rss {
         }
     }
 
+    my $public_url = $self->config->get_key('web_ui:cgi_base_url');
+    if ($self->config->key_exists('web_ui:public_url')) {
+        $public_url = $self->config->get_key('web_ui:public_url');
+    }
+
     foreach my $pkg (@packages) {
         my $signature_info = "";
         if ($pkg->signature_id) {
@@ -82,7 +87,7 @@ sub rss {
         $rss->add_item(
             title       => $pkg->name . " " . $pkg->version . " for " .
                             $pkg->distribution,
-            link        => $self->config->get_key('web_ui:cgi_base_url'),
+            link        => $public_url,
             description => $pkg->name . " " . $pkg->version .
                             " was uploaded by " .
                             $self->_retarded_escape($pkg->maintainer) .
