@@ -44,10 +44,15 @@ sub vars {
 }
 
 sub show_view {
-    my ($self, $stash) = @_;
+    my ($self, $stash, %opts) = @_;
 
     $self->vars(%$stash);
-    $self->render(layout => 'default');
+    if ($opts{template}) {
+        $self->render($opts{template}, layout => 'default');
+    }
+    else {
+        $self->render(layout => 'default');
+    }
 }
 
 1;

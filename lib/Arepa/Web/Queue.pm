@@ -18,16 +18,20 @@ sub build_log {
         $pdb->get_compilation_request_by_id($request_id);
     };
     if ($EVAL_ERROR) {
-        return $self->show_view('error.tmpl',
-                                {errors => [{output => "No such compilation request: '$request_id'"}]});
+        return $self->show_view({errors => [{output => "No such compilation " .
+                                                "request: '$request_id'"}]},
+                                template => 'error');
     }
     else {
         my $build_log_path =
                 File::Spec->catfile($self->config->get_key('dir:build_logs'),
                                     $request_id);
         open F, $build_log_path or do {
-            return $self->show_view('error.tmpl',
-                                    {errors => [{output => "Can't read build log for compilation request '$request_id' from '$build_log_path'"}]});
+            return $self->show_view(
+                {errors => [{output => "Can't read build log for " .
+                                "compilation request '$request_id' from " .
+                                "'$build_log_path'"}]},
+                template => 'error');
         };
         my $build_log_contents = join("", <F>);
         close F;
