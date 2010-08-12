@@ -7,15 +7,16 @@ use base 'Mojolicious::Controller';
 
 use Arepa::Config;
 
-my @conffiles = qw(/etc/arepa/config.yml);
+my $DEFAULT_CONFIG_PATH = '/etc/arepa/config.yml';
 our $config      = undef;
-our $config_path = undef;
-foreach my $conffile (@conffiles) {
-    if (-r $conffile) {
-        $config_path = $conffile;
-        $config = Arepa::Config->new($config_path);
-        last ;
-    }
+our $config_path = $ENV{AREPA_CONFIG} || $DEFAULT_CONFIG_PATH;
+
+if (-r $config_path) {
+    $config = Arepa::Config->new($config_path);
+}
+else {
+    die "Couldn't read configuration file $config_path.\n" .
+        "Use the environment variable AREPA_CONFIG to specify one.\n";
 }
 
 sub config      { return $Arepa::Web::Base::config; }
