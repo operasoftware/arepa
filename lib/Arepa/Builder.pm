@@ -133,6 +133,10 @@ EOD
     print F $config_string;
     close F;
     print "You can tweak the builder configuration in $path\n";
+
+    my $sources_list_path = File::Spec->catfile($builder_dir, "etc", "apt",
+                                                "sources.list");
+    print "You should also review $sources_list_path\n";
 }
 
 1;

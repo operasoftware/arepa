@@ -16,17 +16,19 @@ upload_queue:
 # SQLite package database with compilation requests and other stuff
 package_db: /var/arepa/db/package.db
 web_ui:
+  # Public URL (to use in RSS feeds)
+  public_url: http://localhost/cgi-bin/arepa/arepa.cgi
   # Base URL for CSS files and stuff
   base_url: /arepa
-  # Base URL for CGIs (e.g. you should be able to access
-  # %cgi_base_url%/arepa.cgi)
-  cgi_base_url: /cgi-bin/arepa
-  # The templates under web/templates/
-  template_dir: /usr/share/arepa/templates
   # This is the users/passwords allowed into the web UI. See example in
   # users.yml-sample
   user_file: /etc/arepa/users.yml
   # The trusted public keys (for package signatures) should be here
   gpg_homedir: /var/arepa/gnupg-web
+  # Check if the remote repository is in sync with the local copy. Be sure to
+  # have SSH keys and sudo correctly configured, otherwise it will hang.
+  check_remote_repo: 1
+  # SQLite DB for storing sessions
+  session_db: /var/arepa/db/sessions.db
 dir:
   build_logs: /var/arepa/build-logs

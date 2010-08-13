@@ -130,7 +130,7 @@ configuration would be loaded from the directory C<builders> inside the same
 parent directory as the main configuration file. However, if you want you can
 specify a custom directory to load the builder configuration from.
 
-This is an example of the basic configuration file:
+This is an excerpt of an example configuration file:
 
  ---
  repository:
@@ -140,7 +140,6 @@ This is an example of the basic configuration file:
  package_db: /home/zoso/src/apt-web/package.db
  web_ui:
    base_url: http://localhost
-   template_dir: /home/zoso/src/apt-web/repo-tools-web/templates/
    user_file: /home/zoso/src/apt-web/repo-tools-web/users.yml
 
 This is an example of a builder configuration file (say, C<squeeze32.yaml>):

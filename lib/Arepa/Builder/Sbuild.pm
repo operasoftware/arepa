@@ -95,11 +95,16 @@ sub do_uninit {
     my $builder_dir = $self->get_builder_directory($builder);
 
     # Bind some important files to the 'host'
+    my $ok = 1;
     foreach my $etc_file (qw(resolv.conf passwd shadow group gshadow)) {
         my $full_path = "$builder_dir/etc/$etc_file";
         $self->ui_module->print_info("Unbinding $full_path from /etc/$etc_file");
-        system(qq(umount "$full_path" 2>/dev/null));
+        my $r = system(qq(umount "$full_path" 2>/dev/null));
+        if ($r != 0) {
+            $ok = 0;
+        }
     }
+    return $ok;
 }
 
 sub _compile_package_from_spec {
@@ -276,10 +281,14 @@ EOSOURCES
     $self->ui_module->print_info("Binding files");
     Arepa::Builder::Sbuild->init($builder_name);
 
+    $self->ui_module->print_info("Updating package list");
+    my $update_cmd = "chroot '$builder_dir' apt-get update";
+    system($update_cmd);
+
     $self->ui_module->print_info("Installing build-essential and fakeroot");
-    my $cmd = "chroot '$builder_dir' apt-get -y --force-yes install " .
+    my $install_cmd = "chroot '$builder_dir' apt-get -y --force-yes install " .
                                                 "build-essential fakeroot";
-    return system($cmd);
+    return system($install_cmd);
 }
 
 1;

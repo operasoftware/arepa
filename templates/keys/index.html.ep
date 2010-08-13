@@ -1,0 +1,10 @@
+<pre>
+<%= $output %>
+</pre>
+
+<h1>Import new uploader GPG keys</h1>
+<form method="post" action="<%= url_for('generic', action => 'import') %>">
+  <textarea name="gpgkeys" cols="80" rows="20"></textarea>
+  <br/>
+  <input type="submit" value="Import" />
+</form>

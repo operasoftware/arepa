@@ -1,0 +1,13 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <title>Repository</title>
+    <link rel="stylesheet" href="<%= $base_url %>/css/main.css" />
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+    <link rel="alternate" type="application/rss+xml" title="Packages pending approval" href="<%= url_for('generic', controller => 'public', action => 'rss') %>" >
+</head>
+<body>
+    <div id="topbar"><a accesskey="h" title="Home" href="<%= url_for('home') %>">Home</a> | <a title="Uploader keys" href="<%= url_for('generic', controller => 'keys') %>">Uploader keys</a><% if (defined $is_synced) { %> | <% if ($is_synced) { %><span class="inactive">Remote repo in sync</span><% } else { %>Remote repo not in sync (<a title="Synchronize remote repository" href="<%= url_for('generic', controller => 'repository', action => 'sync') %>">Synchronize</a>)<% } %><% } %><a id="logout-link" href="<%= url_for('generic', controller => 'auth', action => 'logout') %>">Log out</a></div>
+<%== content %>
+</body>
+</html>

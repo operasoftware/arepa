@@ -4,7 +4,9 @@ use strict;
 use warnings;
 use Carp;
 use Getopt::Long;
+use File::Basename;
 
+use Arepa::Config;
 use Arepa::Repository;
 use Arepa::BuilderFarm;
 use Arepa::Builder::Sbuild;
@@ -55,8 +57,24 @@ if ($command eq 'createbuilder') {
         print STDERR "createbuilder needs exactly three arguments\n";
         show_help;
     }
+    my %create_opts = ();
+    if (defined $arch) {
+        $create_opts{arch} = $arch;
+    }
+
+    # Check that there isn't any builder by that name already registered
+    my $config = Arepa::Config->new($config_file);
+    my $builder_name = basename($builder_dir);
+    my $exists = 0;
+    eval { $config->get_builder_config($builder_name); $exists = 1; };
+    if ($exists) {
+        print STDERR "There is already a builder called '$builder_name'\n";
+        print STDERR "Use another name or remove the appropriate file in /etc/arepa/builders/\n";
+        exit 1;
+    }
+
     Arepa::Builder::Sbuild->create($builder_dir, $mirror, $distribution,
-                                   (arch => $arch));
+                                   %create_opts);
 }
 elsif ($command eq 'createdistribution') {
     my ($arch, $components, @extra_fields) =
@@ -107,7 +125,9 @@ elsif ($command eq 'uninit') {
     my $farm = Arepa::BuilderFarm->new($config_file);
     if (scalar @ARGV) {
         foreach my $builder (@ARGV) {
-            $farm->uninit_builder($builder);
+            if (! $farm->uninit_builder($builder)) {
+                print STDERR "Couldn't uninit builder '$builder'. Are you root?\n";
+            }
         }
     }
     else {

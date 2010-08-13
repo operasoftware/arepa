@@ -5,6 +5,8 @@ use warnings;
 use English qw(-no_match_vars);
 use Carp;
 use Getopt::Long;
+use File::Temp;
+use File::Path;
 
 use Arepa::BuilderFarm;
 use Arepa::Repository;
@@ -34,6 +36,8 @@ arepa showqueue --status compilationfailed
 arepa showqueue --status compiling
 arepa showqueue --status compiled
 arepa showqueue --status pending
+
+arepa importgpgkey key.gpg
 
 arepa sign
 arepa sign --sync
@@ -79,7 +83,7 @@ if ($command eq 'build') {
             my ($builder) = $farm->get_matching_builders($req->{architecture},
                                                          $req->{distribution});
             if (!defined $builder) {
-                print STDERR "Goddamnit! There aren't any builders for $req->{distribution}/$req->{architecture}\n";
+                print STDERR "There aren't any builders for $req->{distribution}/$req->{architecture}???\n";
                 exit 1;
             }
             my $source_pkg_id = $req->{source_package_id};
@@ -89,9 +93,12 @@ if ($command eq 'build') {
             print "(arch: $req->{architecture}, ";
             print "distro: $req->{distribution}) ";
             print "with builder $builder...\n";
-            if ($farm->compile_package_from_queue($builder, $req->{id})) {
+            my $temp_dir = File::Temp::tempdir();
+            if ($farm->compile_package_from_queue($builder,
+                                                  $req->{id},
+                                                  output_dir => $temp_dir)) {
                 print "*** SUCCESS ***\n";
-                foreach my $deb_package (glob('*.deb')) {
+                foreach my $deb_package (glob("$temp_dir/*.deb")) {
                     print "Adding $deb_package to the repository\n";
                     if ($repository->insert_binary_package($deb_package,
                                                            $req->{distribution})) {
@@ -103,6 +110,7 @@ if ($command eq 'build') {
             else {
                 print "*** FAILED ***\n";
             }
+            rmtree($temp_dir);
         }
     }
     elsif (defined $recompile) {
@@ -122,7 +130,10 @@ if ($command eq 'build') {
         print "(arch: $req{architecture}, ";
         print "distro: $req{distribution}) ";
         print "with builder $builder...\n";
-        if ($farm->compile_package_from_queue($builder, $req{id})) {
+        my $temp_dir = File::Temp::tempdir();
+        if ($farm->compile_package_from_queue($builder,
+                                              $req{id},
+                                              output_dir => $temp_dir)) {
             print " done.\n";
             foreach my $deb_package (glob('*.deb')) {
                 print "Adding $deb_package to the repository\n";
@@ -137,6 +148,7 @@ if ($command eq 'build') {
             print " failed.\n";
             print "Log:\n", $farm->last_build_log, "\n";
         }
+        rmtree($temp_dir);
     }
     else {
         my ($dsc_file, $builder) = @ARGV;
@@ -216,6 +228,12 @@ elsif ($command eq 'showqueue') {
         print $elt->{id}, ": $source{name} $source{full_version} ";
         print "$elt->{architecture} $elt->{distribution}\n";
     }
+}
+elsif ($command eq 'importgpgkey') {
+    my ($gpg_key_path) = @ARGV;
+    my $gpg_homedir = $config->get_key('web_ui:gpg_homedir');
+    system("gpg --homedir '$gpg_homedir' --no-default-keyring " .
+                "--import '$gpg_key_path'");
 }
 elsif ($command eq 'sign') {
     my $sync = 0;
