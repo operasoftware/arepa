@@ -54,7 +54,7 @@ No packages pending in <tt><%= $config->get_key('upload_queue:path') %></tt>
             <div class="incoming-package-info">
                 <span class="incoming-package-attr compilation-props compilation-prop">
                     Binary packages:
-                    <span class="compilation-prop-value"><%= $package->binary_packages.join(", ") %></span>
+                    <span class="compilation-prop-value"><%= join(", ", $package->binary_packages) %></span>
                 </span>
 
                 <span class="incoming-package-attr compilation-props compilation-prop">
