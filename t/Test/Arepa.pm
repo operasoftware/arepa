@@ -1,0 +1,43 @@
+package Test::Arepa;
+
+use strict;
+use warnings;
+
+use Test::Class;
+use Arepa::Config;
+use Cwd;
+
+use base qw(Test::Class);
+
+sub config_path {
+    my $self = shift;
+
+    if (@_) {
+        $self->{config_path} = shift;
+    }
+    return $self->{config_path};
+}
+
+sub setup : Test(setup) {
+    my $self = shift;
+
+    my $config_path = $self->{config_path} ||
+                        't/webui/conf/default/config.yml';
+    my $config = Arepa::Config->new($config_path);
+
+    # Make the configuration path available to the application
+    $ENV{AREPA_CONFIG} = $config_path;
+    # Needed so the application finds all the files
+    $ENV{MOJO_HOME}    = cwd;
+
+    # Prepare the session DB
+    my $session_db_path = $config->get_key('web_ui:session_db');
+    system("echo 'CREATE TABLE session (sid VARCHAR(40) PRIMARY KEY, " .
+                                       "data TEXT, " .
+                                       "expires INTEGER UNSIGNED NOT NULL, " .
+                                       "UNIQUE(sid));' | " .
+                                       "    sqlite3 '$session_db_path'");
+    
+}
+
+1;
