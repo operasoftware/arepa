@@ -5,8 +5,11 @@ use warnings;
 
 use Test::Class;
 use Test::More;
-use Arepa::Config;
 use Cwd;
+use File::Path;
+use HTML::TreeBuilder;
+
+use Arepa::Config;
 
 use base qw(Test::Class);
 
@@ -19,6 +22,8 @@ sub config_path {
     return $self->{config_path};
 }
 
+sub config { $_[0]->{config}; }
+
 sub t {
     my $self = shift;
     $self->{t} ||= Test::Mojo->new(app => 'Arepa::Web');
@@ -30,15 +35,19 @@ sub setup : Test(setup) {
 
     my $config_path = $self->{config_path} ||
                         't/webui/conf/default/config.yml';
-    my $config = Arepa::Config->new($config_path);
+    $self->{config} = Arepa::Config->new($config_path);
 
     # Make the configuration path available to the application
     $ENV{AREPA_CONFIG} = $config_path;
     # Needed so the application finds all the files
     $ENV{MOJO_HOME}    = cwd;
 
+    # ALWAYS recreate the temporary directory
+    rmtree('t/webui/tmp');
+    mkpath('t/webui/tmp');
+
     # Prepare the session DB
-    my $session_db_path = $config->get_key('web_ui:session_db');
+    my $session_db_path = $self->{config}->get_key('web_ui:session_db');
     unlink $session_db_path;
     system("echo 'CREATE TABLE session (sid VARCHAR(40) PRIMARY KEY, " .
                                        "data TEXT, " .
@@ -46,6 +55,8 @@ sub setup : Test(setup) {
                                        "UNIQUE(sid));' | " .
                                        "    sqlite3 '$session_db_path'");
     
+    # Make sure the upload queue exists
+    mkpath($self->{config}->get_key('upload_queue:path'));
 }
 
 sub login_ok {
@@ -59,6 +70,20 @@ sub login_ok {
     $self->t->get_ok('/')->
               status_is(200);
     unlike($self->t->tx->res->body, qr/arepa_test_logged_out/);
+}
+
+sub incoming_packages {
+    my ($self) = @_;
+
+    my $tree = HTML::TreeBuilder->new;
+    $tree->parse_content($self->t->tx->res->body);
+    return map {
+                    $_->as_text;
+               }
+               $tree->look_down(sub {
+                       grep { $_ eq 'incoming-package-name' }
+                            split(' ',
+                                  ($_[0]->attr('class') || "")) });
 }
 
 1;

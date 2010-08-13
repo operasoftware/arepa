@@ -13,6 +13,7 @@ WriteMakefile(
                               'YAML::Syck'                 => 0,
                               'XML::RSS'                   => 0,
                               'Mojolicious'                => 0,
-                              'MojoX::Session'             => 0},
+                              'MojoX::Session'             => 0,
+                              'HTML::Tree'                 => 0},
     'test'                => { TESTS => 't/*.t t/*/*.t' },
 );
