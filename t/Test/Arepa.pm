@@ -77,13 +77,29 @@ sub incoming_packages {
 
     my $tree = HTML::TreeBuilder->new;
     $tree->parse_content($self->t->tx->res->body);
-    return map {
-                    $_->as_text;
-               }
-               $tree->look_down(sub {
-                       grep { $_ eq 'incoming-package-name' }
-                            split(' ',
-                                  ($_[0]->attr('class') || "")) });
+
+    # Get the package names
+    my @pkg_names = map {
+                         $_->as_text;
+                    }
+                    $tree->look_down(sub {
+                            grep { $_ eq 'incoming-package-name' }
+                                 split(' ',
+                                       ($_[0]->attr('class') || "")) });
+
+    my @pkg_versions = map {
+                            $_->as_text;
+                       }
+                       $tree->look_down(sub {
+                               grep { $_ eq 'incoming-package-version' }
+                                    split(' ',
+                                          ($_[0]->attr('class') || "")) });
+
+    my @r = ();
+    for (my $i = 0; $i <= $#pkg_names; ++$i) {
+        push @r, $pkg_names[$i] . "_" . $pkg_versions[$i];
+    }
+    return @r;
 }
 
 1;

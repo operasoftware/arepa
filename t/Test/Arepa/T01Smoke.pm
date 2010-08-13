@@ -26,7 +26,7 @@ sub test_should_see_builders : Test(1) {
     $self->t->content_like(qr/test-builder/);
 }
 
-sub test_initial_incoming_package_list : Test(3) {
+sub test_incoming_package_list : Test(3) {
     my $self = shift;
 
     is($self->incoming_packages, 0,
@@ -39,7 +39,7 @@ sub test_initial_incoming_package_list : Test(3) {
     }
 
     $self->t->get_ok('/');
-    is_deeply([ $self->incoming_packages ], [qw(foobar)],
+    is_deeply([ $self->incoming_packages ], [qw(foobar_1.0-1)],
               "Package 'foobar' should be in the upload queue");
 }
 
