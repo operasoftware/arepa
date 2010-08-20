@@ -14,6 +14,7 @@ WriteMakefile(
                               'XML::RSS'                   => 0,
                               'Mojolicious'                => 0,
                               'MojoX::Session'             => 0,
-                              'HTML::Tree'                 => 0},
+                              'HTML::Tree'                 => 0,
+                              'Test::Class'                => 0},
     'test'                => { TESTS => 't/*.t t/*/*.t' },
 );
