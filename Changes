@@ -13,6 +13,8 @@
         - Deprecate web_ui:cgi_base_url, not needed anymore
         - Add a new configuration key, web_ui:public_url, which will be used
           for the RSS feeds and other "public URL" needs
+        - Make the Arepa::BuilderFarm tests more reliable, they should always
+          pass now on CPANTS
 
 0.76  Tue Jul 13 11:27:33 CEST 2010
         - Make App::Repository tests depend on an environment variable
