@@ -27,7 +27,7 @@ web_ui:
   gpg_homedir: /var/arepa/gnupg-web
   # Check if the remote repository is in sync with the local copy. Be sure to
   # have SSH keys and sudo correctly configured, otherwise it will hang.
-  check_remote_repo: 1
+  check_remote_repo: 0
   # SQLite DB for storing sessions
   session_db: /var/arepa/db/sessions.db
 dir:
