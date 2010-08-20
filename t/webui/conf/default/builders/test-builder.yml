@@ -1,0 +1,18 @@
+type: sbuild
+architecture: i386
+# Compile "Architecture: all" packages with this builder?
+architecture_all: 0
+# This is the distribution the packages compiled by this builder go to. For a
+# package to be compiled by this builder, it has to have the correct
+# architecture and this distribution (or an alias or similar, see below) in
+# its *.changes file.
+distribution: mylenny
+# Other names for this distribution (if the distribution name is
+# mycompany-squeeze, you might want 'squeeze' and 'testing' as aliases)
+distribution_aliases: [lenny]
+# Recompile packages (binNMU or Binary-only Non-Maintainer Upload; see
+# http://www.debian.org/doc/developers-reference/pkgs.html#nmu-binnmu)
+# originally uploaded for other distributions in this builder. This option is
+# an easy way to get "for free" packages compiled for several distributions.
+# Typical values for this list would be 'unstable' or 'lenny'
+bin_nmu_for: [unstable]
