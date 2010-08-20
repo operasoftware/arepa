@@ -63,8 +63,3 @@ t/upload_queue/qux_1.0-2_i386.deb
 users.yml-sample
 web/cgi/arepa.cgi
 web/css/main.css
-web/templates/error.tmpl
-web/templates/footer.tmpl
-web/templates/header.tmpl
-web/templates/index.tmpl
-web/templates/repo.tmpl
