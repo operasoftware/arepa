@@ -1,4 +1,4 @@
-0.80  Xxx Xxx xx xx:xx:xx XXXX xxxx
+0.80  Fri Aug 20 14:05:34 CEST 2010
         - Rewrote the whole web UI in Mojolicious instead of CGI::Application
         - Encode packager name correctly
         - Add information about the remote repository synchronization status
