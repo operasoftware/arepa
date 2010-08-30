@@ -107,6 +107,14 @@ sub do_uninit {
     return $ok;
 }
 
+sub _call_sbuild {
+    my ($self, $params) = @_;
+
+    # Set "global" variable last_build_log
+    $last_build_log = qx/sbuild $build_params/;
+    return $CHILD_ERROR;
+}
+
 sub _compile_package_from_spec {
     my ($self, $builder_name, $package_spec, %user_opts) = @_;
     my %opts = (output_dir => '.', bin_nmu => 0, %user_opts);
@@ -123,9 +131,8 @@ sub _compile_package_from_spec {
                             "--uploader='Arepa <arepa-master\@localhost>'";
         }
 
-        my $build_cmd = "sbuild --chroot $builder_name --apt-update --nolog -A $package_spec $extra_opts";
-        $last_build_log = qx/$build_cmd/;
-        my $r = $CHILD_ERROR;
+        my $build_params = "--chroot $builder_name --apt-update --nolog -A $package_spec $extra_opts";
+        my $r = $self->_call_sbuild($build_params);
 
         # Move result to the result directory
         chdir $initial_dir;
@@ -136,8 +143,8 @@ sub _compile_package_from_spec {
         }
         find({ wanted => sub {
                     if ($File::Find::name =~ /\.deb$/) {
-                        my $r = move($File::Find::name, $output_dir);
-                        if (!$r) {
+                        my $move_r = move($File::Find::name, $output_dir);
+                        if (!$move_r) {
                             print STDERR "Couldn't move $File::Find::name to $output_dir.\nCan't write to $output_dir maybe?\n";
                         }
                     }
