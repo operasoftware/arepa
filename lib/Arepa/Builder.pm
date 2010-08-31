@@ -24,6 +24,7 @@ sub ui_module {
         $ui_module = $module;
     }
     eval qq(use $ui_module;);
+    die $@ if $@;
     return $ui_module;
 }
 
