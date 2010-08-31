@@ -71,9 +71,11 @@ sub insert_source_package {
 
     use Parse::Debian::PackageDesc;
     my $parsed_dsc = Parse::Debian::PackageDesc->new($dsc_file);
+    my @archs = $parsed_dsc->architecture;
+    my $arch  = (scalar @archs > 1) ? 'any' : $archs[0];
     my %args = (name         => $parsed_dsc->name,
                 full_version => $parsed_dsc->version,
-                architecture => $parsed_dsc->architecture,
+                architecture => $arch,
                 distribution => $distro);
 
     if (exists $user_opts{comments}) {
