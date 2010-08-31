@@ -4,7 +4,7 @@ use warnings;
 use Test::More;
 
 if (exists $ENV{REPREPRO4PATH} and -x $ENV{REPREPRO4PATH}) {
-    plan tests => 37;
+    plan tests => 39;
 }
 else {
     plan skip_all => "Please specify the path to reprepro 4 in \$REPREPRO4PATH";
@@ -283,3 +283,9 @@ ok($r->insert_source_package('t/upload_queue/multiarch_1.0-1.dsc',
    "Inserting a multiarch source package should succeed");
 ok($r->{package_db}->get_source_package_id('multiarch', '1.0-1'),
    "After inserting the multiarch package, it should be in the package db");
+
+ok($r->insert_source_package('t/upload_queue/multiarch2_1.0-1.dsc',
+                             'lenny-opera'),
+   "Inserting a multiarch source package should succeed (2)");
+ok($r->{package_db}->get_source_package_id('multiarch2', '1.0-1'),
+   "After inserting the multiarch package, it should be in the package db (2)");
