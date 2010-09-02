@@ -111,7 +111,7 @@ sub _call_sbuild {
     my ($self, $params) = @_;
 
     # Set "global" variable last_build_log
-    $last_build_log = qx/sbuild $build_params/;
+    $last_build_log = qx/sbuild $params/;
     return $CHILD_ERROR;
 }
 
