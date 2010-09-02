@@ -5,11 +5,10 @@ use warnings;
 use English qw(-no_match_vars);
 use Carp;
 use Getopt::Long;
-use File::Temp;
-use File::Path;
 
 use Arepa::BuilderFarm;
 use Arepa::Repository;
+use Arepa::CommandManager;
 
 sub show_help {
     print STDERR <<EOD;
@@ -77,92 +76,20 @@ if ($command eq 'build') {
 
     my $farm       = Arepa::BuilderFarm->new($config_file);
     my $repository = Arepa::Repository->new($config_file);
+
+    my $command_manager = Arepa::CommandManager->new($config_file);
     if ($pending) {
-        foreach my $req ($farm->package_db->get_compilation_queue(status => 'pending')) {
-            # Just get the first one if there are multiple matches
-            my ($builder) = $farm->get_matching_builders($req->{architecture},
-                                                         $req->{distribution});
-            if (!defined $builder) {
-                print STDERR "There aren't any builders for $req->{distribution}/$req->{architecture}???\n";
-                exit 1;
-            }
-            my $source_pkg_id = $req->{source_package_id};
-            my %source_attrs  = $farm->package_db->get_source_package_by_id($source_pkg_id);
-            print "Compiling request id $req->{id}\n";
-            print "$source_attrs{name} $source_attrs{full_version} ";
-            print "(arch: $req->{architecture}, ";
-            print "distro: $req->{distribution}) ";
-            print "with builder $builder...\n";
-            my $temp_dir = File::Temp::tempdir();
-            if ($farm->compile_package_from_queue($builder,
-                                                  $req->{id},
-                                                  output_dir => $temp_dir)) {
-                print "*** SUCCESS ***\n";
-                foreach my $deb_package (glob("$temp_dir/*.deb")) {
-                    print "Adding $deb_package to the repository\n";
-                    if ($repository->insert_binary_package($deb_package,
-                                                           $req->{distribution})) {
-                        unlink $deb_package;
-                    }
-                }
-                $repository->sign_distribution($req->{distribution});
-            }
-            else {
-                print "*** FAILED ***\n";
-            }
-            rmtree($temp_dir);
-        }
+        $command_manager->build_pending;
     }
     elsif (defined $recompile) {
-        my %req = $farm->package_db->get_compilation_request_by_id($recompile);
-
-        # Find out the builder for this compilation. If it's not claimed by any
-        # builder, get the first matching (there should be only one, really)
-        my $builder = $req{builder};
-        if (!$builder) {
-            ($builder) = $farm->get_matching_builders($req{architecture},
-                                                      $req{distribution});
-        }
-
-        my %source_attrs  = $farm->package_db->get_source_package_by_id($req{source_package_id});
-        print "Compiling request id $req{id}\n";
-        print "$source_attrs{name} $source_attrs{full_version} ";
-        print "(arch: $req{architecture}, ";
-        print "distro: $req{distribution}) ";
-        print "with builder $builder...\n";
-        my $temp_dir = File::Temp::tempdir();
-        if ($farm->compile_package_from_queue($builder,
-                                              $req{id},
-                                              output_dir => $temp_dir)) {
-            print " done.\n";
-            foreach my $deb_package (glob('*.deb')) {
-                print "Adding $deb_package to the repository\n";
-                if ($repository->insert_binary_package($deb_package,
-                                                       $req{distribution})) {
-                    unlink $deb_package;
-                }
-            }
-            $repository->sign_distribution($req{distribution});
-        }
-        else {
-            print " failed.\n";
-            print "Log:\n", $farm->last_build_log, "\n";
-        }
-        rmtree($temp_dir);
+        $command_manager->recompile_request($recompile);
     }
     else {
         my ($dsc_file, $builder) = @ARGV;
         if (!defined $dsc_file || !defined $builder) {
             show_help;
         }
-        $farm->compile_package_from_dsc($builder, $dsc_file,
-                                        output_dir => '.');
-        foreach my $deb_package (glob('*.deb')) {
-            print "Adding $deb_package to the repository\n";
-            if ($repository->insert_binary_package($deb_package)) {
-                unlink $deb_package;
-            }
-        }
+        $command_manager->build_dsc($dsc_file, $builder);
     }
 }
 elsif ($command eq 'queue') {
