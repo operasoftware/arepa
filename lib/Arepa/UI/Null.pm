@@ -4,6 +4,10 @@ sub print_title {
     return;
 }
 
+sub print {
+    return;
+}
+
 1;
 
 __END__

@@ -7,6 +7,12 @@ sub print_title {
     print $msg, " ", "=" x (78 - 1 - $len), "\n";
 }
 
+sub print {
+    my ($self, $msg) = @_;
+
+    print $msg;
+}
+
 1;
 
 __END__
