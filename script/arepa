@@ -74,9 +74,6 @@ if ($command eq 'build') {
         exit 1;
     }
 
-    my $farm       = Arepa::BuilderFarm->new($config_file);
-    my $repository = Arepa::Repository->new($config_file);
-
     my $command_manager = Arepa::CommandManager->new($config_file);
     if ($pending) {
         $command_manager->build_pending;
