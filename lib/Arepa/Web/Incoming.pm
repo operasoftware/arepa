@@ -20,9 +20,7 @@ sub _approve_package {
     my $distribution = $changes_file->distribution;
 
     # Add the source package to the repo
-    my $package_revision_base_name = $changes_file->source."_".
-                                        $changes_file->version;
-    my $source_file_path = $package_revision_base_name.".dsc";
+    my ($source_file_path) = grep /\.dsc$/, $changes_file->files;
     my $repository = Arepa::Repository->new($self->config_path);
     my $farm       = Arepa::BuilderFarm->new($self->config_path);
 
