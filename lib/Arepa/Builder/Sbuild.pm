@@ -84,7 +84,7 @@ sub do_init {
             $self->ensure_file_exists($full_path);
         }
         my $mount_cmd = qq(mount -oro,bind "/etc/$etc_file" "$full_path");
-        $self->ui_module->print_info("Binding /etc/$etc_file to $full_path");
+        $self->ui_module->print_title("Binding /etc/$etc_file to $full_path");
         system($mount_cmd);
     }
 }
@@ -98,7 +98,7 @@ sub do_uninit {
     my $ok = 1;
     foreach my $etc_file (qw(resolv.conf passwd shadow group gshadow)) {
         my $full_path = "$builder_dir/etc/$etc_file";
-        $self->ui_module->print_info("Unbinding $full_path from /etc/$etc_file");
+        $self->ui_module->print_title("Unbinding $full_path from /etc/$etc_file");
         my $r = system(qq(umount "$full_path" 2>/dev/null));
         if ($r != 0) {
             $ok = 0;
@@ -204,7 +204,7 @@ run-setup-scripts=false
 run-exec-scripts=false
 #personality=linux32
 EOCONTENT
-    $self->ui_module->print_info("Creating schroot file ($schroot_file)");
+    $self->ui_module->print_title("Creating schroot file ($schroot_file)");
     if (open F, ">$schroot_file") {
         print F $schroot_content;
         close F;
@@ -214,7 +214,7 @@ EOCONTENT
         exit 1;
     }
 
-    $self->ui_module->print_info("Creating base chroot");
+    $self->ui_module->print_title("Creating base chroot");
     my $extra_opts = "";
     if (defined $opts{arch}) {
         $extra_opts .= " --arch $opts{arch}";
@@ -230,7 +230,7 @@ EOCONTENT
     }
 
     # Create appropriate /etc/apt/sources.list
-    $self->ui_module->print_info("Creating default sources.list");
+    $self->ui_module->print_title("Creating default sources.list");
     open SOURCESLIST, ">$builder_dir/etc/apt/sources.list" or
         do {
             print STDERR "Couldn't write to /etc/apt/sources.list";
@@ -244,7 +244,7 @@ EOSOURCES
     close SOURCESLIST;
 
     # Making sure /etc/hosts includes localhost
-    $self->ui_module->print_info("Checking /etc/hosts");
+    $self->ui_module->print_title("Checking /etc/hosts");
     my $full_etc_hosts_path = "$builder_dir/etc/hosts";
     $self->ensure_file_exists($full_etc_hosts_path);
     if (open F, $full_etc_hosts_path) {
@@ -267,7 +267,7 @@ EOSOURCES
 
     # Make sure certain directories exist and are writable by the 'sbuild'
     # group
-    $self->ui_module->print_info("Creating build directories");
+    $self->ui_module->print_title("Creating build directories");
     my ($login, $pass, $uid, $gid) = getpwnam($Arepa::AREPA_MASTER_USER);
     if (!defined $login) {
         croak "'" . $Arepa::AREPA_MASTER_USER . "' user doesn't exist!";
@@ -285,14 +285,14 @@ EOSOURCES
         }
     }
 
-    $self->ui_module->print_info("Binding files");
+    $self->ui_module->print_title("Binding files");
     Arepa::Builder::Sbuild->init($builder_name);
 
-    $self->ui_module->print_info("Updating package list");
+    $self->ui_module->print_title("Updating package list");
     my $update_cmd = "chroot '$builder_dir' apt-get update";
     system($update_cmd);
 
-    $self->ui_module->print_info("Installing build-essential and fakeroot");
+    $self->ui_module->print_title("Installing build-essential and fakeroot");
     my $install_cmd = "chroot '$builder_dir' apt-get -y --force-yes install " .
                                                 "build-essential fakeroot";
     return system($install_cmd);

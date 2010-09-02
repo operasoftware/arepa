@@ -102,7 +102,7 @@ sub create {
 
     $self->do_create($builder_dir, $mirror, $distribution, %opts);
 
-    $self->ui_module->print_info("Configuration for config.yml");
+    $self->ui_module->print_title("Configuration for config.yml");
 
     my $type = $self->type;
 

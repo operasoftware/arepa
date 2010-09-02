@@ -1,6 +1,6 @@
 package Arepa::UI::Text;
 
-sub print_info {
+sub print_title {
     my ($self, $msg) = @_;
 
     my $len = length $msg;
