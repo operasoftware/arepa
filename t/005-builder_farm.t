@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 28;
+use Test::More tests => 29;
 use Test::Deep;
 use File::Path;
 use Arepa::BuilderFarm;
@@ -179,6 +179,10 @@ is($bm4->canonical_distribution('i386', 'etch'),
 is($bm4->canonical_distribution('i386', 'unstable'),
    "lenny-opera",
    "Canonical distribution - w/binNMUs involved");
+
+is($bm4->canonical_distribution('all', 'unstable'),
+   "lenny-opera",
+   "Canonical distribution - architecture all");
 
 is($bm4->canonical_distribution('amd64', 'lenny'),
    "lenny-opera",
