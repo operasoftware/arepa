@@ -12,7 +12,7 @@ web_ui:
   base_url: /
   template_dir: /usr/share/arepa/templates
   user_file: t/webui/conf/users.yml
-  gpg_homedir: t/webui/conf/gnupg-web
+  gpg_homedir: ./t/webui/conf/gnupg-web
   check_remote_repo: 1
   session_db: t/webui/tmp/sessions.db
 dir:
