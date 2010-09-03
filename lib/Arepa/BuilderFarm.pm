@@ -231,6 +231,30 @@ sub register_source_package {
     return $source_id;
 }
 
+sub canonical_distribution {
+    my ($self, $arch, $distribution) = @_;
+
+    my @builders = $self->get_matching_builders($arch, $distribution);
+    my $distro;
+    foreach my $b (@builders) {
+        my %builder_cfg = $self->{config}->get_builder_config($b);
+        if (grep { $_ eq $distribution }
+                 @{$builder_cfg{distribution_aliases}},
+                 $builder_cfg{distribution}) {
+            # There should be only one; if there's more than one, that's a
+            # problem
+            if ($distro) {
+                croak "There is more than one builder that " .
+                        "specifies '$distribution' as alias. " .
+                        "That's not correct! One of them " .
+                        "should specify it as bin_nmu_for";
+            }
+            $distro = $builder_cfg{distribution};
+        }
+    }
+    return $distro;
+}
+
 1;
 
 __END__
@@ -375,6 +399,14 @@ Registers the source package with the given C<%source_package_attrs>. This
 method is seldom used, as you would normally add the source package to the
 repository first (using C<Arepa::Repository>), which automatically registers
 the source package.
+
+=item canonical_distribution($arch, $distro)
+
+Calculates the canonical distribution, ie. the distribution as registered by
+one of the Arepa builders, given an architecture and distribution from a
+changes file or similar. It's needed for the reprepro call.  If reprepro
+accepted "reprepro includesrc 'funnydistro' ...", having 'funnydistro' in the
+AlsoAcceptFor list, this wouldn't be necessary.
 
 =back
 

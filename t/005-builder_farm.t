@@ -1,13 +1,14 @@
 use strict;
 use warnings;
 
-use Test::More tests => 22;
+use Test::More tests => 28;
 use Test::Deep;
 use File::Path;
 use Arepa::BuilderFarm;
 
 use constant TEST_CONFIG_FILE         => 't/config-test.yml';
 use constant TEST_TARGETS_CONFIG_FILE => 't/config-compilation-targets-test.yml';
+use constant TEST_DISTROS_CONFIG_FILE => 't/config-canonical-distros-test.yml';
 my $c = Arepa::Config->new(TEST_CONFIG_FILE);
 unlink $c->get_key('package_db');
 my $c2 = Arepa::Config->new(TEST_TARGETS_CONFIG_FILE,
@@ -160,3 +161,35 @@ closedir D;
 ok(scalar(@nmu_deb_files) > 0,
    "binNMUs should result in at least one .deb with +b<num> on it");
 rmtree($tmp_dir);
+
+
+# Canonical distribution -----------------------------------------------------
+my $bm4 = Arepa::BuilderFarm->new(TEST_DISTROS_CONFIG_FILE,
+                                  builder_config_dir =>
+                                          't/builders-canonical-distros');
+
+is($bm4->canonical_distribution('i386', 'etch-opera'),
+   "etch-opera",
+   "Canonical distribution - straightforward");
+
+is($bm4->canonical_distribution('i386', 'etch'),
+   "etch-opera",
+   "Canonical distribution - simple");
+
+is($bm4->canonical_distribution('i386', 'unstable'),
+   "lenny-opera",
+   "Canonical distribution - w/binNMUs involved");
+
+is($bm4->canonical_distribution('amd64', 'lenny'),
+   "lenny-opera",
+   "Canonical distribution - only one builder on that arch");
+
+is($bm4->canonical_distribution('amd64', 'etch'),
+   undef,
+   "Canonical distribution - non-existent combination");
+
+eval {
+    my $result = $bm4->canonical_distribution('amd64', 'unstable');
+    print STDERR "I received a result? This is wrong! Result was '$result'\n";
+};
+ok($@, "Canonical distribution - inconsistent configuration");

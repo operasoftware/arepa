@@ -1,0 +1,5 @@
+type: test
+architecture: amd64
+architecture_all: yes
+distribution: squeeze-opera
+distribution_aliases: [squeeze, unstable]

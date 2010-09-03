@@ -24,38 +24,19 @@ sub _approve_package {
     my $repository = Arepa::Repository->new($self->config_path);
     my $farm       = Arepa::BuilderFarm->new($self->config_path);
 
-    # Calculate the canonical distribution. It's needed for the reprepro call.
-    # If reprepro accepted "reprepro includesrc 'funnydistro' ...", having
-    # 'funnydistro' in the AlsoAcceptFor list, this wouldn't be necessary. We
-    # do have to pass the real source package distribution to
-    # insert_source_package so the compilation targets are calculated properly
     my ($arch) = grep { $_ ne 'source' } $changes_file->architecture;
-    my @builders = $farm->get_matching_builders($arch, $distribution);
-    my $builder;
-    foreach my $b (@builders) {
-        my %builder_cfg = $self->config->get_builder_config($b);
-        if (grep { $_ eq $distribution }
-                 @{$builder_cfg{distribution_aliases}},
-                 $builder_cfg{distribution}) {
-            # There should be only one; if there's more than one, that's a
-            # problem
-            if ($builder) {
-                $self->_add_error("There is more than one builder that " .
-                                    "specifies '$distribution' as alias. " .
-                                    "That's not correct! One of them " .
-                                    "should specify it as bin_nmu_for");
-                $builder = undef;
-                last;
-            }
-            $builder = $b;
-        }
+    my $canonical_distro;
+    eval {
+        $canonical_distro = $farm->canonical_distribution($arch,
+                                                          $distribution);
+    };
+    if ($@) {
+        $self->_add_error($@);
+        return 0;
     }
-    my $source_pkg_id;
-    if ($builder) {
-        my $canonical_distro =
-                $self->config->get_builder_config_key($builder,
-                                                      'distribution');
 
+    my $source_pkg_id;
+    if ($canonical_distro) {
         $source_pkg_id = $repository->insert_source_package(
                              $self->config->get_key('upload_queue:path').
                                          "/".$source_file_path,
