@@ -1,3 +1,12 @@
+0.xx  Xxx Xxx xx xx:xx:xx XXXX xxxx
+        - Compatibility with sbuild 0.60 (ie. Debian Squeeze)
+        - Add workaround multi-arch packages (not proper support, but they'll
+          sort of work), as in packages having more than one value in
+          Architecture (like "amd64 i386", not like "any"; the latter has
+          always worked)
+        - Fix some problem with incoming packages that are themselves binNMUs
+          or otherwise have "funny" revision numbers
+
 0.81  Fri Aug 20 14:26:09 CEST 2010
         - Fix MANIFEST file and other minor packaging bugs
 
