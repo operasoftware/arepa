@@ -128,7 +128,7 @@ sub _compile_package_from_spec {
         if ($opts{bin_nmu}) {
             $extra_opts .= " --make-binNMU='Recompiled by Arepa' " .
                             "--binNMU='$opts{bin_nmu}' " .
-                            "--uploader='Arepa <arepa-master\@localhost>'";
+                            "--maintainer='Arepa <arepa-master\@localhost>'";
         }
 
         my $build_params = "--chroot $builder_name --apt-update --nolog -A $package_spec $extra_opts";
@@ -200,8 +200,8 @@ root-groups=sbuild
 # groups=sbuild-security
 groups=sbuild
 #aliases=testing
-run-setup-scripts=false
-run-exec-scripts=false
+#run-setup-scripts=false
+#run-exec-scripts=false
 #personality=linux32
 EOCONTENT
     $self->ui_module->print_title("Creating schroot file ($schroot_file)");
