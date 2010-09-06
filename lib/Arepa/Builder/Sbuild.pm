@@ -108,74 +108,72 @@ sub do_uninit {
 }
 
 sub _call_sbuild {
-    my ($self, $params) = @_;
+    my ($self, $package_spec, $params, $output_dir) = @_;
 
-    # Set "global" variable last_build_log
-    $last_build_log = qx/sbuild $params/;
-    return $CHILD_ERROR;
+    # 1) Create a temporary directory, change to it
+    my $tmp_dir = File::Temp::tempdir();
+    my $initial_dir = Cwd::cwd;
+    chdir $tmp_dir;
+
+    # 2) Execute sbuild there. Set "global" variable last_build_log
+    $last_build_log = qx/sbuild $params $package_spec/;
+    my $r = $CHILD_ERROR;
+
+    # 3) Move result to the result directory
+    chdir $initial_dir;
+    if ($output_dir !~ qr,^/,) {
+        $output_dir = File::Spec->catfile($initial_dir, $output_dir);
+    }
+    find({ wanted => sub {
+                if ($File::Find::name =~ /\.deb$/) {
+                    my $move_r = move($File::Find::name, $output_dir);
+                    if (!$move_r) {
+                        print STDERR "Couldn't move $File::Find::name to $output_dir.\nCan't write to $output_dir maybe?\n";
+                    }
+                }
+            },
+            follow => 0 },
+        $tmp_dir);
+
+    # 4) Remove temporary directory
+    rmtree($tmp_dir);
+
+    return $r;
 }
 
 sub _compile_package_from_spec {
-    my ($self, $builder_name, $package_spec, %user_opts) = @_;
+    my ($self, $package_spec, %user_opts) = @_;
     my %opts = (output_dir => '.', bin_nmu => 0, %user_opts);
 
-    if ($self->builder_exists($builder_name)) {
-        my $tmp_dir = File::Temp::tempdir();
-        my $initial_dir = Cwd::cwd;
-        chdir $tmp_dir;
-
-        my $extra_opts = "";
-        if ($opts{bin_nmu}) {
-            $extra_opts .= " --make-binNMU='Recompiled by Arepa' " .
-                            "--binNMU='$opts{bin_nmu}' " .
-                            "--maintainer='Arepa <arepa-master\@localhost>'";
-        }
-
-        my $build_params = "--chroot $builder_name --apt-update --nolog -A $package_spec $extra_opts";
-        my $r = $self->_call_sbuild($build_params);
-
-        # Move result to the result directory
-        chdir $initial_dir;
-        my $output_dir = $opts{output_dir};
-        # Relative path?
-        if ($output_dir !~ qr,^/,) {
-            $output_dir = File::Spec->catfile($initial_dir, $opts{output_dir});
-        }
-        find({ wanted => sub {
-                    if ($File::Find::name =~ /\.deb$/) {
-                        my $move_r = move($File::Find::name, $output_dir);
-                        if (!$move_r) {
-                            print STDERR "Couldn't move $File::Find::name to $output_dir.\nCan't write to $output_dir maybe?\n";
-                        }
-                    }
-               },
-               follow => 0 },
-             $tmp_dir);
-        # Remove temporary directory
-        rmtree($tmp_dir);
-
-        return ($r == 0);
+    my $extra_opts = "";
+    if ($opts{bin_nmu}) {
+        $extra_opts .= " --make-binNMU='Recompiled by Arepa' " .
+        "--binNMU='$opts{bin_nmu}' " .
+        "--maintainer='Arepa <arepa-master\@localhost>'";
     }
-    else {
-        croak "Don't know anything about builder '$builder_name'\n";
-    }
+
+    my $builder_name = $self->name;
+    my $build_params = "--chroot $builder_name --apt-update --nolog -A $extra_opts";
+    my $r = $self->_call_sbuild($package_spec,
+                                $build_params,
+                                $opts{output_dir});
+
+    return ($r == 0);
 }
 
 sub do_compile_package_from_dsc {
-    my ($self, $builder_name, $dsc_file, %user_opts) = @_;
+    my ($self, $dsc_file, %user_opts) = @_;
     my %opts = (output_dir => '.', %user_opts);
-    return $self->_compile_package_from_spec($builder_name,
-                                             $dsc_file,
+    return $self->_compile_package_from_spec($dsc_file,
                                              %opts);
 }
 
 sub do_compile_package_from_repository {
-    my ($self, $builder_name, $pkg_name, $pkg_version, %user_opts) = @_;
+    my ($self, $pkg_name, $pkg_version, %user_opts) = @_;
     my %opts = (output_dir => '.', %user_opts);
     my $package_spec = $pkg_name . '_' . $pkg_version;
 
-    return $self->_compile_package_from_spec($builder_name,
-                                             $package_spec,
+    return $self->_compile_package_from_spec($package_spec,
                                              %opts);
 }
 

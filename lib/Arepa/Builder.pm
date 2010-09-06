@@ -38,6 +38,22 @@ sub type {
     return lc($class);
 }
 
+sub new {
+    my ($class, %attrs) = @_;
+
+    return bless {
+                    %attrs,
+                 },
+                 $class;
+}
+
+sub name { $_[0]->{name} }
+
+sub config {
+    my ($self, $key) = @_;
+    return $self->{$key};
+}
+
 
 # To be implemented by each type
 
@@ -62,24 +78,23 @@ sub uninit {
 }
 
 sub do_compile_package_from_dsc {
-    my ($self, $builder_name, $dsc_file, %user_opts) = @_;
+    my ($self, $dsc_file, %user_opts) = @_;
     croak "Not implemented";
 }
 
 sub compile_package_from_dsc {
-    my ($self, $builder_name, $dsc_file, %user_opts) = @_;
-    $self->do_compile_package_from_dsc($builder_name, $dsc_file, %user_opts);
+    my ($self, $dsc_file, %user_opts) = @_;
+    $self->do_compile_package_from_dsc($dsc_file, %user_opts);
 }
 
 sub do_compile_package_from_repository {
-    my ($self, $builder_name, $pkg_name, $pkg_version, %user_opts) = @_;
+    my ($self, $pkg_name, $pkg_version, %user_opts) = @_;
     croak "Not implemented";
 }
 
 sub compile_package_from_repository {
-    my ($self, $builder_name, $pkg_name, $pkg_version, %user_opts) = @_;
-    $self->do_compile_package_from_repository($builder_name,
-                                              $pkg_name,
+    my ($self, $pkg_name, $pkg_version, %user_opts) = @_;
+    $self->do_compile_package_from_repository($pkg_name,
                                               $pkg_version,
                                               %user_opts);
 }

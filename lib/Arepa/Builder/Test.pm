@@ -22,7 +22,7 @@ sub do_init {
 }
 
 sub do_compile_package_from_dsc {
-    my ($self, $builder_name, $dsc_file, %user_opts) = @_;
+    my ($self, $dsc_file, %user_opts) = @_;
     my %opts = (output_dir => '.', %user_opts);
 
     my $basename = basename($dsc_file);
@@ -37,7 +37,7 @@ sub do_compile_package_from_dsc {
 }
 
 sub do_compile_package_from_repository {
-    my ($self, $builder_name, $package, $version, %user_opts) = @_;
+    my ($self, $package, $version, %user_opts) = @_;
     my %opts = (output_dir => '.', %user_opts);
 
     my $extra_version = $opts{bin_nmu} ? "+b1" : "";

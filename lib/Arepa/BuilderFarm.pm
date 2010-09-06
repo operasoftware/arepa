@@ -46,14 +46,21 @@ sub builder_type_module {
 }
 
 sub builder_module {
-    my ($self, $builder) = @_;
-    my %conf = $self->get_builder_config($builder);
+    my ($self, $builder_name) = @_;
+    my %conf = $self->get_builder_config($builder_name);
     my $module = $self->builder_type_module($conf{type});
     eval "use $module;";
     if ($@) {
         croak "Couldn't load builder module '$module' for type '$conf{type}': $@";
     }
     return $module;
+}
+
+sub builder {
+    my ($self, $builder_name) = @_;
+
+    my $module_name = $self->builder_module($builder_name);
+    return $module_name->new($self->get_builder_config($builder_name));
 }
 
 sub init_builders {
@@ -126,20 +133,19 @@ sub bin_nmu_id {
 }
 
 sub compile_package_from_queue {
-    my ($self, $builder, $request_id, %user_opts) = @_;
+    my ($self, $builder_name, $request_id, %user_opts) = @_;
     my %opts = (output_dir => '.', %user_opts);
 
     my %request = $self->package_db->get_compilation_request_by_id($request_id);
-    $self->package_db->mark_compilation_started($request_id, $builder);
+    $self->package_db->mark_compilation_started($request_id, $builder_name);
 
-    my $module = $self->builder_module($builder);
+    my $builder = $self->builder($builder_name);
     my %source_attrs = $self->package_db->get_source_package_by_id($request{source_package_id});
-    $opts{bin_nmu} = $self->bin_nmu_id(\%source_attrs, $builder);
-    my $r = $module->compile_package_from_repository($builder,
-                                                     $source_attrs{name},
+    $opts{bin_nmu} = $self->bin_nmu_id(\%source_attrs, $builder_name);
+    my $r = $builder->compile_package_from_repository($source_attrs{name},
                                                      $source_attrs{full_version},
                                                      %opts);
-    $self->{last_build_log} = $module->last_build_log;
+    $self->{last_build_log} = $builder->last_build_log;
 
     # Save the build log
     my $build_log_dir = $self->{config}->get_key('dir:build_logs');
@@ -275,6 +281,7 @@ Arepa::BuilderFarm - Arepa builder farm access class
  my %config = $repo->get_builder_config($builder_name);
  my $module_name = $repo->builder_type_module($type);
  my $module_name = $repo->builder_module($builder_name);
+ my $builder     = $repo->builder($builder_name);
 
  $repo->init_builders;
  $repo->init_builder($builder_name);
@@ -337,6 +344,10 @@ C<$type>.
 
 Returns the module name implementing the features for the given
 C<$builder_name>.
+
+=item builder($builder_name)
+
+Returns the builder object identified by C<$builder_name>.
 
 =item init_builders
 
