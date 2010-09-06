@@ -19,12 +19,7 @@ use Arepa;
 
 use base qw(Arepa::Builder);
 
-our $last_build_log = undef;
 my $schroot_config = undef;
-
-sub last_build_log {
-    return $last_build_log;
-}
 
 sub _get_schroot_conf {
     my ($self) = @_;
@@ -115,8 +110,8 @@ sub _call_sbuild {
     my $initial_dir = Cwd::cwd;
     chdir $tmp_dir;
 
-    # 2) Execute sbuild there. Set "global" variable last_build_log
-    $last_build_log = qx/sbuild $params $package_spec/;
+    # 2) Execute sbuild there and save output in last_build_log
+    $self->{last_build_log} = qx/sbuild $params $package_spec/;
     my $r = $CHILD_ERROR;
 
     # 3) Move result to the result directory

@@ -48,6 +48,7 @@ sub new {
 }
 
 sub name { $_[0]->{name} }
+sub last_build_log { $_[0]->{last_build_log} }
 
 sub config {
     my ($self, $key) = @_;
@@ -97,10 +98,6 @@ sub compile_package_from_repository {
     $self->do_compile_package_from_repository($pkg_name,
                                               $pkg_version,
                                               %user_opts);
-}
-
-sub last_build_log {
-    return;
 }
 
 sub do_create {
