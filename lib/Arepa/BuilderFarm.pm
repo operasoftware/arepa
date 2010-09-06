@@ -94,14 +94,12 @@ sub uninit_builder {
 }
 
 sub compile_package_from_dsc {
-    my ($self, $builder, $dsc_file, %user_opts) = @_;
+    my ($self, $builder_name, $dsc_file, %user_opts) = @_;
     my %opts = (output_dir => '.', %user_opts);
 
-    my $module = $self->builder_module($builder);
-    my $r = $module->compile_package_from_dsc($builder,
-                                              $dsc_file,
-                                              %opts);
-    $self->{last_build_log} = $module->last_build_log;
+    my $builder = $self->builder_module($builder_name);
+    my $r = $builder->compile_package_from_dsc($dsc_file, %opts);
+    $self->{last_build_log} = $builder->last_build_log;
     return $r;
 }
 
@@ -142,9 +140,10 @@ sub compile_package_from_queue {
     my $builder = $self->builder($builder_name);
     my %source_attrs = $self->package_db->get_source_package_by_id($request{source_package_id});
     $opts{bin_nmu} = $self->bin_nmu_id(\%source_attrs, $builder_name);
-    my $r = $builder->compile_package_from_repository($source_attrs{name},
-                                                     $source_attrs{full_version},
-                                                     %opts);
+    my $r =
+        $builder->compile_package_from_repository($source_attrs{name},
+                                                  $source_attrs{full_version},
+                                                  %opts);
     $self->{last_build_log} = $builder->last_build_log;
 
     # Save the build log
