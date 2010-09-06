@@ -18,7 +18,9 @@ sub _call_sbuild {
     my @compilation_results =
             glob(File::Spec->catfile($self->config('results_from'),
                                      "$glob_pattern*.deb"));
-    print STDERR "Checking for results for $glob_pattern in ", $self->config('results_from'), ", found ", (scalar @compilation_results), " results\n";
+    $self->{last_build_log} = "Checking for results for $glob_pattern in " .
+                              $self->config('results_from') . ", found " .
+                              (scalar @compilation_results) . " results\n";
     if (@compilation_results) {
         foreach my $file (@compilation_results) {
             copy($file, $output_dir);

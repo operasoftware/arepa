@@ -9,6 +9,8 @@ use Test::More;
 use Test::Mojo;
 use Test::Arepa;
 
+use Arepa::CommandManager;
+
 use base qw(Test::Arepa);
 
 sub setup : Test(setup => 7) {
@@ -55,9 +57,30 @@ sub test_approve_package : Test(3) {
           "comments-1"  => $comments,
           "approve-1"   => "Approve",
         });
-    $self->save_snapshot;
     is($self->incoming_packages, 0,
        "After approving, there should be no incoming packages in the queue");
+}
+
+sub test_compile_package : Test(3) {
+    my $self = shift;
+
+    $self->queue_files(glob("t/webui/fixtures/foobar_1.0*"));
+    my ($component, $priority, $section, $comments) =
+        ("main", "optional", "misc", "Some comment for foobar_1.0-1");
+    $self->t->post_form_ok("/incoming/process" =>
+        { "package-1"   => "foobar_1.0-1_i386.changes",
+          "component-1" => $component,
+          "priority-1"  => $priority,
+          "section-1"   => $section,
+          "comments-1"  => $comments,
+          "approve-1"   => "Approve",
+        });
+
+    # Should be queued now,
+    my $command_manager = Arepa::CommandManager->new($self->config_path);
+    $command_manager->build_pending;
+
+    $self->is_package_in_repo('foobar_1.0-1', 'mylenny', 'i386');
 }
 
 1;
