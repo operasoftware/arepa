@@ -16,7 +16,7 @@ sub index {
     my $repository = Arepa::Repository->new($self->config_path);
     my $pdb = Arepa::PackageDb->new($self->config->get_key('package_db'));
 
-    my %packages = $repository->package_list;
+    my %packages = $repository->get_package_list;
     my %comments = ();
     foreach my $pkg (keys %packages) {
         foreach my $comp (keys %{$packages{$pkg}}) {

@@ -4,7 +4,7 @@ use warnings;
 use Test::More;
 
 if (exists $ENV{REPREPRO4PATH} and -x $ENV{REPREPRO4PATH}) {
-    plan tests => 39;
+    plan tests => 42;
 }
 else {
     plan skip_all => "Please specify the path to reprepro 4 in \$REPREPRO4PATH";
@@ -64,23 +64,12 @@ ok($r->insert_source_package('t/upload_queue/dhelp_0.6.15.dsc', 'lenny-opera'),
 ok($r->{package_db}->get_source_package_id('dhelp', '0.6.15'),
    "After inserting the source package, it should be in the package db");
 
-my $fh = new IO::Zlib;
-my $package_line_found    = 0;
-my $correct_version_found = 0;
-if ($fh->open("t/repo-test/dists/lenny-opera/main/source/Sources.gz", "rb")) {
-    while (my $line = <$fh>) {
-        chomp $line;
-        if ($line eq 'Package: dhelp') {
-            $package_line_found = 1;
-        }
-        elsif ($line eq 'Version: 0.6.15') {
-            $correct_version_found = 1;
-        }
-    }
-    $fh->close;
-}
-ok($package_line_found,    "Should find the package in Sources.gz");
-ok($correct_version_found, "Should find the correct version in Sources.gz");
+my %dhelp_0615_props = $r->get_source_package_information('dhelp',
+                                                          'lenny-opera');
+ok(scalar %dhelp_0615_props,
+   "Source package dhelp should be in the repository");
+is($dhelp_0615_props{version}, '0.6.15',
+   "Source package dhelp should be in the repository w/ correct version");
 
 
 
@@ -89,24 +78,13 @@ ok($r->insert_binary_package('t/upload_queue/dhelp_0.6.15_all.deb',
                              'lenny-opera'),
    "Inserting a new binary package should succeed");
 
-my $binary_package_found = 0;
-my $binary_version_found = 0;
-if (open F, 't/repo-test/dists/lenny-opera/main/binary-i386/Packages') {
-    while (my $line = <F>) {
-        chomp $line;
-        if ($line eq 'Package: dhelp') {
-            $binary_package_found = 1;
-        }
-        elsif ($line eq 'Version: 0.6.15') {
-            $binary_version_found = 1;
-        }
-    }
-    close F;
-}
-ok($binary_package_found,
-   "After adding a binary package, it should be in the package list");
-ok($binary_version_found,
-   "After adding a binary package, the package version should be correct");
+my %dhelp_0615_bin_props = $r->get_binary_package_information('dhelp',
+                                                              'lenny-opera',
+                                                              'i386');
+ok(scalar %dhelp_0615_bin_props,
+   "Binary package dhelp should be in the repository");
+is($dhelp_0615_bin_props{version}, '0.6.15',
+   "Binary package dhelp should be in the repository w/ correct version");
 
 
 # Insert a new source package into the repository, with comments -------------
@@ -122,27 +100,16 @@ my %source_pkg_w_comments =
 is($source_pkg_w_comments{comments}, $comments,
    "The source package should keep its comments, if any");
 
-my $fh2 = new IO::Zlib;
-my $package_line_found2    = 0;
-my $correct_version_found2 = 0;
-if ($fh2->open("t/repo-test/dists/lenny-opera/main/source/Sources.gz", "rb")) {
-    while (my $line = <$fh2>) {
-        chomp $line;
-        if ($line eq 'Package: foobar') {
-            $package_line_found2 = 1;
-        }
-        elsif ($line eq 'Version: 1.0-1') {
-            $correct_version_found2 = 1;
-        }
-    }
-    $fh2->close;
-}
-ok($package_line_found2,    "Should find the package in Sources.gz");
-ok($correct_version_found2, "Should find the correct version in Sources.gz");
+my %foobar_101_props = $r->get_source_package_information('foobar',
+                                                          'lenny-opera');
+ok(scalar %foobar_101_props,
+   "Source package foobar should be in the repository");
+is($foobar_101_props{version}, '1.0-1',
+   "Source package foobar should be in the repository w/ correct version");
 
 
 # Package list ---------------------------------------------------------------
-cmp_deeply({ $r->package_list },
+cmp_deeply({ $r->get_package_list },
           {
               foobar => { "lenny-opera/main" => { "1.0-1"  => ['source'] } },
               dhelp  => { "lenny-opera/main" => { "0.6.15" => set(qw(i386
@@ -159,7 +126,7 @@ $r->insert_binary_package('t/upload_queue/qux_1.0-1_amd64.deb', 'lenny-opera');
 $r->insert_binary_package('t/upload_queue/qux_1.0-2_i386.deb',  'lenny-opera');
 
 # Now check the package list
-cmp_deeply({ $r->package_list },
+cmp_deeply({ $r->get_package_list },
            {
                foobar => { "lenny-opera/main" => { "1.0-1" => ['source'] } },
                qux    => { "lenny-opera/main" => { "1.0-1" => set(qw(amd64
@@ -189,6 +156,11 @@ my $id = $r->{package_db}->get_source_package_id('experimental-package',
 my %source_package_attrs = $r->{package_db}->get_source_package_by_id($id);
 is($source_package_attrs{distribution}, 'experimental',
    "When inserting a non-canonical distro package, the distro is correct");
+
+my %experimental_pkg_10_props =
+    $r->get_source_package_information('experimental-package', 'lenny-opera');
+ok(scalar %experimental_pkg_10_props,
+   "Source package w/ non-canonical distro should be present");
 
 
 # Try to add new distributions -----------------------------------------------
@@ -283,9 +255,17 @@ ok($r->insert_source_package('t/upload_queue/multiarch_1.0-1.dsc',
    "Inserting a multiarch source package should succeed");
 ok($r->{package_db}->get_source_package_id('multiarch', '1.0-1'),
    "After inserting the multiarch package, it should be in the package db");
+my %multiarch_props = $r->get_source_package_information('multiarch',
+                                                         'lenny-opera');
+ok(scalar %multiarch_props,
+   "Source package w/ multiple architectures should be present");
 
 ok($r->insert_source_package('t/upload_queue/multiarch2_1.0-1.dsc',
                              'lenny-opera'),
    "Inserting a multiarch source package should succeed (2)");
 ok($r->{package_db}->get_source_package_id('multiarch2', '1.0-1'),
    "After inserting the multiarch package, it should be in the package db (2)");
+my %multiarch2_props = $r->get_source_package_information('multiarch2',
+                                                          'lenny-opera');
+ok(scalar %multiarch2_props,
+   "Source package w/ multiple architectures should be present (2)");
