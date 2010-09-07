@@ -6,6 +6,10 @@
           always worked)
         - Fix some problem with incoming packages that are themselves binNMUs
           or otherwise have "funny" revision numbers
+        - Undo stupid hack for old versions of reprepro that interchanged the
+          priority and section fields
+        - Give sane defaults for comments, section and priority for incoming
+          packages
 
 0.81  Fri Aug 20 14:26:09 CEST 2010
         - Fix MANIFEST file and other minor packaging bugs
