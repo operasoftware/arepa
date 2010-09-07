@@ -18,31 +18,6 @@ sub index {
         return $self->redirect_to(controller => 'public', action => 'rss');
     }
 
-    my @packages = ();
-    if (opendir D, $self->config->get_key('upload_queue:path')) {
-        @packages = grep /\.changes$/, readdir D;
-        closedir D;
-    }
-
-    # Packages pending approval ----------------------------------------------
-    my (@readable_packages, @unreadable_packages);
-    my $gpg_dir = $self->config->get_key('web_ui:gpg_homedir');
-    foreach my $package (@packages) {
-        my $package_path =
-                $self->config->get_key('upload_queue:path')."/".$package;
-        my $obj = undef;
-        eval {
-            $obj = Parse::Debian::PackageDesc->new($package_path,
-                                                   gpg_homedir => $gpg_dir);
-        };
-        if ($obj) {
-            push @readable_packages, $obj;
-        }
-        else {
-            push @unreadable_packages, $package;
-        }
-    }
-
     # Compilation queue ------------------------------------------------------
     my $packagedb =
             Arepa::PackageDb->new($self->config->get_key('package_db'));
@@ -57,6 +32,52 @@ sub index {
             %$comp,
             package => { %source_pkg_attrs },
         };
+    }
+
+    # Packages pending approval ----------------------------------------------
+    my @packages = ();
+    if (opendir D, $self->config->get_key('upload_queue:path')) {
+        @packages = grep /\.changes$/, readdir D;
+        closedir D;
+    }
+    my (@readable_packages, @unreadable_packages, %source_package_info);
+    my $gpg_dir = $self->config->get_key('web_ui:gpg_homedir');
+    my $repository = Arepa::Repository->new($self->config_path);
+    foreach my $package (@packages) {
+        my $package_path =
+                $self->config->get_key('upload_queue:path')."/".$package;
+        my $obj = undef;
+        eval {
+            $obj = Parse::Debian::PackageDesc->new($package_path,
+                                                   gpg_homedir => $gpg_dir);
+        };
+        if ($obj) {
+            push @readable_packages, $obj;
+
+            # Fetch some extra information from already existing packages
+            my $pkg = $obj->source;
+            $source_package_info{$pkg} = {};
+            my $id = $packagedb->get_source_package_id($pkg, '*latest*');
+            if ($id) {
+                my %source_pkg = $packagedb->get_source_package_by_id($id);
+                $source_package_info{$pkg}->{comments} = $source_pkg{comments};
+            }
+            my $builder_farm = Arepa::BuilderFarm->new($self->config_path);
+            my ($arch) = grep { $_ ne 'source' } $obj->architecture;
+            my $canonical_distro =
+                $builder_farm->canonical_distribution($arch,
+                                                      $obj->distribution);
+            my %source_props =
+                $repository->get_source_package_information($pkg, $canonical_distro);
+            if (%source_props) {
+                foreach (qw(priority section)) {
+                    $source_package_info{$pkg}->{$_} = $source_props{$_};
+                }
+            }
+        }
+        else {
+            push @unreadable_packages, $package;
+        }
     }
 
     # Builder status ---------------------------------------------------------
@@ -122,6 +143,7 @@ sub index {
     # Print everything -------------------------------------------------------
     $self->vars(config              => $self->config,
                 packages            => \@readable_packages,
+                source_package_info => \%source_package_info,
                 unreadable_packages => \@unreadable_packages,
                 compilation_queue   => \@pending_compilations,
                 builders            => \@builder_list,
