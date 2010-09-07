@@ -135,13 +135,11 @@ sub _execute_reprepro {
     # Extra arguments
     my $extra = "";
     foreach my $arg (keys %extra_args) {
-        # Section and priority options are actually flipped in reprepro (that's
-        # a reprepro bug)
         if ($arg eq 'section') {
-            $extra .= " --priority " . $self->_shell_escape($extra_args{$arg});
+            $extra .= " --section " . $self->_shell_escape($extra_args{$arg});
         }
         elsif ($arg eq 'priority') {
-            $extra .= " --section " . $self->_shell_escape($extra_args{$arg})
+            $extra .= " --priority " . $self->_shell_escape($extra_args{$arg})
         }
         else {
             croak "Don't know anything about argument '$arg'";
