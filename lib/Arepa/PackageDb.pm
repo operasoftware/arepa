@@ -82,10 +82,17 @@ sub _dbh {
 sub get_source_package_id {
     my ($self, $name, $full_version) = @_;
 
+    my $extra_sql = "AND full_version = ?";
+    my @bind_vars = ($full_version);
+    if ($full_version eq '*latest*') {
+        $extra_sql = "ORDER BY full_version DESC LIMIT 1";
+        @bind_vars = ();
+    }
+
     my $sth = $self->_dbh->prepare("SELECT id FROM source_packages
                                              WHERE name = ?
-                                               AND full_version = ?");
-    $sth->execute($name, $full_version);
+                                               $extra_sql");
+    $sth->execute($name, @bind_vars);
     $sth->bind_columns(\my $id);
     return $sth->fetch ? $id : undef;
 }
@@ -287,6 +294,8 @@ Arepa::PackageDb - Arepa package database API
  my $id = $package_db->insert_source_package(%attrs);
  my $id2 = $package_db->get_source_package_id($name,
                                               $full_version);
+ my $id3 = $package_db->get_source_package_id($name,
+                                              '*latest*');
  my %source_package = $package_db->get_source_package_by_id($id);
 
  $pdb->request_compilation($source_id,
@@ -332,8 +341,9 @@ is returned.
 
 =item get_source_package_id($name, $full_version)
 
-Returns the id for the package with C<$name> and C<$full_version>. Returns
-C<undef> if there's no package with that name and version.
+Returns the id for the package with C<$name> and C<$full_version>. The special
+value C<*latest*> for C<$full_version> means latest available in the
+repository. Returns C<undef> if there's no package with that name and version.
 
 =item get_source_package_by_id($source_id)
 
