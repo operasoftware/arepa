@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 21;
+use Test::More tests => 22;
 use Arepa::PackageDb;
 
 use constant TEST_DATABASE => 't/source_packages_test.db';
@@ -40,6 +40,11 @@ foreach my $attr (qw(name full_version architecture distribution)) {
        "Attribute '$attr' should be '$new_attrs{$attr}' " .
             "(was '$new_attrs_from_db{$attr}')");
 }
+
+# Try special value '*latest*'
+my $new_id3 = $pdb->get_source_package_id($new_attrs{name}, '*latest*');
+is($new_id, $new_id3,
+   "Using '*latest*' as full version should give the latest");
 
 # Try to insert the same source package again, with different properties
 my $id3 = $pdb->insert_source_package(name         => $new_attrs{name},
