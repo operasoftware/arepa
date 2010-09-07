@@ -9,6 +9,7 @@ sub startup {
     my $self = shift;
 
     $self->secret("b1Tx3z.duN'tKn0Wbout4r3p4");
+    $self->plugin("more_tag_helpers");
 
     # Routes
     my $r = $self->routes;

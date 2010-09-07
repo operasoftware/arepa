@@ -74,7 +74,7 @@ No packages pending in <tt><%= $config->get_key('upload_queue:path') %></tt>
 
                 <span class="incoming-package-attr compilation-props compilation-prop">
                     Comments:
-                    <span class="compilation-prop-value"><input type="text" size="60" name="comments-<%= $package_count %>" value="" /></span>
+                    <span class="compilation-prop-value"><input type="text" size="60" name="comments-<%= $package_count %>" value="<%= $source_package_info->{$package->source}->{comments} %>" /></span>
                 </span>
             </div>
 
@@ -82,66 +82,10 @@ No packages pending in <tt><%= $config->get_key('upload_queue:path') %></tt>
             <input type="hidden" name="component-<%= $package_count %>" value="main" />
             <span class="compilation-props">
                 <input name="approve-<%= $package_count %>" type="submit" value="Approve" />
-                for priority <select name="priority-<%= $package_count %>" value="">
-                    <option name="extra">extra</option>
-                    <option name="optional" selected="selected">optional</option>
-                    <option name="standard">standard</option>
-                    <option name="important">important</option>
-                    <option name="required">required</option>
-                </select>
-                and section <select name="section-<%= $package_count %>">
-                    <option name="admin">admin</option>
-                    <option name="cli-mono">cli-mono</option>
-                    <option name="comm">comm</option>
-                    <option name="database">database</option>
-                    <option name="devel">devel</option>
-                    <option name="debug">debug</option>
-                    <option name="doc">doc</option>
-                    <option name="editors">editors</option>
-                    <option name="electronics">electronics</option>
-                    <option name="embedded">embedded</option>
-                    <option name="fonts">fonts</option>
-                    <option name="games">games</option>
-                    <option name="gnome">gnome</option>
-                    <option name="graphics">graphics</option>
-                    <option name="gnu-r">gnu-r</option>
-                    <option name="gnustep">gnustep</option>
-                    <option name="hamradio">hamradio</option>
-                    <option name="haskell">haskell</option>
-                    <option name="httpd">httpd</option>
-                    <option name="interpreters">interpreters</option>
-                    <option name="java">java</option>
-                    <option name="kde">kde</option>
-                    <option name="kernel">kernel</option>
-                    <option name="libs">libs</option>
-                    <option name="libdevel">libdevel</option>
-                    <option name="lisp">lisp</option>
-                    <option name="localization">localization</option>
-                    <option name="mail">mail</option>
-                    <option name="math">math</option>
-                    <option name="misc">misc</option>
-                    <option name="net">net</option>
-                    <option name="news">news</option>
-                    <option name="ocaml">ocaml</option>
-                    <option name="oldlibs">oldlibs</option>
-                    <option name="otherosfs">otherosfs</option>
-                    <option name="perl">perl</option>
-                    <option name="php">php</option>
-                    <option name="python">python</option>
-                    <option name="ruby">ruby</option>
-                    <option name="science">science</option>
-                    <option name="shells">shells</option>
-                    <option name="sound">sound</option>
-                    <option name="tex">tex</option>
-                    <option name="text">text</option>
-                    <option name="utils">utils</option>
-                    <option name="vcs">vcs</option>
-                    <option name="video">video</option>
-                    <option name="web">web</option>
-                    <option name="x11">x11</option>
-                    <option name="xfce">xfce</option>
-                    <option name="zope">zope</option>
-                </select>
+                for priority
+                    <%= select_tag("priority-$package_count", [qw(extra optional standard important required)], $source_package_info->{$package->source}->{priority}) %>
+                and section 
+                    <%= select_tag("section-$package_count", [qw(admin cli-mono comm database devel debug doc editors electronics embedded fonts games gnome graphics gnu-r gnustep hamradio haskell httpd interpreters java kde kernel libs libdevel lisp localization mail math misc net news ocaml oldlibs otherosfs perl php python ruby science shells sound tex text utils vcs video web x11 xfce zope)], $source_package_info->{$package->source}->{section}) %>
             </span>
             <span class="compilation-props">
                 <input name="reject-<%= $package_count %>" type="submit" value="Reject" onclick="return confirm('Are you sure?')" />
