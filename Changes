@@ -1,4 +1,4 @@
-0.xx  Xxx Xxx xx xx:xx:xx XXXX xxxx
+0.85  Thu Jan 20 10:35:46 CET 2011
         - Compatibility with sbuild 0.60 (ie. Debian Squeeze)
         - Add workaround multi-arch packages (not proper support, but they'll
           sort of work), as in packages having more than one value in
@@ -10,6 +10,12 @@
           priority and section fields
         - Give sane defaults for comments, section and priority for incoming
           packages
+        - Add a command to request compilation of source packages in a given
+          distribution and architecture
+        - Fix some nasty problem when creating new builders (when passing a
+          trailing backslash in the builder path, that builder would not be
+          able to compile any package, and give really strange errors)
+        - A lot of refactoring and internal improvements
 
 0.81  Fri Aug 20 14:26:09 CEST 2010
         - Fix MANIFEST file and other minor packaging bugs
