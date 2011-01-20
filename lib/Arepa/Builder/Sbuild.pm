@@ -175,6 +175,10 @@ sub do_compile_package_from_repository {
 sub do_create {
     my ($self, $builder_dir, $mirror, $distribution, %opts) = @_;
 
+    # Strip trailing slash from the builder directory. If present, it
+    # triggers *very* weird errors when building any package with that
+    # builder (you'll see "cd: 1: can't cd to ..." in the log output)
+    $builder_dir =~ s,/$,,;
     my $builder_name = basename($builder_dir);
 
     my $chrootd_dir = "/etc/schroot/chroot.d";
