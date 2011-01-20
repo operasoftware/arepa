@@ -146,4 +146,24 @@ sub build_dsc {
     rmtree($temp_dir);
 }
 
+sub request_source_pkg_compilation {
+    my ($self, $source_pkg, $distro, $arch) = @_;
+
+    my $pkg_db = $self->_farm->package_db;
+    my $source_id = $pkg_db->get_source_package_id($source_pkg, '*latest*');
+    if ($source_id) {
+        my @targets = $self->_farm->get_compilation_targets($source_id);
+        if (grep { $_->[0] eq $arch && $_->[1] eq $distro } @targets) {
+            $pkg_db->request_compilation($source_id, $arch, $distro);
+        }
+        else {
+            die "Distribution $distro (arch $arch) is not a valid target " .
+                "for $source_pkg\n";
+        }
+    }
+    else {
+        die "Couldn't find source package $source_pkg\n";
+    }
+}
+
 1;

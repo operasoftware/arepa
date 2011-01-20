@@ -23,6 +23,7 @@ where <command> is one of:
 
 arepa build --pending
 arepa build --recompile 3
+arepa build source_package distro arch
 arepa build source_package.dsc builder_name
 
 arepa queue source_package.dsc
@@ -81,12 +82,18 @@ if ($command eq 'build') {
     elsif (defined $recompile) {
         $command_manager->recompile_request($recompile);
     }
-    else {
+    elsif (@ARGV == 3) {
+        my ($source_pkg, $distro, $arch) = @ARGV;
+        $command_manager->request_source_pkg_compilation($source_pkg,
+                                                         $distro,
+                                                         $arch);
+    }
+    elsif (@ARGV == 2) {
         my ($dsc_file, $builder) = @ARGV;
-        if (!defined $dsc_file || !defined $builder) {
-            show_help;
-        }
         $command_manager->build_dsc($dsc_file, $builder);
+    }
+    else {
+        show_help;
     }
 }
 elsif ($command eq 'queue') {
