@@ -1,3 +1,8 @@
+0.86  Fri Feb 25 14:26:06 CET 2011
+        - Compatibility with Mojolicious 1.0
+        - Support unsigned repositories, to make the functional tests
+          easier to execute
+
 0.85  Thu Jan 20 10:35:46 CET 2011
         - Compatibility with sbuild 0.60 (ie. Debian Squeeze)
         - Add workaround multi-arch packages (not proper support, but they'll
