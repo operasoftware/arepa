@@ -57,7 +57,7 @@ sub setup : Test(setup) {
                                        "expires INTEGER UNSIGNED NOT NULL, " .
                                        "UNIQUE(sid));' | " .
                                        "    sqlite3 '$session_db_path'");
-    
+
     # Make sure the upload queue exists
     mkpath($self->{config}->get_key('upload_queue:path'));
 
@@ -78,7 +78,7 @@ sub setup : Test(setup) {
 sub get {
     my ($self, $url) = @_;
 
-    $self->{t}->client->get($url, sub { $self->{t}->tx($_[-1]) })->process;
+    $self->{t}->client->get($url, sub { $self->{t}->tx($_[-1]) })->start;
 }
 
 sub login_ok {
