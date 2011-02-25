@@ -45,7 +45,9 @@ sub _approve_package {
                              %opts);
 
         if ($source_pkg_id) {
-            if (system("sudo -H -u arepa-master arepa sign >/dev/null") != 0) {
+            my $sign_cmd = "sudo -H -u arepa-master arepa sign >/dev/null";
+            if ($self->config->get_key('repository:signature') ne 'unsigned' &&
+                    system($sign_cmd) != 0) {
                 $self->_add_error("Couldn't sign repositories, check your " .
                                     "'sudo' configuration and " .
                                     "the README file");
