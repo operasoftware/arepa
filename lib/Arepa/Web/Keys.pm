@@ -30,7 +30,8 @@ sub import {
         print F $self->param("gpgkeys");
         close F;
 
-        $self->redirect_to('generic', action => 'index');
+        $self->redirect_to('generic', controller => 'keys',
+                                      action => 'index');
     }
     else {
         $self->show_view({ error => $! });
