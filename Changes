@@ -1,4 +1,5 @@
 X.XX  Xxx Xxx xx xx:xx:xx CET 2011
+        - Don't require the sqlite3 utility to run the tests
 
 0.86  Fri Feb 25 14:26:06 CET 2011
         - Compatibility with Mojolicious 1.0

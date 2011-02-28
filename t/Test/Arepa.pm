@@ -11,6 +11,7 @@ use File::Copy;
 use File::Basename;
 use File::Spec;
 use HTML::TreeBuilder;
+use DBI;
 
 use Arepa::Config;
 
@@ -52,11 +53,14 @@ sub setup : Test(setup) {
     # Prepare the session DB
     my $session_db_path = $self->{config}->get_key('web_ui:session_db');
     unlink $session_db_path;
-    system("echo 'CREATE TABLE session (sid VARCHAR(40) PRIMARY KEY, " .
-                                       "data TEXT, " .
-                                       "expires INTEGER UNSIGNED NOT NULL, " .
-                                       "UNIQUE(sid));' | " .
-                                       "    sqlite3 '$session_db_path'");
+    my $dbh = DBI->connect("dbi:SQLite:$session_db_path","","");
+    my $sth =
+        $dbh->prepare("CREATE TABLE session (sid VARCHAR(40) PRIMARY KEY, " .
+                                            "data TEXT, " .
+                                            "expires INTEGER UNSIGNED " .
+                                                               "NOT NULL, " .
+                                            "UNIQUE(sid));");
+    $sth->execute;
 
     # Make sure the upload queue exists
     mkpath($self->{config}->get_key('upload_queue:path'));
