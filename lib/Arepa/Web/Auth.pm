@@ -53,6 +53,7 @@ sub login {
     }
     $self->vars();
     $self->render('auth/login', layout => 'default');
+    return 0;
 }
 
 sub logout {
