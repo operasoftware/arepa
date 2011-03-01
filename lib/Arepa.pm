@@ -1,6 +1,6 @@
 package Arepa;
 
-our $VERSION = 0.87_01;
+our $VERSION = 0.87;
 our $AREPA_MASTER_USER = 'arepa-master';
 
 1;
