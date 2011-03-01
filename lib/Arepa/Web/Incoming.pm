@@ -45,12 +45,15 @@ sub _approve_package {
                              %opts);
 
         if ($source_pkg_id) {
-            my $sign_cmd = "sudo -H -u arepa-master arepa sign >/dev/null";
-            if ($self->config->get_key('repository:signature') ne 'unsigned' &&
-                    system($sign_cmd) != 0) {
-                $self->_add_error("Couldn't sign repositories, check your " .
-                                    "'sudo' configuration and " .
-                                    "the README file");
+            if (! $self->config->key_exists('repository:signature:id') ||
+                    $self->config->get_key('repository:signature:id') ne
+                        'unsigned') {
+                my $sign_cmd = "sudo -H -u arepa-master arepa sign >/dev/null";
+                if (system($sign_cmd) != 0) {
+                    $self->_add_error("Couldn't sign repositories, check " .
+                                      "your 'sudo' configuration and " .
+                                      "the README file");
+                }
             }
         }
         else {
