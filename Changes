@@ -1,4 +1,4 @@
-X.XX  Xxx Xxx xx xx:xx:xx CET 2011
+0.87  Tue Mar  1 13:53:57 CET 2011
         - Don't require the sqlite3 utility to run the tests, just
           DBD::SQLite
         - One more compatibility fix for Mojolicious 1.0 (login was
