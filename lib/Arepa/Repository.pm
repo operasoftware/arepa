@@ -312,7 +312,7 @@ sub sign_distribution {
         my $key_id = $self->get_config_key('repository:signature:id');
         $extra_options = " -u $key_id";
     }
-    my $gpg_cmd = "gpg --batch -abs $extra_options -o $release_file_path.gpg $release_file_path &>/dev/null";
+    my $gpg_cmd = "gpg --batch -abs $extra_options -o $release_file_path.gpg $release_file_path >/dev/null";
 
     return (system($gpg_cmd) == 0);
 }
