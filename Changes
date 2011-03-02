@@ -1,4 +1,6 @@
 0.xx  Xxx Xxx xx xx:xx:xx CET 2011
+        - Make it compatible with sbuild 0.60.8... and incompatible with
+          anything older, I imagine.
 
 0.87  Tue Mar  1 13:53:57 CET 2011
         - Don't require the sqlite3 utility to run the tests, just
