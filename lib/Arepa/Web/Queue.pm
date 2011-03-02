@@ -6,6 +6,7 @@ use warnings;
 use base 'Arepa::Web::Base';
 
 use English qw(-no_match_vars);
+use Encode;
 use Arepa::PackageDb;
 
 sub build_log {
@@ -35,7 +36,7 @@ sub build_log {
         };
         my $build_log_contents = join("", <F>);
         close F;
-        $self->show_view({log => $build_log_contents});
+        $self->show_view({log => decode('utf-8', $build_log_contents)});
     }
 }
 
