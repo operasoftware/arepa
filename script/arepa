@@ -90,7 +90,7 @@ if ($command eq 'build') {
     }
     elsif (@ARGV == 2) {
         my ($dsc_file, $builder) = @ARGV;
-        $command_manager->build_dsc($dsc_file, $builder);
+        $command_manager->build_dsc($builder, $dsc_file);
     }
     else {
         show_help;
