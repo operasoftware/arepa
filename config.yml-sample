@@ -12,6 +12,8 @@ repository:
     # The SPECIAL VALUE 'unsigned' means that the repository shouldn't be
     # signed. This is useful mostly so that automated tests don't require
     # having gpg installed
+  # URL to the repo. NO NEED to add a trailing slash
+  # url: http://localhost/arepa/repository
 # Where the upload queue is (some anonymous FTP upload directory, or
 # SSH-accesible queue or whatever)
 upload_queue:

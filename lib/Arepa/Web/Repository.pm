@@ -35,6 +35,26 @@ sub index {
                        comments => \%comments });
 }
 
+sub view {
+    my ($self) = @_;
+
+    if ($self->config->key_exists('repository:url')) {
+        my $repo_url = $self->config->get_key('repository:url');
+        my $package_name = $self->param('id');
+        my $package_dir = ($package_name =~ /^lib/) ?
+          substr($package_name, 0, 4) :
+          substr($package_name, 0, 1);
+        my $package_in_repo_url = $repo_url . "/pool/main/" . $package_dir .
+                                              "/" . $package_name;
+        $self->redirect_to($package_in_repo_url);
+    }
+    else {
+        $self->_add_error("No 'repository:url' configuration key found. Please make it point to your repository URL to use this feature");
+        $self->vars(errors => [$self->_error_list]);
+        $self->render('error');
+    }
+}
+
 sub sync {
     my ($self) = @_;
 
@@ -44,7 +64,13 @@ sub sync {
             $self->_add_error("Couldn't synchronize the repository with the command '$cmd'");
         }
     }
-    $self->redirect_to('home');
+    if ($self->_error_list) {
+        $self->vars(errors => [$self->_error_list]);
+        $self->render('error');
+    }
+    else {
+        $self->redirect_to('home');
+    }
 }
 
 1;

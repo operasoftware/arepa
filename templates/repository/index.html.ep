@@ -15,8 +15,13 @@
             (<% my $cnt2 = 0;
                 my @arches = @{$packages->{$package}->{$comp}->{$version}};
              foreach my $arch (@arches) {
-                if ($arch eq "source" && $comments->{$package}->{$version}) {
-%><span class="source-package-name" title="<%= $comments->{$package}->{$version} %>"><%= $arch %> (*)</span><%
+                if ($arch eq "source") {
+                    if ($comments->{$package}->{$version}) {
+%><a class="source-package-name" title="<%= $comments->{$package}->{$version} %>" href="<%= url_for('generic_id', controller => 'repository', action => 'view', id => $package) %>"><%= $arch %> (*)</a><%
+                    }
+                    else {
+%><a class="source-package-name" title="<%= $comments->{$package}->{$version} %>" href="<%= url_for('generic_id', controller => 'repository', action => 'view', id => $package) %>"><%= $arch %></a><%
+                    }
                 }
                 else {
                     %><%= $arch %><%
