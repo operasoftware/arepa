@@ -104,7 +104,6 @@ elsif ($command eq 'queue') {
     }
     $distro ||= 'unstable';
 
-    my $farm = Arepa::BuilderFarm->new($config_file);
     my %source_attrs = (distribution => $distro);
     open F, $dsc_file or croak("Can't open dsc file '$dsc_file'");
     while (my $line = <F>) {
@@ -125,8 +124,10 @@ elsif ($command eq 'queue') {
     print "distribution: $source_attrs{distribution})\n";
 
     # Queue the source package for compilation
-    my $source_id = $farm->register_source_package(%source_attrs);
-    $farm->request_package_compilation($source_id);
+    my $pdb = Arepa::PackageDb->new($config->get_key('package_db'));
+    my $source_id = $pdb->insert_source_package(%source_attrs);
+    $pdb->request_compilation($source_id, $source_attrs{architecture},
+                                          $source_attrs{distribution});
 }
 elsif ($command eq 'requeue') {
     my ($queue_id) = @ARGV;
