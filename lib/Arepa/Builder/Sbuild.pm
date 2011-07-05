@@ -60,7 +60,7 @@ sub get_builder_directory {
     my ($self, $builder_name) = @_;
 
     if ($self->builder_exists($builder_name)) {
-        return $self->_get_schroot_conf->{$builder_name}->{location};
+        return $self->_get_schroot_conf->{$builder_name}->{directory};
     }
     else {
         croak "Can't find schroot information for builder '$builder_name'\n";
