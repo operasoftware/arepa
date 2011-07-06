@@ -40,7 +40,8 @@ sub view {
 
     if ($self->config->key_exists('repository:url')) {
         my $repo_url = $self->config->get_key('repository:url');
-        my $package_name = $self->param('id');
+        my @url_parts = @{$self->tx->req->url->path->parts};
+        my $package_name = $url_parts[$#url_parts];
         my $package_dir = ($package_name =~ /^lib/) ?
           substr($package_name, 0, 4) :
           substr($package_name, 0, 1);
