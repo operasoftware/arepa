@@ -32,10 +32,10 @@ arepa queue source_package.dsc mydistro
 arepa requeue 3
 
 arepa showqueue
+arepa showqueue --status pending   # equivalent to previous
 arepa showqueue --status compilationfailed
 arepa showqueue --status compiling
 arepa showqueue --status compiled
-arepa showqueue --status pending
 
 arepa importgpgkey key.gpg
 
