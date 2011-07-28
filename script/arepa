@@ -145,7 +145,13 @@ elsif ($command eq 'requeue') {
         print STDERR "Check with arepa showqueue\n";
         exit 1;
     }
-    $pdb->mark_compilation_pending($queue_id);
+
+    if ($compilation_attrs{status} eq 'pending') {
+        print "The compilation request $queue_id is already pending\n";
+    }
+    else {
+        $pdb->mark_compilation_pending($queue_id);
+    }
 }
 elsif ($command eq 'showqueue') {
     my $status = 'pending';
