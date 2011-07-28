@@ -111,7 +111,7 @@ sub _call_sbuild {
     chdir $tmp_dir;
 
     # 2) Execute sbuild there and save output in last_build_log
-    $self->{last_build_log} = qx/sbuild $params $package_spec/;
+    $self->{last_build_log} = qx/sbuild -v $params $package_spec 2>&1/;
     my $r = $CHILD_ERROR;
 
     # 3) Move result to the result directory
