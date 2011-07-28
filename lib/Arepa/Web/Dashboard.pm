@@ -121,7 +121,7 @@ sub index {
     my @latest_compilations = ();
     my @latest_compilation_queue = $packagedb->
                         get_compilation_queue(status => 'compiled',
-                                              order  => "compilation_requested_at DESC",
+                                              order  => "compilation_completed_at DESC",
                                               limit  => 10);
     foreach my $comp (@latest_compilation_queue) {
         my %source_pkg_attrs =
