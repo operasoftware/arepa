@@ -150,8 +150,7 @@ sub compile_package_from_queue {
     my $build_log_dir = $self->{config}->get_key('dir:build_logs');
     my $build_log_path = File::Spec->catfile($build_log_dir,
                                              $request_id);
-    open F, ">$build_log_path" or
-                                croak "Can't write in $build_log_path";
+    open F, ">$build_log_path" or croak "Can't write in $build_log_path";
     print F $self->{last_build_log};
     close F;
 
