@@ -12,6 +12,7 @@ lib/Arepa/Builder/Test.pm
 lib/Arepa/BuilderFarm.pm
 lib/Arepa/CommandManager.pm
 lib/Arepa/Config.pm
+lib/Arepa/Job/CompilePackage.pm
 lib/Arepa/PackageDb.pm
 lib/Arepa/Repository.pm
 lib/Arepa/UI/Null.pm
@@ -29,6 +30,7 @@ lib/Mojolicious/Plugin/MoreTagHelpers.pm
 LICENSE
 Makefile.PL
 MANIFEST			This list of files
+migrations/001-theschwartz.sql
 README
 script/arepa
 script/arepa-admin
