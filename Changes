@@ -1,6 +1,8 @@
 x.xx  Xxx Xxx  x xx:xx:xx XXXX 2011
         - Fix the repository view action for packages with dots in
           their names
+        - Use TheSchwartz for the build daemon
+        - Minor improvements
 
 0.89  Tue Jul  5 12:22:35 CEST 2011
         - Another compatibility fix for sbuild 0.60.8
