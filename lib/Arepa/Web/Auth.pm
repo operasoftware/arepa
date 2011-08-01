@@ -9,6 +9,9 @@ use Digest::MD5;
 use YAML;
 use MojoX::Session;
 
+# Let session cookies live one week
+use constant TTL_SESSION_COOKIE => 60 * 60 * 24 * 7;
+
 sub _auth {
     my ($self, $username, $password) = @_;
 
@@ -21,8 +24,9 @@ sub login {
 
     my $session_db = $self->config->get_key('web_ui:session_db');
     my $dbh = DBI->connect("dbi:SQLite:dbname=$session_db");
-    my $session = MojoX::Session->new(tx    => $self->tx,
-                                      store => [dbi => {dbh => $dbh}]);
+    my $session = MojoX::Session->new(tx            => $self->tx,
+                                      store         => [dbi => {dbh => $dbh}],
+                                      expires_delta => TTL_SESSION_COOKIE);
 
     # Don't check anything for public URLs
     my $url_parts = $self->tx->req->url->path->parts;
