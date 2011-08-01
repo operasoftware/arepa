@@ -3,12 +3,14 @@ package Arepa::CommandManager;
 use strict;
 use warnings;
 
-use File::Path;
 use File::Temp;
+use TheSchwartz;
 
 use Arepa::BuilderFarm;
 use Arepa::Repository;
 use Arepa::Builder;
+use Arepa::Config;
+use Arepa::Job::CompilePackage;
 
 my $ui_module = 'Arepa::UI::Text';
 
@@ -46,45 +48,13 @@ sub _repository { $_[0]->{repository} }
 sub build_pending {
     my ($self) = @_;
 
-    my @pending_queue = $self->_farm->package_db->
-                               get_compilation_queue(status => 'pending');
-    foreach my $req (@pending_queue) {
-        # Just get the first one if there are multiple matches
-        my ($builder) = $self->_farm->
-                               get_matching_builders($req->{architecture},
-                                                     $req->{distribution});
-        if (!defined $builder) {
-            print STDERR "There aren't any builders for $req->{distribution}/$req->{architecture}???\n";
-            exit 1;
-        }
-        my $source_pkg_id = $req->{source_package_id};
-        my %source_attrs  = $self->_farm->package_db->
-                                   get_source_package_by_id($source_pkg_id);
-        $self->print("Compiling request id $req->{id}\n");
-        $self->print("$source_attrs{name} $source_attrs{full_version} ");
-        $self->print("(arch: $req->{architecture}, ");
-        $self->print("distro: $req->{distribution}) ");
-        $self->print("with builder $builder...\n");
-        my $temp_dir = File::Temp::tempdir();
-        if ($self->_farm->compile_package_from_queue($builder,
-                                                     $req->{id},
-                                                     output_dir => $temp_dir)) {
-            $self->print("*** SUCCESS ***\n");
-            foreach my $deb_package (glob("$temp_dir/*.deb")) {
-                $self->print("Adding $deb_package to the repository\n");
-                if ($self->_repository->
-                           insert_binary_package($deb_package,
-                                                 $req->{distribution})) {
-                    unlink $deb_package;
-                }
-            }
-            $self->_repository->sign_distribution($req->{distribution});
-        }
-        else {
-            $self->print("*** FAILED ***\n");
-        }
-        rmtree($temp_dir);
-    }
+    my $conf = Arepa::Config->new($self->{config_file});
+    my $client = TheSchwartz->new(databases => [
+        { dsn  => "dbi:SQLite:dbname=" . $conf->get_key('package_db') }
+    ]);
+    $client->can_do('Arepa::Job::CompilePackage');
+    $Arepa::Job::CompilePackage::PrintMessages = 1;
+    $client->work_until_done();
 }
 
 sub recompile_request {

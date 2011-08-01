@@ -121,7 +121,7 @@ sub index {
     my @latest_compilations = ();
     my @latest_compilation_queue = $packagedb->
                         get_compilation_queue(status => 'compiled',
-                                              order  => "compilation_requested_at DESC",
+                                              order  => "compilation_completed_at DESC",
                                               limit  => 10);
     foreach my $comp (@latest_compilation_queue) {
         my %source_pkg_attrs =
@@ -133,11 +133,13 @@ sub index {
     }
 
     my $is_synced;
+    my $remote_repo_path;
     if ($self->config->key_exists('web_ui:check_remote_repo') &&
             $self->config->get_key('web_ui:check_remote_repo') &&
             $self->config->key_exists('repository:remote_path')) {
         my $r = system("sudo -H -u arepa-master arepa issynced >/dev/null");
-        $is_synced = ($r == 0);
+        $is_synced        = ($r == 0);
+        $remote_repo_path = $self->config->get_key('repository:remote_path');
     }
 
     # Print everything -------------------------------------------------------
@@ -149,7 +151,8 @@ sub index {
                 builders            => \@builder_list,
                 failed_compilations => \@failed_compilations,
                 latest_compilations => \@latest_compilations,
-                is_synced           => $is_synced);
+                is_synced           => $is_synced,
+                remote_repo_path    => $remote_repo_path);
 
     $self->render(layout => 'default');
 }

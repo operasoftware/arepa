@@ -1,7 +1,12 @@
 package Arepa::PackageDb;
 
+use strict;
+use warnings;
+
 use Carp qw(croak);
 use DBI;
+use TheSchwartz;
+use Migraine;
 
 use constant SOURCE_PACKAGE_FIELDS => qw(name full_version
                                          architecture distribution
@@ -18,18 +23,22 @@ sub new {
     # See if the DB was there before connecting, so we know if we have to
     # create the table structure
     my $create_tables = 0;
-    if (-z $path || ! -e $path) {
+    if (!defined $path || -z $path || ! -e $path) {
         $create_tables = 1;
     }
 
+    my $dsn = "dbi:SQLite:dbname=" . ($path || "");
     my $self = bless {
-        path => $path,
-        dbh  => DBI->connect("dbi:SQLite:dbname=$path"),
+        path   => $path,
+        dbh    => DBI->connect($dsn),
     }, $class;
 
     if ($create_tables) {
         $self->create_db;
     }
+    my $migration_dir = '/usr/share/arepa/migrations';
+    my $migraine = Migraine->new($dsn, migrations_dir => $migration_dir);
+    $migraine->migrate;
 
     return $self;
 }
@@ -171,6 +180,16 @@ sub request_compilation {
                                                 compilation_requested_at)
                                         VALUES (?, ?, ?, ?, ?)");
     $sth->execute($source_id, $arch, $dist, "pending", $tstamp);
+
+    my $compilation_id = $self->_dbh->last_insert_id('%', '',
+                                                     'compilation_queue',
+                                                     'id');
+    my $theschwartz_db_conf = [
+        { dsn => "dbi:SQLite:dbname=" . $self->{path} }
+    ];
+    my $client = TheSchwartz->new(databases => $theschwartz_db_conf);
+    $client->insert('Arepa::Job::CompilePackage',
+                    { compilation_queue_id => $compilation_id });
 }
 
 sub get_compilation_queue {
@@ -252,6 +271,7 @@ sub _set_compilation_status {
 
 sub mark_compilation_started {
     my ($self, $compilation_id, $builder, $tstamp) = @_;
+    $tstamp ||= $self->default_timestamp;
     my $sth = $self->_dbh->prepare("UPDATE compilation_queue
                                        SET status                 = ?,
                                            builder                = ?,
@@ -274,6 +294,10 @@ sub mark_compilation_failed {
 sub mark_compilation_pending {
     my ($self, $compilation_id, $tstamp) = @_;
     $self->_set_compilation_status('pending', $compilation_id, $tstamp);
+    my $theschwartz_db_conf = [{ dsn => "dbi:SQLite:dbname=".$self->{path} }];
+    my $client = TheSchwartz->new(databases => $theschwartz_db_conf);
+    $client->insert('Arepa::Job::CompilePackage',
+                    { compilation_queue_id => $compilation_id });
 }
 
 1;
@@ -286,7 +310,12 @@ Arepa::PackageDb - Arepa package database API
 
 =head1 SYNOPSIS
 
- my $pdb = Arepa::PackageDb->new('path/to/packages.db');
+ # deprecated
+ my $deprecated_pdb = Arepa::PackageDb->new('path/to/packages.db');
+
+ # use this instead
+ my $pdb = Arepa::PackageDb->new($config);
+
  %attrs = (name         => 'dhelp',
            full_version => '0.6.17',
            architecture => 'all',
