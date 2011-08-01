@@ -271,6 +271,7 @@ sub _set_compilation_status {
 
 sub mark_compilation_started {
     my ($self, $compilation_id, $builder, $tstamp) = @_;
+    $tstamp ||= $self->default_timestamp;
     my $sth = $self->_dbh->prepare("UPDATE compilation_queue
                                        SET status                 = ?,
                                            builder                = ?,
