@@ -38,8 +38,9 @@ sub vars {
     my ($self, @args) = @_;
 
     $self->stash(
-        base_url     => $self->config->get_key('web_ui:base_url'),
-        is_synced    => undef,
+        base_url         => $self->config->get_key('web_ui:base_url'),
+        is_synced        => undef,
+        remote_repo_path => undef,
         @args);
 }
 
