@@ -11,6 +11,7 @@ use TheSchwartz;
 
 use Arepa::Job::CompilePackage;
 use Arepa::Config;
+use Arepa::PackageDb;
 
 our $VERSION = $Arepa::VERSION;
 
@@ -36,8 +37,13 @@ my $config_file = Cwd::abs_path($opts{c} || '/etc/arepa/config.yml');
 scalar @ARGV != 0 && do { HELP_MESSAGE; };
 
 my $config = Arepa::Config->new($config_file);
+my $db_path = $config->get_key('package_db');
+# We don't need the object, this is just to make sure that the
+# database exists and it has all the latest DB structure changes
+# applied
+Arepa::PackageDb->new($db_path);
 my $client = TheSchwartz->new(databases => [
-        { dsn  => "dbi:SQLite:dbname=" . $config->get_key('package_db') }
+        { dsn  => "dbi:SQLite:dbname=" . $db_path }
     ]);
 $client->can_do('Arepa::Job::CompilePackage');
 
