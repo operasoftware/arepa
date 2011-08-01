@@ -78,9 +78,12 @@ sub do_init {
         unless (-e $full_path) {
             $self->ensure_file_exists($full_path);
         }
-        my $mount_cmd = qq(mount -oro,bind "/etc/$etc_file" "$full_path");
+        my $mount_cmd = qq(mount --bind "/etc/$etc_file" "$full_path");
+        my $remount_cmd = qq(mount --bind -oremount,ro) .
+          qq( "/etc/$etc_file" "$full_path");
         $self->ui_module->print_title("Binding /etc/$etc_file to $full_path");
         system($mount_cmd);
+        system($remount_cmd);
     }
 }
 
