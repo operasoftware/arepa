@@ -41,10 +41,11 @@ my $client = TheSchwartz->new(databases => [
     ]);
 $client->can_do('Arepa::Job::CompilePackage');
 
-if (! -w $pid_file) {
+open PIDFILE, ">$pid_file" or do {
     print STDERR "Can't write the PID file to $pid_file\n";
     exit 1;
-}
+};
+close PIDFILE;
 
 my $daemon = Proc::Daemon->new;
 unless ($daemon->Init) {
