@@ -37,10 +37,14 @@ sub _error_list {
 sub vars {
     my ($self, @args) = @_;
 
+    my $auth_key = 'web_ui:authentication:type';
+    my $external_auth = ($self->config->key_exists($auth_key) &&
+                         $self->config->get_key($auth_key) eq 'external');
     $self->stash(
         base_url         => $self->config->get_key('web_ui:base_url'),
         is_synced        => undef,
         remote_repo_path => undef,
+        external_auth    => $external_auth,
         @args);
 }
 

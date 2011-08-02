@@ -35,5 +35,12 @@ web_ui:
   check_remote_repo: 0
   # SQLite DB for storing sessions
   session_db: /var/arepa/db/sessions.db
+  # Authentication type
+  authentication:
+    # Default, reading users and (MD5) passwords from "user_file" above
+    type: file_md5
+    # Useful if you want to make the authentication external, through
+    # your webserver
+    # type: external
 dir:
   build_logs: /var/arepa/build-logs

@@ -35,21 +35,37 @@ sub login {
         return 1;
     }
 
-
-    # Logging the user if it's giving credentials
-    if (defined $self->param('username') &&
-            defined $self->param('password')) {
-        if ($self->_auth($self->param('username'),
-                         $self->param('password'))) {
-            $session->create;
-            $session->flush;
+    # External authentication
+    my $auth_type_key = 'web_ui:authentication:type';
+    if ($self->config->key_exists($auth_type_key) &&
+            $self->config->get_key($auth_type_key) eq 'external') {
+        if ($ENV{REMOTE_USER}) {
+            $session->load;
+            if (! $session->sid || $session->is_expired) {
+                $session->create;
+                $session->flush;
+            }
         }
         else {
-            $self->vars("error" => "Invalid username or password");
+            $self->vars("error" => "Authentication error: your webserver is " .
+                                       "not passing the REMOTE_USER " .
+                                       "environment variable to the " .
+                                       "application");
         }
     }
     else {
-        $session->load;
+        if (defined $self->param('username') &&
+                defined $self->param('password')) {
+            if ($self->_auth($self->param('username'),
+                             $self->param('password'))) {
+                $session->create;
+                $session->flush;
+            } else {
+                $self->vars("error" => "Invalid username or password");
+            }
+        } else {
+            $session->load;
+        }
     }
 
     if ($session->sid) {
