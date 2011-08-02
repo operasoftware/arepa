@@ -3,6 +3,7 @@ package Arepa::Web::Auth;
 use strict;
 use warnings;
 
+use English qw(-no_match_vars);
 use base 'Arepa::Web::Base';
 use DBI;
 use Digest::MD5;
@@ -12,15 +13,27 @@ use MojoX::Session;
 # Let session cookies live one week
 use constant TTL_SESSION_COOKIE => 60 * 60 * 24 * 7;
 
-sub _auth {
-    my ($self, $username, $password) = @_;
+sub _check_credentials {
+    my ($self, $username, $password, $auth_type) = @_;
 
-    my %users = %{YAML::LoadFile($self->config->get_key('web_ui:user_file'))};
-    return ($users{$username} eq Digest::MD5::md5_hex($password));
+    if ($auth_type eq 'file_md5') {
+        my $user_file_path =
+          $self->config->get_key('web_ui:authentication:user_file');
+        my %users = %{YAML::LoadFile($user_file_path)};
+        return ($users{users}->{$username} eq Digest::MD5::md5_hex($password));
+    }
+    elsif (!defined $auth_type) {
+        my %users = %{YAML::LoadFile($self->config->
+                                            get_key('web_ui:user_file'))};
+        return ($users{$username} eq Digest::MD5::md5_hex($password));
+    }
+    else {
+        die "Broken configuration: unknown auth type '$auth_type'\n";
+    }
 }
 
-sub login {
-    my $self = shift;
+sub _get_session {
+    my ($self) = @_;
 
     my $session_db = $self->config->get_key('web_ui:session_db');
     my $dbh = DBI->connect("dbi:SQLite:dbname=$session_db");
@@ -32,13 +45,17 @@ sub login {
     my $url_parts = $self->tx->req->url->path->parts;
     if (scalar @$url_parts && $url_parts->[0] eq 'public') {
         $session->load;
-        return 1;
+        return $session;
     }
 
     # External authentication
     my $auth_type_key = 'web_ui:authentication:type';
-    if ($self->config->key_exists($auth_type_key) &&
-            $self->config->get_key($auth_type_key) eq 'external') {
+    my $auth_type;
+    if ($self->config->key_exists($auth_type_key)) {
+        $auth_type = $self->config->get_key($auth_type_key);
+    }
+
+    if ($auth_type eq 'external') {
         if ($ENV{REMOTE_USER}) {
             $session->load;
             if (! $session->sid || $session->is_expired) {
@@ -56,17 +73,37 @@ sub login {
     else {
         if (defined $self->param('username') &&
                 defined $self->param('password')) {
-            if ($self->_auth($self->param('username'),
-                             $self->param('password'))) {
-                $session->create;
-                $session->flush;
-            } else {
-                $self->vars("error" => "Invalid username or password");
+            my $valid_creds;
+            eval {
+                $valid_creds =
+                  $self->_check_credentials($self->param('username'),
+                                            $self->param('password'),
+                                            $auth_type);
+            };
+            if ($EVAL_ERROR) {
+                $self->vars("error" => $EVAL_ERROR);
+            }
+            else {
+                if ($valid_creds) {
+                    $session->create;
+                    $session->flush;
+                }
+                else {
+                    $self->vars("error" => "Invalid username or password");
+                }
             }
         } else {
             $session->load;
         }
     }
+
+    return $session;
+}
+
+sub login {
+    my $self = shift;
+
+    my $session = $self->_get_session;
 
     if ($session->sid) {
         return 1;

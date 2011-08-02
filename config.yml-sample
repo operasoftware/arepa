@@ -25,9 +25,6 @@ web_ui:
   public_url: http://localhost/cgi-bin/arepa/arepa.cgi
   # Base URL for CSS files and stuff
   base_url: /arepa
-  # This is the users/passwords allowed into the web UI. See example in
-  # users.yml-sample
-  user_file: /etc/arepa/users.yml
   # The trusted public keys (for package signatures) should be here
   gpg_homedir: /var/arepa/gnupg-web
   # Check if the remote repository is in sync with the local copy. Be sure to
@@ -37,10 +34,16 @@ web_ui:
   session_db: /var/arepa/db/sessions.db
   # Authentication type
   authentication:
-    # Default, reading users and (MD5) passwords from "user_file" above
+    # By default, read users and (MD5) passwords from "user_file"
+    # below. The other valid type is "external", to make the
+    # authentication through your web server. In the latter case,
+    # user_file is still read, but only for the "admins" section (a
+    # list of users that have admin privileges and can approve
+    # packages). Note that NOT setting this key below will trigger the
+    # backwards compatible mode for previous versions.
     type: file_md5
-    # Useful if you want to make the authentication external, through
-    # your webserver
-    # type: external
+    # This is the users/passwords allowed into the web UI. See example in
+    # users.yml-sample
+    user_file: /etc/arepa/users.yml
 dir:
   build_logs: /var/arepa/build-logs
