@@ -14,7 +14,7 @@ sub index {
     my $gpg_homedir = $self->config->get_key('web_ui:gpg_homedir');
     my $gpg_list_keys_cmd = "gpg --homedir '$gpg_homedir' " .
                                 "--no-default-keyring --list-keys 2>&1";
-    my $gpg_list_keys_output = encode('utf-8', `$gpg_list_keys_cmd`);
+    my $gpg_list_keys_output = `$gpg_list_keys_cmd`;
     $self->show_view({ cmd    => $gpg_list_keys_cmd,
                        output => $gpg_list_keys_output });
 }
