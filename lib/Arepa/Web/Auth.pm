@@ -74,8 +74,8 @@ sub _get_session {
                 my %users = %{YAML::LoadFile($user_file_path)};
                 my $is_admin = scalar(grep { $_ eq $ENV{REMOTE_USER} }
                                            @{$users{admins}});
-                $self->stash(username      => $ENV{REMOTE_USER},
-                             is_user_admin => $is_admin);
+                $session->data(username      => $ENV{REMOTE_USER},
+                               is_user_admin => $is_admin);
             }
         }
         else {
@@ -101,9 +101,9 @@ sub _get_session {
             else {
                 if ($valid_creds) {
                     $session->create;
+                    $session->data(username      => $self->param('username'),
+                                   is_user_admin => $is_admin);
                     $session->flush;
-                    $self->stash(username      => $self->param('username'),
-                                 is_user_admin => $is_admin);
                 }
                 else {
                     $self->vars("error" => "Invalid username or password");
@@ -114,6 +114,8 @@ sub _get_session {
         }
     }
 
+    $self->stash(username      => $session->data('username'),
+                 is_user_admin => $session->data('is_user_admin'));
     return $session;
 }
 
