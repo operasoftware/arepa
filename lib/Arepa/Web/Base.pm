@@ -34,6 +34,19 @@ sub _error_list {
     @{$self->{error_list} || []};
 }
 
+sub _only_if_admin {
+    my ($self, $f) = @_;
+
+    if ($self->stash('is_user_admin')) {
+        $f->();
+    }
+    else {
+        $self->vars(errors =>
+                    [{error => "You need to be an admin to do this!"}]);
+        $self->render('error');
+    }
+}
+
 sub vars {
     my ($self, @args) = @_;
 

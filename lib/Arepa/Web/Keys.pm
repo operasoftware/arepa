@@ -22,20 +22,22 @@ sub index {
 sub import {
     my ($self) = @_;
 
-    my $gpg_homedir = $self->config->get_key('web_ui:gpg_homedir');
-    my $gpg_import_cmd = "gpg --homedir '$gpg_homedir' " .
-                            "--no-default-keyring --import";
-    my $r = open F, "| $gpg_import_cmd";
-    if ($r) {
-        print F $self->param("gpgkeys");
-        close F;
+    $self->_only_if_admin(sub {
+        my $gpg_homedir = $self->config->get_key('web_ui:gpg_homedir');
+        my $gpg_import_cmd = "gpg --homedir '$gpg_homedir' " .
+                                "--no-default-keyring --import";
+        my $r = open F, "| $gpg_import_cmd";
+        if ($r) {
+            print F $self->param("gpgkeys");
+            close F;
 
-        $self->redirect_to('generic', controller => 'keys',
-                                      action => 'index');
-    }
-    else {
-        $self->show_view({ error => $! });
-    }
+            $self->redirect_to('generic', controller => 'keys',
+                                          action => 'index');
+        }
+        else {
+            $self->show_view({ error => $! });
+        }
+    });
 }
 
 1;

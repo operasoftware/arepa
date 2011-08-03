@@ -59,19 +59,21 @@ sub view {
 sub sync {
     my ($self) = @_;
 
-    if ($self->config->key_exists('repository:remote_path')) {
-        my $cmd = "sudo -H -u arepa-master arepa sync";
-        if (system("$cmd >/dev/null") != 0) {
-            $self->_add_error("Couldn't synchronize the repository with the command '$cmd'");
+    $self->_only_if_admin(sub {
+        if ($self->config->key_exists('repository:remote_path')) {
+            my $cmd = "sudo -H -u arepa-master arepa sync";
+            if (system("$cmd >/dev/null") != 0) {
+                $self->_add_error("Couldn't synchronize the repository with the command '$cmd'");
+            }
         }
-    }
-    if ($self->_error_list) {
-        $self->vars(errors => [$self->_error_list]);
-        $self->render('error');
-    }
-    else {
-        $self->redirect_to('home');
-    }
+        if ($self->_error_list) {
+            $self->vars(errors => [$self->_error_list]);
+            $self->render('error');
+        }
+        else {
+            $self->redirect_to('home');
+        }
+    });
 }
 
 1;

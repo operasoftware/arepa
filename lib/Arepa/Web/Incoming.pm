@@ -106,32 +106,34 @@ sub _remove_uploaded_package {
 sub process {
     my ($self) = @_;
 
-    my @field_ids = map { /^package-(\d+)$/; $1 }
-                        grep /^package-\d+$/,
-                             keys %{$self->tx->req->params->to_hash};
-    foreach my $field_id (@field_ids) {
-        if ($self->param("approve_all") ||
-                    $self->param("approve-$field_id")) {
-            $self->_approve_package(
-                $self->param("package-$field_id"),
-                priority => $self->param("priority-$field_id"),
-                section  => $self->param("section-$field_id"),
-                comments => $self->param("comments-$field_id"));
+    $self->_only_if_admin(sub {
+        my @field_ids = map { /^package-(\d+)$/; $1 }
+                            grep /^package-\d+$/,
+                                 keys %{$self->tx->req->params->to_hash};
+        foreach my $field_id (@field_ids) {
+            if ($self->param("approve_all") ||
+                        $self->param("approve-$field_id")) {
+                $self->_approve_package(
+                    $self->param("package-$field_id"),
+                    priority => $self->param("priority-$field_id"),
+                    section  => $self->param("section-$field_id"),
+                    comments => $self->param("comments-$field_id"));
+            }
+            elsif ($self->param("reject-$field_id")) {
+                my $changes_file_path = $self->param("package-$field_id");
+                my $path = $self->config->get_key('upload_queue:path')."/".
+                                basename($changes_file_path);
+                $self->_remove_uploaded_package($path);
+            }
         }
-        elsif ($self->param("reject-$field_id")) {
-            my $changes_file_path = $self->param("package-$field_id");
-            my $path = $self->config->get_key('upload_queue:path')."/".
-                            basename($changes_file_path);
-            $self->_remove_uploaded_package($path);
+        if ($self->_error_list) {
+            $self->vars(errors => [$self->_error_list]);
+            $self->render('error');
         }
-    }
-    if ($self->_error_list) {
-        $self->vars(errors => [$self->_error_list]);
-        $self->render('error');
-    }
-    else {
-        $self->redirect_to('home');
-    }
+        else {
+            $self->redirect_to('home');
+        }
+    });
 }
 
 1;

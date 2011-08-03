@@ -43,20 +43,22 @@ sub build_log {
 sub requeue {
     my ($self) = @_;
 
-    # Force it to be a number
-    my $request_id = 0 + $self->param('id');
-    my $pdb    = Arepa::PackageDb->new($self->config->get_key('package_db'));
-    eval {
-        $pdb->get_compilation_request_by_id($request_id);
-    };
-    if ($EVAL_ERROR) {
-        return $self->show_view('error.tmpl',
-                                {errors => [{output => "No such compilation request: '$request_id'"}]});
-    }
-    else {
-        $pdb->mark_compilation_pending($request_id);
-        $self->redirect_to('home');
-    }
+    $self->_only_if_admin(sub {
+        # Force it to be a number
+        my $request_id = 0 + $self->param('id');
+        my $pdb    = Arepa::PackageDb->new($self->config->get_key('package_db'));
+        eval {
+            $pdb->get_compilation_request_by_id($request_id);
+        };
+        if ($EVAL_ERROR) {
+            return $self->show_view('error.tmpl',
+                                    {errors => [{output => "No such compilation request: '$request_id'"}]});
+        }
+        else {
+            $pdb->mark_compilation_pending($request_id);
+            $self->redirect_to('home');
+        }
+    });
 }
 
 1;
