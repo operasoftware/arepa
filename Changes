@@ -1,7 +1,14 @@
 x.xx  Xxx Xxx  x xx:xx:xx XXXX 2011
+        - Use TheSchwartz for the compilation queue
+        - Add a daemon (arepa-job-daemon) to process that queue
+          constantly in the background
+        - Support an external authentication mechanism (if you wish
+          to integrate with Apache authentication, LDAP or whatever)
+        - Support the notion of administrators, that can modify stuff
+          (approve packages, add keys, requeue compilation failures,
+          etc)
         - Fix the repository view action for packages with dots in
           their names
-        - Use TheSchwartz for the build daemon
         - Minor improvements
 
 0.89  Tue Jul  5 12:22:35 CEST 2011
