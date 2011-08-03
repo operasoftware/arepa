@@ -11,6 +11,11 @@ sub startup {
     $self->secret("b1Tx3z.duN'tKn0Wbout4r3p4");
     $self->plugin("more_tag_helpers");
 
+    # Stash defaults
+    $self->defaults(is_synced        => undef,
+                    remote_repo_path => undef,
+                    is_user_admin    => 0);
+
     # Routes
     my $r = $self->routes;
     my $auth = $r->bridge->to('auth#login');

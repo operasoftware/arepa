@@ -7,9 +7,9 @@ use base 'Mojolicious::Controller';
 
 use Arepa::Config;
 
-my $DEFAULT_CONFIG_PATH = '/etc/arepa/config.yml';
+use constant DEFAULT_CONFIG_PATH => '/etc/arepa/config.yml';
 our $config      = undef;
-our $config_path = $ENV{AREPA_CONFIG} || $DEFAULT_CONFIG_PATH;
+our $config_path = $ENV{AREPA_CONFIG} || DEFAULT_CONFIG_PATH;
 
 if (-r $config_path) {
     $config = Arepa::Config->new($config_path);
@@ -42,8 +42,6 @@ sub vars {
                          $self->config->get_key($auth_key) eq 'external');
     $self->stash(
         base_url         => $self->config->get_key('web_ui:base_url'),
-        is_synced        => undef,
-        remote_repo_path => undef,
         external_auth    => $external_auth,
         @args);
 }
