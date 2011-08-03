@@ -20,17 +20,12 @@ sub _check_credentials {
         my $user_file_path =
           $self->config->get_key('web_ui:authentication:user_file');
         my %users = %{YAML::LoadFile($user_file_path)};
-        my ($valid_credentials, $is_admin) =
-          ($users{users}->{$username} eq Digest::MD5::md5_hex($password),
-           scalar(grep { $_ eq $username } @{$users{admins}}));
-        return ($valid_credentials, $is_admin);
+        return ($users{users}->{$username} eq Digest::MD5::md5_hex($password));
     }
     elsif (!defined $auth_type) {
         my %users = %{YAML::LoadFile($self->config->
                                             get_key('web_ui:user_file'))};
-        my $valid_credentials =
-          $users{$username} eq Digest::MD5::md5_hex($password);
-        return ($valid_credentials, 1);
+        return ($users{$username} eq Digest::MD5::md5_hex($password));
     }
     else {
         die "Broken configuration: unknown auth type '$auth_type'\n";
@@ -66,16 +61,8 @@ sub _get_session {
             $session->load;
             if (! $session->sid || $session->is_expired) {
                 $session->create;
+                $session->data(username => $ENV{REMOTE_USER});
                 $session->flush;
-
-                # Figure out if the logged in user is an admin
-                my $user_file_path =
-                  $self->config->get_key('web_ui:authentication:user_file');
-                my %users = %{YAML::LoadFile($user_file_path)};
-                my $is_admin = scalar(grep { $_ eq $ENV{REMOTE_USER} }
-                                           @{$users{admins}});
-                $session->data(username      => $ENV{REMOTE_USER},
-                               is_user_admin => $is_admin);
             }
         }
         else {
@@ -88,9 +75,9 @@ sub _get_session {
     else {
         if (defined $self->param('username') &&
                 defined $self->param('password')) {
-            my ($valid_creds, $is_admin);
+            my $valid_creds;
             eval {
-                ($valid_creds, $is_admin) =
+                $valid_creds =
                   $self->_check_credentials($self->param('username'),
                                             $self->param('password'),
                                             $auth_type);
@@ -101,8 +88,7 @@ sub _get_session {
             else {
                 if ($valid_creds) {
                     $session->create;
-                    $session->data(username      => $self->param('username'),
-                                   is_user_admin => $is_admin);
+                    $session->data(username => $self->param('username'));
                     $session->flush;
                 }
                 else {
@@ -112,6 +98,19 @@ sub _get_session {
         } else {
             $session->load;
         }
+    }
+
+    # Figure out if the logged in user is an admin
+    if (defined $auth_type) {
+        my $user_file_path =
+          $self->config->get_key('web_ui:authentication:user_file');
+        my %users = %{YAML::LoadFile($user_file_path)};
+        my $is_admin = scalar(grep { $_ eq $session->data('username'); }
+                              @{$users{admins}});
+        $session->data(is_user_admin => $is_admin);
+    }
+    else {
+        $session->data(is_user_admin => 1);
     }
 
     $self->stash(username      => $session->data('username'),
@@ -124,7 +123,7 @@ sub login {
 
     my $session = $self->_get_session;
 
-    if ($session->sid) {
+    if ($session->sid && ! $session->is_expired) {
         return 1;
     }
     $self->vars();
