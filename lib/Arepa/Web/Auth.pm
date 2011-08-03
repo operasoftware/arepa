@@ -20,12 +20,17 @@ sub _check_credentials {
         my $user_file_path =
           $self->config->get_key('web_ui:authentication:user_file');
         my %users = %{YAML::LoadFile($user_file_path)};
-        return ($users{users}->{$username} eq Digest::MD5::md5_hex($password));
+        my ($valid_credentials, $is_admin) =
+          ($users{users}->{$username} eq Digest::MD5::md5_hex($password),
+           scalar(grep { $_ eq $username } @{$users{admins}}));
+        return ($valid_credentials, $is_admin);
     }
     elsif (!defined $auth_type) {
         my %users = %{YAML::LoadFile($self->config->
                                             get_key('web_ui:user_file'))};
-        return ($users{$username} eq Digest::MD5::md5_hex($password));
+        my $valid_credentials =
+          $users{$username} eq Digest::MD5::md5_hex($password);
+        return ($valid_credentials, 1);
     }
     else {
         die "Broken configuration: unknown auth type '$auth_type'\n";
@@ -40,6 +45,7 @@ sub _get_session {
     my $session = MojoX::Session->new(tx            => $self->tx,
                                       store         => [dbi => {dbh => $dbh}],
                                       expires_delta => TTL_SESSION_COOKIE);
+
 
     # Don't check anything for public URLs
     my $url_parts = $self->tx->req->url->path->parts;
@@ -61,6 +67,15 @@ sub _get_session {
             if (! $session->sid || $session->is_expired) {
                 $session->create;
                 $session->flush;
+
+                # Figure out if the logged in user is an admin
+                my $user_file_path =
+                  $self->config->get_key('web_ui:authentication:user_file');
+                my %users = %{YAML::LoadFile($user_file_path)};
+                my $is_admin = scalar(grep { $_ eq $ENV{REMOTE_USER} }
+                                           @{$users{admins}});
+                $self->stash(username      => $ENV{REMOTE_USER},
+                             is_user_admin => $is_admin);
             }
         }
         else {
@@ -73,9 +88,9 @@ sub _get_session {
     else {
         if (defined $self->param('username') &&
                 defined $self->param('password')) {
-            my $valid_creds;
+            my ($valid_creds, $is_admin);
             eval {
-                $valid_creds =
+                ($valid_creds, $is_admin) =
                   $self->_check_credentials($self->param('username'),
                                             $self->param('password'),
                                             $auth_type);
@@ -87,6 +102,8 @@ sub _get_session {
                 if ($valid_creds) {
                     $session->create;
                     $session->flush;
+                    $self->stash(username      => $self->param('username'),
+                                 is_user_admin => $is_admin);
                 }
                 else {
                     $self->vars("error" => "Invalid username or password");
