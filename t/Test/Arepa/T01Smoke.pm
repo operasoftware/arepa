@@ -76,7 +76,7 @@ sub test_compile_package : Test(3) {
           "approve-1"   => "Approve",
         });
 
-    # Should be queued now,
+    # Should be queued now, let's compile it
     my $command_manager = Arepa::CommandManager->new($self->config_path);
     $command_manager->build_pending;
 
