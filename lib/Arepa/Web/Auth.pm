@@ -16,7 +16,7 @@ use constant TTL_SESSION_COOKIE => 60 * 60 * 24 * 7;
 sub _check_credentials {
     my ($self, $username, $password, $auth_type) = @_;
 
-    if ($auth_type eq 'file_md5') {
+    if (defined $auth_type && $auth_type eq 'file_md5') {
         my $user_file_path =
           $self->config->get_key('web_ui:authentication:user_file');
         my %users = %{YAML::LoadFile($user_file_path)};
@@ -56,7 +56,7 @@ sub _get_session {
         $auth_type = $self->config->get_key($auth_type_key);
     }
 
-    if ($auth_type eq 'external') {
+    if (defined $auth_type && $auth_type eq 'external') {
         if ($ENV{REMOTE_USER}) {
             $session->load;
             if (! $session->sid || $session->is_expired) {
