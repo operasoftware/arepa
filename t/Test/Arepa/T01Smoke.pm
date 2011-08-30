@@ -61,7 +61,7 @@ sub test_approve_package : Test(3) {
        "After approving, there should be no incoming packages in the queue");
 }
 
-sub test_compile_package : Test(3) {
+sub test_compile_package : Test(2) {
     my $self = shift;
 
     $self->queue_files(glob("t/webui/fixtures/foobar_1.0*"));
