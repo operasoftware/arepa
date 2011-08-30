@@ -22,6 +22,7 @@ sub config_path {
 
     if (@_) {
         $self->{config_path} = shift;
+        $ENV{AREPA_CONFIG_FILE} = $self->config_path;   # For TheSchwartz
     }
     return $self->{config_path};
 }
@@ -30,7 +31,7 @@ sub config { $_[0]->{config}; }
 
 sub t {
     my $self = shift;
-    $self->{t} ||= Test::Mojo->new(app => 'Arepa::Web');
+    $self->{t} ||= Test::Mojo->new('Arepa::Web');
     return $self->{t};
 }
 
@@ -82,7 +83,7 @@ sub setup : Test(setup) {
 sub get {
     my ($self, $url) = @_;
 
-    $self->{t}->client->get($url, sub { $self->{t}->tx($_[-1]) })->start;
+    $self->{t}->ua->get($url);
 }
 
 sub login_ok {
@@ -132,8 +133,9 @@ sub incoming_packages {
 sub queue_files {
     my ($self, @files) = @_;
 
+    my $upload_queue_path = $self->config->get_key('upload_queue:path');
     foreach my $file (@files) {
-        copy($file, $self->config->get_key('upload_queue:path'));
+        copy($file, $upload_queue_path);
     }
 }
 
