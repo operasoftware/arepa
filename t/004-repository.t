@@ -34,7 +34,6 @@ is($r->get_config_key('package_db'),
 is($r->get_config_key('upload_queue:path'),
    '/home/zoso/src/apt-web/incoming',
    "Nested configuration key should work");
-unlink $r->get_config_key('package_db');
 
 ok($r->config_key_exists('package_db'),
    "Existing config keys should be recognised");
