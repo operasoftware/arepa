@@ -310,12 +310,7 @@ Arepa::PackageDb - Arepa package database API
 
 =head1 SYNOPSIS
 
- # deprecated
- my $deprecated_pdb = Arepa::PackageDb->new('path/to/packages.db');
-
- # use this instead
- my $pdb = Arepa::PackageDb->new($config);
-
+ my $pdb = Arepa::PackageDb->new('path/to/packages.db');
  %attrs = (name         => 'dhelp',
            full_version => '0.6.17',
            architecture => 'all',
