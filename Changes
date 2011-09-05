@@ -1,4 +1,4 @@
-x.xx  Xxx Xxx  x xx:xx:xx XXXX 2011
+0.90  Mon Sep  5 16:59:31 CEST 2011
         - Use TheSchwartz for the compilation queue
         - Add a daemon (arepa-job-daemon) to process that queue
           constantly in the background
