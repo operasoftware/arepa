@@ -18,7 +18,7 @@ sub work {
     my $class = shift;
     my TheSchwartz::Job $job = shift;
 
-    my $config_file = $ENV{AREPA_CONFIG_FILE} || '/etc/arepa/config.yml';
+    my $config_file = $ENV{AREPA_CONFIG} || '/etc/arepa/config.yml';
     my $farm = Arepa::BuilderFarm->new($config_file);
 
     my $id = $job->arg->{compilation_queue_id};

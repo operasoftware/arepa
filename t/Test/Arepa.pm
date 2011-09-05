@@ -22,7 +22,7 @@ sub config_path {
 
     if (@_) {
         $self->{config_path} = shift;
-        $ENV{AREPA_CONFIG_FILE} = $self->config_path;   # For TheSchwartz
+        $ENV{AREPA_CONFIG} = $self->{config_path};   # Update for TheSchwartz
     }
     return $self->{config_path};
 }
@@ -83,7 +83,7 @@ sub setup : Test(setup) {
 sub get {
     my ($self, $url) = @_;
 
-    $self->{t}->ua->get($url);
+    $self->{t}->tx($self->{t}->ua->get($url));
 }
 
 sub login_ok {
@@ -96,7 +96,8 @@ sub login_ok {
                                    password => "testuser's password"});
     $self->t->get_ok('/')->
               status_is(200);
-    unlike($self->t->tx->res->body, qr/arepa_test_logged_out/);
+    unlike($self->t->tx->res->body, qr/arepa_test_logged_out/,
+           "Should NOT find the logged out mark on the page");
 }
 
 sub incoming_packages {

@@ -48,7 +48,7 @@ sub _only_if_admin {
 }
 
 sub vars {
-    my ($self, @args) = @_;
+    my ($self, %args) = @_;
 
     my $auth_key = 'web_ui:authentication:type';
     my $external_auth = ($self->config->key_exists($auth_key) &&
@@ -56,7 +56,7 @@ sub vars {
     $self->stash(
         base_url         => $self->config->get_key('web_ui:base_url'),
         external_auth    => $external_auth,
-        @args);
+        %args);
 }
 
 sub show_view {

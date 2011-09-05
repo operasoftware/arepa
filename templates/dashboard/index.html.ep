@@ -39,7 +39,7 @@
 <div id="main">
 <h1>Packages pending approval</h1>
 
-<% if (scalar @$packages == 0) { %>
+<% if (scalar(@$packages) == 0) { %>
 No packages pending in <tt><%= $config->get_key('upload_queue:path') %></tt>
 <% }
    else { %>
