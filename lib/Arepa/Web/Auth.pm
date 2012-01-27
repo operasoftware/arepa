@@ -42,13 +42,6 @@ sub _get_session {
                                       expires_delta => TTL_SESSION_COOKIE);
 
 
-    # Don't check anything for public URLs
-    my $url_parts = $self->tx->req->url->path->parts;
-    if (scalar @$url_parts && $url_parts->[0] eq 'public') {
-        $session->load;
-        return $session;
-    }
-
     # External authentication
     my $auth_type_key = 'web_ui:authentication:type';
     my $auth_type;
@@ -126,6 +119,14 @@ sub login {
     if ($session->sid && ! $session->is_expired) {
         return 1;
     }
+    else {
+        # Don't check anything for public URLs
+        my $url_parts = $self->tx->req->url->path->parts;
+        if (scalar @$url_parts && $url_parts->[0] eq 'public') {
+            return 1;
+        }
+    }
+
     $self->vars();
     $self->render('auth/login', layout => 'default');
     return 0;
