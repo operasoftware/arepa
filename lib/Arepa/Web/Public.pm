@@ -67,9 +67,15 @@ sub rss {
         }
     }
 
-    my $public_url = $self->config->get_key('web_ui:cgi_base_url');
+    my $public_url;
+    if ($self->config->key_exists('web_ui:cgi_base_url')) {
+        $public_url = $self->config->get_key('web_ui:cgi_base_url');
+    }
     if ($self->config->key_exists('web_ui:public_url')) {
         $public_url = $self->config->get_key('web_ui:public_url');
+    }
+    if (!defined $public_url) {
+        die "Couldn't find configuration keys web_ui:public_url or web_ui:cgi_base_url";
     }
 
     foreach my $pkg (@packages) {
