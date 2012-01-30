@@ -22,7 +22,7 @@ sub _retarded_escape {
     return $value;
 }
 
-sub rss {
+sub rss_queue {
     my ($self) = @_;
 
     my $rss = XML::RSS->new(version => '2.0');
@@ -108,7 +108,7 @@ sub rss {
     $self->render_text($rss->as_string);
 }
 
-sub latest_packages_rss {
+sub rss_repository {
     my ($self) = @_;
 
     my $rss = XML::RSS->new(version => '2.0');
