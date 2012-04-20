@@ -16,6 +16,8 @@ WriteMakefile(
                               'MojoX::Session'             => 0,
                               'HTML::Tree'                 => 0,
                               'Migraine'                   => 0.51,
-                              'Test::Class'                => 0},
+                              'Test::Class'                => 0,
+                              'TheSchwartz'                => 1.10,
+                              'Proc::Daemon'               => 0.04},
     'test'                => { TESTS => 't/*.t t/*/*.t' },
 );
