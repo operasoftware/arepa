@@ -128,7 +128,8 @@ sub request_source_pkg_compilation {
         }
         else {
             die "Distribution $distro (arch $arch) is not a valid target " .
-                "for $source_pkg\n";
+              "for $source_pkg.\nValid targets are: " .
+                join(", ", map { "$_->[0]/$_->[1]" } @targets) . "\n";
         }
     }
     else {
