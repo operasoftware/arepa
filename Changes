@@ -1,4 +1,6 @@
-x.xx  Xxx Xxx xx xx:xx:xx CEST xxxx
+0.92  Fri Apr 20 16:26:19 CEST 2012
+        - Add missing dependencies: TheSchwartz and Proc::Daemon
+        - Small improvements in error messages and instructions
 
 0.91  Mon Jan 30 10:07:19 CEST 2011
         - Add an RSS feed for the latest packages added to the repo
