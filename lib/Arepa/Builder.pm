@@ -145,11 +145,20 @@ EOD
     open F, ">$path" or croak "Can't write builder configuration in $path";
     print F $config_string;
     close F;
-    print "You can tweak the builder configuration in $path\n";
 
     my $sources_list_path = File::Spec->catfile($builder_dir, "etc", "apt",
                                                 "sources.list");
-    print "You should also review $sources_list_path\n";
+
+    $self->ui_module->print_title("Done");
+    print <<EOM
+
+Next steps
+----------
+* Tweak the builder configuration in $path
+* Review $sources_list_path
+* Add all relevant repository keys to the builder (eg. "apt-key add ...")
+
+EOM
 }
 
 1;
