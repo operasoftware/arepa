@@ -123,10 +123,19 @@ sub request_source_pkg_compilation {
     my $source_id = $pkg_db->get_source_package_id($source_pkg, '*latest*');
     if ($source_id) {
         my @targets = $self->_farm->get_compilation_targets($source_id);
-        if (grep { $_->[0] eq $arch && $_->[1] eq $distro } @targets) {
-            $pkg_db->request_compilation($source_id, $arch, $distro);
+        my $target_found = 0;
+        foreach my $target (@targets) {
+            my ($target_arch, $target_distro) = @$target;
+
+            if ((!defined($arch) || $target_arch eq $arch) &&
+                  $target_distro eq $distro) {
+                $target_found = 1;
+                $pkg_db->request_compilation($source_id,
+                                             $target_arch,
+                                             $target_distro);
+            }
         }
-        else {
+        if (! $target_found) {
             die "Distribution $distro (arch $arch) is not a valid target " .
               "for $source_pkg.\nValid targets are: " .
                 join(", ", map { "$_->[0]/$_->[1]" } @targets) . "\n";
