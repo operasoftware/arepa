@@ -1,3 +1,8 @@
+x.xx  Xxx Xxx xx xx:xx:xx XXXX xxxx
+        - Allow easy recompilation of source packages in all
+          relevant distribution/architecture combinations
+        - Add access key for the "Synchronise" option
+
 0.92  Fri Apr 20 16:26:19 CEST 2012
         - Add missing dependencies: TheSchwartz and Proc::Daemon
         - Small improvements in error messages and instructions
