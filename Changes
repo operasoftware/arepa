@@ -1,4 +1,4 @@
-x.xx  Xxx Xxx xx xx:xx:xx XXXX xxxx
+0.93  Thu May 30 13:19:46 CEST 2013
         - Allow easy recompilation of source packages in all
           relevant distribution/architecture combinations
         - Add access key for the "Synchronise" option
